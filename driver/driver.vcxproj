@@ -1,0 +1,201 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="driver.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="benchmark.c" />
+    <ClCompile Include="boot_pass.c" />
+    <ClCompile Include="crypto_functions.c" />
+    <ClCompile Include="crypto_head.c" />
+    <ClCompile Include="data_wipe.c" />
+    <ClCompile Include="debug.c" />
+    <ClCompile Include="devhook.c" />
+    <ClCompile Include="device_io.c" />
+    <ClCompile Include="disk_info.c" />
+    <ClCompile Include="driver.c" />
+    <ClCompile Include="dump_filter.c" />
+    <ClCompile Include="dump_helpers.c" />
+    <ClCompile Include="dump_hook.c" />
+    <ClCompile Include="enc_dec.c" />
+    <ClCompile Include="fast_crypt.c" />
+    <ClCompile Include="header_io.c" />
+    <ClCompile Include="io_control.c" />
+    <ClCompile Include="minifilter.c" />
+    <ClCompile Include="misc.c" />
+    <ClCompile Include="misc_irp.c" />
+    <ClCompile Include="misc_mem.c" />
+    <ClCompile Include="misc_volume.c" />
+    <ClCompile Include="mount.c" />
+    <ClCompile Include="pnp_irp.c" />
+    <ClCompile Include="prng.c" />
+    <ClCompile Include="readwrite.c" />
+    <ClCompile Include="ssd_trim.c" />
+    <ClCompile Include="storage.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="dump_filter.h" />
+    <ClInclude Include="dump_helpers.h" />
+    <ClInclude Include="include\benchmark.h" />
+    <ClInclude Include="include\boot_pass.h" />
+    <ClInclude Include="include\crypto_functions.h" />
+    <ClInclude Include="include\crypto_head.h" />
+    <ClInclude Include="include\data_wipe.h" />
+    <ClInclude Include="include\debug.h" />
+    <ClInclude Include="include\devhook.h" />
+    <ClInclude Include="include\device_io.h" />
+    <ClInclude Include="include\disk_info.h" />
+    <ClInclude Include="include\driver.h" />
+    <ClInclude Include="include\dump_hook.h" />
+    <ClInclude Include="include\enc_dec.h" />
+    <ClInclude Include="include\fast_crypt.h" />
+    <ClInclude Include="include\header_io.h" />
+    <ClInclude Include="include\inbv.h" />
+    <ClInclude Include="include\io_control.h" />
+    <ClInclude Include="include\minifilter.h" />
+    <ClInclude Include="include\misc.h" />
+    <ClInclude Include="include\misc_irp.h" />
+    <ClInclude Include="include\misc_mem.h" />
+    <ClInclude Include="include\misc_volume.h" />
+    <ClInclude Include="include\mount.h" />
+    <ClInclude Include="include\pnp_irp.h" />
+    <ClInclude Include="include\prng.h" />
+    <ClInclude Include="include\readwrite.h" />
+    <ClInclude Include="include\ssd_trim.h" />
+    <ClInclude Include="include\storage.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\crypto\crypto_fast\crypto_fast.vcxproj">
+      <Project>{847784b5-6850-4a7d-91de-d6a98bf726ea}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{CA85D364-0863-4503-9E4D-0473C0668A4D}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>dcrypt</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v141</PlatformToolset>
+    <SpectreMitigation>false</SpectreMitigation>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)Bin\$(Configuration)_i386\</OutDir>
+    <IntDir>$(SolutionDir)Bin\$(Configuration)_i386\obj\$(ProjectName)\</IntDir>
+    <GenerateManifest>false</GenerateManifest>
+    <TargetExt>.sys</TargetExt>
+    <TargetName>dcrypt</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)Bin\$(Configuration)_amd64\</OutDir>
+    <IntDir>$(SolutionDir)Bin\$(Configuration)_amd64\obj\$(ProjectName)\</IntDir>
+    <GenerateManifest>false</GenerateManifest>
+    <TargetExt>.sys</TargetExt>
+    <TargetName>dcrypt</TargetName>
+    <IncludePath>C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\km;$(IncludePath)</IncludePath>
+    <LibraryPath>c:\Program Files (x86)\Windows Kits\10\Lib\10.0.17763.0\km\x64;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>_X86_;IS_DRIVER</PreprocessorDefinitions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <StringPooling>true</StringPooling>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <AdditionalIncludeDirectories>$(DDK)\inc\ddk;$(DDK)\inc\crt;$(DDK)\inc\api;$(SolutionDir)_include_;$(SolutionDir)include;include;$(SolutionDir)crypto\crypto_fast</AdditionalIncludeDirectories>
+      <WarningLevel>Level3</WarningLevel>
+      <CallingConvention>StdCall</CallingConvention>
+      <IgnoreStandardIncludePath>true</IgnoreStandardIncludePath>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+    </ClCompile>
+    <Link>
+      <SubSystem>Native</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>$(DDK)\lib\wlh\i386</AdditionalLibraryDirectories>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <Driver>WDM</Driver>
+      <EntryPointSymbol>DriverEntry</EntryPointSymbol>
+      <RandomizedBaseAddress>
+      </RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <BaseAddress>0x10000</BaseAddress>
+      <AdditionalOptions>/pdbaltpath:%_PDB% %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>ntoskrnl.lib;hal.lib;fltmgr.lib</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent />
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)_include_</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>_AMD64_;IS_DRIVER;_NO_CRT_STDIO_INLINE</PreprocessorDefinitions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <StringPooling>true</StringPooling>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <AdditionalIncludeDirectories>$(DDK)\inc\ddk;$(DDK)\inc\crt;$(DDK)\inc\api;$(SolutionDir)_include_;$(SolutionDir)include;include;$(SolutionDir)crypto\crypto_fast</AdditionalIncludeDirectories>
+      <WarningLevel>Level3</WarningLevel>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+    </ClCompile>
+    <Link>
+      <SubSystem>Native</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>ntoskrnl.lib;hal.lib;fltmgr.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(DDK)\lib\wlh\amd64</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <Driver>WDM</Driver>
+      <EntryPointSymbol>DriverEntry</EntryPointSymbol>
+      <RandomizedBaseAddress>
+      </RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <BaseAddress>0x10000</BaseAddress>
+      <AdditionalOptions>/pdbaltpath:%_PDB% %(AdditionalOptions)</AdditionalOptions>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Link>
+    <PostBuildEvent />
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)_include_</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

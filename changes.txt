@@ -1,0 +1,190 @@
+[09.07.2014] - 1.1.846.118
+  [+] More accurate handling writing of the volume header. Reduced risk of data loss in the encryption process.
+  [*] Small Windows 8 compatibility bugfixes.
+
+[25.06.2014] - 1.1.836.118
+  [+] Added compatibility with Windows 8.0 and 8.1.
+  [*] Fixed BSOD when decrypting of formatted volume.
+  [*] Internal improvements of code quality.
+  
+[01.01.2014] - 1.0.802.118
+  [*] Fixed bug with a lost memory on some notebooks (e820 map enlarged to 64 items).
+  [*] Improved compatibility with perfmon (IO operation are showed in Disk Activity tab).
+  [*] Internal improvements of code quality.
+
+[03.01.2013] - 1.0.757.115
+  [+] Added workaround for AES-NI support on Hyper-V.
+  [+] Added internal self-tests for PKDBF2 and XTS engines.
+  [*] Fixed bug with data loss with some cases on VIA-PadLock.
+  [*] Fixed regression with SSD detection on Windows XP.
+  [*] Fixed bug with no FS creation when formatting from GUI.
+
+[14.12.2012] - 1.0.744.115
+  [*] Project moved to Visual Studio 2010
+  [+] Improved 3tb+ disks detection.
+
+[23.05.2011] - 1.0.732.111
+  - Removed compatibility with Windows 2000
+  + Added new optimizations special for SSD and fast RAID's
+  + Added TRIM support for SSD and "disable TRIM" option.
+  + Added optimized for SSE2 and AVX implementation of the Serpent.
+  + Improved compatibility with third-party bootloaders.
+  + Added ability to change the size of the encrypted partitions.
+  + Improved compatibility of PXE booting.
+  + Added 'Deny access to unencrypted devices' option.
+  + New command-line options.
+  + More stable benchmark results.
+  + Internal architecture improvements.
+  + Small bugfixes.
+
+[05.04.2010] - 0.9
+  + Added preventing system power state changes during the encryption process.
+  + Added support for Intel AES-NI instructions.
+  + Added small bootloader only with AES. This is needed for compatibility with stupid and greedy BIOS'es in PXE boot mode.
+  + Added Vista-PE plugin.
+  + Improved volume formatting speed.  
+  + Improved bootloader PXE compatibility.  
+  + New optimization for AES and XTS mode, more perfomance now!
+  + Greatly improved performance of AES for VIA processors.
+  + Fixed displaying program icon in the "Add or Remove Programs".
+  + Fixed incompatibility with Parallels Workstation BIOS.
+  + Fixed many small bugs.
+
+[28.07.2009] - 0.8
+  + Added support for buggy XP configurations on Eee PC notebook.
+  + Added support for Windows Embedded custom builds.
+  + Improved compatibility with some server motherboards.
+  + Improved compatibility with AHCI mode in Intel chipsets.
+  + Improved compatibility with Windows 7.
+  + And some minor improvements.
+ 
+[31.05.2009] - 0.7
+  + Added CD encryption feature.
+  + Added 'load boot disk MBR' option to invalid password actions in bootloader.
+  + Added support for booting from software RAID1 volumes.
+  + Added exFAT support.
+  + Added compatibility with Windows 7.
+  + Improved SCSI disks name detection.
+  + Added new implementation of AES optimized for CPUs with small instruction cache.
+  + Added VIA PadLock AES acceleration support.
+  + Added installer.
+  + Added new command-line keys.
+  + More stable benchmark results.
+  + Added automatically delete mount points added when mounting.
+  + Added support for disks with large sector size.
+  + Added correct signature of drivers and other executeable files (special thanks to ReactOS Foundation).
+  + Small bugfixes.  
+
+[19.01.2009] - 0.6a
+  + Improved $dcsys$ file protection.
+  + Added optional hiding $dcsys$ file.
+  + Added resuming encryption after exit from hibernate mode.
+  + Fixed bug with HDD name detection.
+  + Fixed bug with Vista hang on shutdown.
+  + Small bugfixes in GUI.
+
+[14.01.2009] - 0.6
+  + Fixed bug with volume corruption when defragmenting.
+  + Fixed incompatibility with PGP WDE 9.x
+
+[26.12.2008] - 0.5
+  - Removed compatibility with TrueCrypt and previous DiskCryptor versions.
+  - Removed LRW encryption mode.
+  - Removed SHA1-HMAC PRF function.
+  + Added keyfiles support.
+  + Password length limit increased to 128 symbols.
+  + Resolved many boot-encryption issues.
+  + Added hibernation support in partial-encrypted state.
+  + Many hardware compatibility fixes.
+
+
+[27.09.2008] - 0.4
+  + Added Twofish, Serpent ciphers and cipher chains.
+  + Added XTS encryption mode.
+  + Added HMAC-SHA-512 Pkcs5.2 PRF function.
+  + Added partition re-encrypt operation.
+  + Added partition formatting with encryption.
+  + Added backup/restore volume header operations.
+  + Added mount point management when mounting/unmounting.
+  + Added key '-p' to console version for entering password from command-line.
+  + Improved multi-cpu parallelized encryption.
+  + Improved embedded benchmark.
+  + Improved compatibility with buggy and stupid BIOSes.
+  -  Removed floppy bootloaders support.
+  + Fixed many bugs.
+
+[17.07.2008] - 0.3
+  + Security improvement: added data wiping option in encryption process.
+  + Security improvement: added clearing BIOS keyboard buffer to prevent password leakage (see http://www.ouah.org/Bios_Information_Leakage.txt for more details).
+  + Improved autorun on Windows Vista.
+  + Improved random number generator, more entropy sources and very strong security design.
+  + Improved removable devices encryption, more correct IRP handling.
+  + Optimized internal driver routines, improved synchronization.
+  + Added console DiskCryptor version.
+  + Added support for installing bootloader to CD or any bootable device.
+  + Added "embedded password" feature in bootloader.
+  + Added multi boot and advanced booting options.
+  + Added limited QWERTZ and AZERTY keyboard layouts support when pre-boot authentication.
+  + Added power safe encryption, encryption stopping and reverting.
+  + Added password prompt when decryption and changing password.
+  + Added "advanced io queue" options. This option enable multi CPU i/o requests splitting (increase perfomance to 50-400%) 
+  + Added optional authentication timeout to pre-boot authentication.
+  + Added 'retry authentication' option to pre-boot authentication.
+  + Added disk speed testing tool
+  + Added embedded volume header backup. Backup header encrypted with different salt and needed for resiliency.
+  + Added skipping bad sectors when encryption.
+  + Added password strength meter.
+  + Small bug fixes.
+
+[18.03.2008] - 0.2.6 beta
+  + Fixed bug with possible encryption error on volumes bigger that 4gb
+  + Fixed bug with impossible to use "Shadow copy service" in encrypted volume on win2003.
+  + Fixed bug with encryption process may be stopped if other process has high CPU usage.
+  + Security improvement: When changing a password made erase volume header by Gutmann method to prevent restore previous password by magnetic microscopy 
+  + Security improvement: added avoiding LRW weakness http://grouper.ieee.org/groups/1619/email/msg00923.html
+  + Security improvement: added automatically erasing keys in memory when shutdown, reboot or hibernate to prevent "cold boot" attacks.
+  + Added dynamical (LDM) disks support.
+  + New bootloader architecture
+  + Added plugin for BartPE.
+  + Improved support for encryption devices with non-standard MaximumTransferLength.
+  + Improved auto mounting.
+  + Improved random number generator.
+  + Added support for Windows Server 2008
+
+
+[11.01.2008] - 0.2.5 beta
+  + Added crash dumps and hiberfil encryption feature. 
+  + Added data leak control. This feature preventing data leaks through non-encrypted system files.
+  + Improved volume encryption/decryption speed.
+  + Fixed GUI crash on Vista 64
+  + Fixed bug with extended partition corruption on boot disk.
+  + Fixed bug with impossible to boot from FAT16 partition.
+  + Fixed bug with decryption speed test.
+  + Fixed small bugs in bootloader.
+
+[19.12.2007] - 0.2 beta
+  + Added bootloader settings. Changing messages of entering password, and incorrect password. 
+  + Setting behavior loader when entering an incorrect password (system halt / reboot). 
+  + Added about box. 
+  + Added encryption speed test. 
+  + Full support for Windows Vista 
+  + Added program settings. 
+  + Now you can change name of the driver during installation. 
+  + Added hot keys.
+  + Added support for SCSI devices. 
+  + Added full support for removable devices (external disks, USB-Sticks, card readers). 
+  + Added command line bootloader fix tool.
+  + Added some "fool proof" checks.
+  + Rewritten most of the boot code, it becomes smaller. 
+  + Extreme improved cryptographic functions for the x86 architecture. Increased speed in 1.5-1.7 times compared with TrueCrypt 4.3
+  + Removed license violations with TrueCrypt collective license. All TrueCrypt code rewritten. 
+  + Improved random numbers generator used to generate keys. Added new sources of entropy. 
+  + The license is changed to GPL v3.
+  + Fixed BSOD when extraction removable device in the encryption / decryption progress.
+  + Fixed bug with bootloader not installed, if you starting encryption process without admin privilege 
+  + Fixed bug with it is impossible formatting encrypted volume.
+  + Fixed many small problems with some flashes and card readers.
+  + Fixed bug with decryption volume in SATA ACHI disk.
+
+[19.11.2007] - 0.1 beta
+  + first public release

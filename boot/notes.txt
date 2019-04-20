@@ -1,0 +1,14 @@
+DiskCryptor bootloader notes
+
+Memory layout:
+
+0000:0000 (00000) - 0000:0FFF (00FFF): BIOS data
+0000:1000 (01000) - 0000:4000 (04000): Initial real mode stack
+0000:5000 (05000) - 0000:5100 (05100): boot_vtab
+0000:7C00 (07C00) - 0000:7E00 (07E00): initial MBR
+1000:0000 (10000) - 1000:8000 (18000): boot_load module
+1000:8000 (18000) - 2000:0000 (20000): Initial protected mode stack
+2000:0000 (20000) - 2000:8000 (28000): Initial bootloader location
+
+
+

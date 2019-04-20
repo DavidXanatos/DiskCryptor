@@ -1,0 +1,35 @@
+#include "version.h"
+#include "afxres.h"
+
+#pragma code_page(1252)
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION    DC_MAJOR_VER,DC_MINOR_VER,DC_DRIVER_VER,DC_BOOT_VER
+ PRODUCTVERSION DC_MAJOR_VER,DC_MINOR_VER,DC_DRIVER_VER,DC_BOOT_VER
+ FILEFLAGSMASK  0x17L
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "000904b0"
+        BEGIN
+            VALUE "FileDescription", "DiskCryptor GUI"
+            VALUE "FileVersion", DC_FILE_VER
+            VALUE "LegalCopyright", "http://diskcryptor.net/"
+            VALUE "OriginalFilename", "dcrypt.exe"
+            VALUE "ProductName", "DiskCryptor"
+            VALUE "ProductVersion", DC_PRODUCT_VER
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x9, 1200
+    END
+END

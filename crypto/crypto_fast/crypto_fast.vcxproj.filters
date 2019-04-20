@@ -1,0 +1,137 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Source Files\amd64">
+      <UniqueIdentifier>{c67b6caf-59c2-4256-86ab-046e2ec809ef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\i386">
+      <UniqueIdentifier>{e33c82cf-2210-4b0f-9206-0e51f1b522c7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="aes_key.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="crc32.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="serpent.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sha512.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="twofish.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="xts_fast.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="xts_serpent_sse2.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sha512_hmac.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sha512_pkcs5_2.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sha512_hmac_drbg.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="aes_asm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="aes_key.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="aes_padlock.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="crc32.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="serpent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sha512.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="twofish.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="xts_aes_ni.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="xts_fast.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="xts_serpent_avx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="xts_serpent_sse2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sha512_hmac.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sha512_pkcs5_2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sha512_hmac_drbg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="amd64\aes_amd64.asm">
+      <Filter>Source Files\amd64</Filter>
+    </CustomBuild>
+    <CustomBuild Include="amd64\aes_padlock_amd64.asm">
+      <Filter>Source Files\amd64</Filter>
+    </CustomBuild>
+    <CustomBuild Include="amd64\twofish_amd64.asm">
+      <Filter>Source Files\amd64</Filter>
+    </CustomBuild>
+    <CustomBuild Include="amd64\xts_aes_ni_amd64.asm">
+      <Filter>Source Files\amd64</Filter>
+    </CustomBuild>
+    <CustomBuild Include="amd64\xts_serpent_avx_amd64.asm">
+      <Filter>Source Files\amd64</Filter>
+    </CustomBuild>
+    <CustomBuild Include="amd64\xts_serpent_sse2_amd64.asm">
+      <Filter>Source Files\amd64</Filter>
+    </CustomBuild>
+    <CustomBuild Include="i386\aes_i386.asm">
+      <Filter>Source Files\i386</Filter>
+    </CustomBuild>
+    <CustomBuild Include="i386\aes_padlock_i386.asm">
+      <Filter>Source Files\i386</Filter>
+    </CustomBuild>
+    <CustomBuild Include="i386\twofish_i386.asm">
+      <Filter>Source Files\i386</Filter>
+    </CustomBuild>
+    <CustomBuild Include="i386\xts_aes_ni_i386.asm">
+      <Filter>Source Files\i386</Filter>
+    </CustomBuild>
+    <CustomBuild Include="i386\xts_serpent_avx_i386.asm">
+      <Filter>Source Files\i386</Filter>
+    </CustomBuild>
+    <CustomBuild Include="i386\xts_serpent_sse2_i386.asm">
+      <Filter>Source Files\i386</Filter>
+    </CustomBuild>
+  </ItemGroup>
+</Project>

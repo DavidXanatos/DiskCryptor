@@ -1,0 +1,69 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "dcres.h"
+#include "version.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_NEU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_DEFAULT
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// EXEFILE
+//
+
+IDR_MBR                 EXEFILE                 "..\\boot\\bin\\mbr_boot.bin"
+IDR_DCLDR               EXEFILE                 "..\\boot\\bin\\dcldr"
+IDR_DCLDR_SMALL         EXEFILE                 "..\\boot\\bin\\dcldr_small"
+   
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION    DC_MAJOR_VER,DC_MINOR_VER,DC_DRIVER_VER,DC_BOOT_VER
+ PRODUCTVERSION DC_MAJOR_VER,DC_MINOR_VER,DC_DRIVER_VER,DC_BOOT_VER
+ FILEFLAGSMASK  0x17L
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "000904b0"
+        BEGIN
+            VALUE "FileDescription", "DiskCryptor api"
+            VALUE "FileVersion", DC_FILE_VER
+            VALUE "LegalCopyright", "http://diskcryptor.net/"
+            VALUE "OriginalFilename", "dcapi.dll"
+            VALUE "ProductName", "DiskCryptor"
+            VALUE "ProductVersion", DC_PRODUCT_VER
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x9, 1200
+    END
+END
+
+
+#endif    // English resources
+/////////////////////////////////////////////////////////////////////////////
+
+

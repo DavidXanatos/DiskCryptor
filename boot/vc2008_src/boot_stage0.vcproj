@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<VisualStudioProject
+	ProjectType="Visual C++"
+	Version="9,00"
+	Name="boot_stage0"
+	ProjectGUID="{2FAD3A8A-9699-4423-B491-7D4789971FF2}"
+	RootNamespace="boot_stage0"
+	Keyword="Win32Proj"
+	TargetFrameworkVersion="131072"
+	>
+	<Platforms>
+		<Platform
+			Name="Win32"
+		/>
+	</Platforms>
+	<ToolFiles>
+	</ToolFiles>
+	<Configurations>
+		<Configuration
+			Name="Release|Win32"
+			OutputDirectory="$(SolutionDir)..\Bin\boot"
+			IntermediateDirectory="$(ProjectDir)"
+			ConfigurationType="10"
+			UseOfMFC="2"
+			CharacterSet="2"
+			WholeProgramOptimization="0"
+			BuildLogFile="$(OutDir)\obj\$(ProjectName)\BuildLog.htm"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+				CommandLine=""
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				CommandLine="copy /B &quot;$(SolutionDir)bin\stage1.bin&quot;+&quot;$(OutDir)\boot_hook.mod&quot;+&quot;$(OutDir)\boot_load.mod&quot; &quot;$(SolutionDir)bin\dcldr&quot;&#x0D;&#x0A;copy /B &quot;$(SolutionDir)bin\stage1.bin&quot;+&quot;$(OutDir)\boot_hook_small.mod&quot;+&quot;$(OutDir)\boot_load.mod&quot; &quot;$(SolutionDir)bin\dcldr_small&quot;&#x0D;&#x0A;"
+			/>
+		</Configuration>
+	</Configurations>
+	<References>
+	</References>
+	<Files>
+		<Filter
+			Name="Source Files"
+			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asmx"
+			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
+			>
+			<File
+				RelativePath=".\asm\mbr_boot.asm"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="&quot;$(SolutionDir)..\tools\fasm\fasm.exe&quot; &quot;$(InputPath)&quot; &quot;$(SolutionDir)bin\$(InputName).bin&quot;&#x0D;&#x0A;"
+						Outputs="$(SolutionDir)bin\$(InputName).bin"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\asm\stage1.asm"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="set include=$(SolutionDir)..\tools\fasm\INCLUDE&#x0D;&#x0A;&quot;$(SolutionDir)..\tools\fasm\fasm.exe&quot; &quot;$(InputPath)&quot; &quot;$(SolutionDir)bin\$(InputName).bin&quot;&#x0D;&#x0A;"
+						Outputs="$(SolutionDir)bin\$(InputName).bin"
+					/>
+				</FileConfiguration>
+			</File>
+		</Filter>
+		<Filter
+			Name="Header Files"
+			Filter="h;hpp;hxx;hm;inl;xsd"
+			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
+			>
+			<File
+				RelativePath=".\asm\macro.inc"
+				>
+			</File>
+			<File
+				RelativePath=".\asm\struct.inc"
+				>
+			</File>
+		</Filter>
+	</Files>
+	<Globals>
+	</Globals>
+</VisualStudioProject>
