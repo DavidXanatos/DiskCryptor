@@ -1,0 +1,52 @@
+##  @file
+#   TPM library
+#
+# Copyright (c) 2016. Disk Cryptography Services for EFI (DCS), Alex Kolotnikov
+# Copyright (c) 2016. VeraCrypt, Mounir IDRASSI 
+#
+# This program and the accompanying materials are licensed and made available 
+# under the terms and conditions of the GNU Lesser General Public License, version 3.0 (LGPL-3.0).
+# 
+# The full text of the license may be found at
+# https://opensource.org/licenses/LGPL-3.0
+#
+##
+
+[Defines]
+  INF_VERSION                    = 0x00010006
+  BASE_NAME                      = DcsTpmLib
+  MODULE_UNI_FILE                = DcsTpmLib.uni
+  FILE_GUID                      = D920E43F-730D-4C48-9BF6-5FA81C5F7697
+  MODULE_TYPE                    = UEFI_DRIVER
+  VERSION_STRING                 = 1.0
+  LIBRARY_CLASS                  = DcsTpmLib|DXE_DRIVER DXE_RUNTIME_DRIVER UEFI_APPLICATION UEFI_DRIVER
+
+#
+#  VALID_ARCHITECTURES           = IA32 X64
+#
+
+[Sources.common]
+  Tpm12.c
+  Tpm20.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  DcsPkg/DcsPkg.dec
+  SecurityPkg/SecurityPkg.dec
+  CryptoPkg/CryptoPkg.dec
+
+[LibraryClasses]
+  MemoryAllocationLib
+  UefiLib
+  PrintLib
+  Tpm12DeviceLib
+  Tpm2DeviceLib
+  Tpm2CommandLib
+  BaseCryptLib
+
+[Protocols]
+  gEfiTcgProtocolGuid
+  gEfiTcg2ProtocolGuid
+
+# [Guids]
+

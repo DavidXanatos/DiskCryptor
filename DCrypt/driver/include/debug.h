@@ -1,8 +1,8 @@
 #ifndef _DEBUG_
 #define _DEBUG_
 
-#define DBG_MSG
-#define DBG_COM
+//#define DBG_MSG
+//#define DBG_COM
 //#define DBG_HAL_DISPLAY
 
 

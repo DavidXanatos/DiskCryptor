@@ -1,6 +1,8 @@
 ﻿/*
     *
     * DiskCryptor - open source partition encryption tool
+	* Copyright (c) 2019-2020 
+	* DavidXanatos <info@diskcryptor.org>
 	* Copyright (c) 2008-2011
 	* ntldr <ntldr@diskcryptor.net> PGP key ID - 0xC48251EB4F8E4E6E
     * partial copyright Juergen Schmied and Jon Griffiths
@@ -20,7 +22,9 @@
 
 #include <windows.h>
 #include <aclapi.h>
+#pragma warning( disable : 4091 )
 #include <ntddscsi.h>
+#pragma warning( default : 4091 )
 #include <stdio.h>
 #include <math.h>
 
@@ -183,7 +187,9 @@ int load_file(wchar_t *name, void **data, int *size)
 			resl = ST_NOMEM; break;
 		}
 		if (ReadFile(hfile, *data, *size, &bytes, NULL) == 0) {
-			free(*data); resl = ST_IO_ERROR;
+			free(*data); 
+			*data = NULL;
+			resl = ST_IO_ERROR;
 		} else {
 			resl = ST_OK;
 		}
@@ -447,7 +453,9 @@ int is_win_vista()
 	OSVERSIONINFO osv;
 
 	osv.dwOSVersionInfoSize = sizeof(osv);
+#pragma warning( disable : 4996 )
 	GetVersionEx(&osv);
+#pragma warning( default : 4996 )
 	return (osv.dwMajorVersion >= 6);
 }
 
@@ -544,3 +552,95 @@ long _stdcall save_fpu_state(unsigned char state[32]) {
 void _stdcall load_fpu_state(unsigned char state[32]) {
 }
 #endif
+
+int dc_buffer_contains_pattern(const byte *buffer, size_t bufferSize, const byte *pattern, size_t patternSize)
+{
+	if (bufferSize < patternSize)
+		return 0;
+
+	bufferSize -= patternSize;
+
+	for (size_t i = 0; i < bufferSize; ++i)
+	{
+		if (memcmp(buffer + i, pattern, patternSize) == 0)
+			return 1;
+	}
+
+	return 0;
+}
+
+int dc_buffer_contains_string(const byte *buffer, size_t bufferSize, const char *str)
+{
+	return dc_buffer_contains_pattern(buffer, bufferSize, (const byte*)str, strlen(str));
+}
+
+int dc_buffer_contains_wide_string(const byte *buffer, size_t bufferSize, const wchar_t *str)
+{
+	return dc_buffer_contains_pattern(buffer, bufferSize, (const byte*)str, 2 * wcslen(str));
+}
+
+wchar_t *dc_get_status_str(int resl)
+{
+	switch (resl)
+	{
+	case ST_ERROR: return L"unknown error";
+	case ST_NF_DEVICE: return L"device not found";
+	case ST_RW_ERR: return L"read/write error";
+	case ST_PASS_ERR: return L"invalid password";
+	case ST_ALR_MOUNT: return L"device has already mounted";
+	case ST_NO_MOUNT: return L"device not mounted";
+	case ST_LOCK_ERR: return L"error on volume locking";
+	case ST_UNMOUNTABLE: return L"device is unmountable";
+	case ST_NOMEM: return L"not enought memory";
+	case ST_ERR_THREAD: return L"error on creating system thread";
+	case ST_INV_WIPE_MODE: return L"invalid data wipe mode";
+	case ST_INV_DATA_SIZE: return L"invalid data size";
+	case ST_ACCESS_DENIED: return L"access denied";
+	case ST_NF_FILE: return L"file not found";
+	case ST_IO_ERROR: return L"disk I/O error";
+	case ST_UNK_FS: return L"unsupported file system";
+	case ST_ERR_BOOT: return L"invalid FS bootsector, please format partition";
+	case ST_MBR_ERR: return L"MBR is corrupted";
+	case ST_BLDR_INSTALLED: return L"bootloader is already installed";
+	case ST_NF_SPACE: return L"not enough space after partitions to install bootloader";
+	case ST_BLDR_NOTINST: return L"bootloader is not installed";
+	case ST_INV_BLDR_SIZE: return L"invalid bootloader size";
+	case ST_BLDR_NO_CONF: return L"bootloader corrupted, config not found";
+	case ST_BLDR_OLD_VER: return L"old bootloader can not be configured";
+		//case ST_AUTORUNNED: return L"";
+		//case ST_NEED_EXIT: return L"";
+	case ST_NO_ADMIN: return L"user not have admin privilegies";
+	case ST_NF_BOOT_DEV: return L"boot device not found";
+	case ST_REG_ERROR: return L"can not open registry key";
+	case ST_NF_REG_KEY: return L"registry key not found";
+	case ST_SCM_ERROR: return L"can not open SCM database";
+	case ST_FINISHED: return L"encryption finished";
+		//case ST_INSTALLED: return L"driver already installed";
+	case ST_INV_SECT: return L"device has unsupported sector size";
+	case ST_CLUS_USED: return L"shrinking error, last clusters are used";
+	case ST_NF_PT_SPACE: return L"not enough free space in partition to continue encrypting";
+	case ST_MEDIA_CHANGED: return L"removable media changed";
+	case ST_NO_MEDIA: return L"no removable media in device";
+	case ST_DEVICE_BUSY: return L"device is busy";
+	case ST_INV_MEDIA_TYPE: return L"media type not supported";
+	case ST_FORMAT_NEEDED: return L"partition must be formated";
+	case ST_CANCEL: return L"operation canceled";
+	case ST_INV_VOL_VER: return L"invalid volume version";
+	case ST_EMPTY_KEYFILES: return L"keyfiles not found";
+	case ST_NOT_BACKUP: return L"this is a not backup file";
+	case ST_NO_OPEN_FILE: return L"can not open file";
+	case ST_NO_CREATE_FILE: return L"can not create file";
+	case ST_INV_VOLUME: return L"invalid volume header";
+		//case ST_OLD_VERSION: return L"";
+		//case ST_NEW_VERSION: return L"";
+		//case ST_ENCRYPTED: return L"";
+		//case ST_INCOMPATIBLE: return L"";
+		//case ST_LOADED: return L"";
+	case ST_VOLUME_TOO_NEW: return L"volume header version is to new";
+	case ST_INVALID_PARAM: return L"an invalid parameter was provided";
+	case ST_INV_FORMAT: return L"disk has incompatible partition format";
+	case ST_NO_OPEN_DIR: return L"can not open directory";
+	case ST_DIR_NOT_EMPTY: return L"directory is not empty";
+	default: return NULL;
+	}
+}

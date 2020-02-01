@@ -29,8 +29,9 @@ typedef struct _timer_info
 
 extern int          __status;
 extern dc_conf_data __config;
+extern int          __is_efi_boot;
 
-extern CRITICAL_SECTION CritSection;
+//extern CRITICAL_SECTION CritSection;
 
 static wchar_t drv_msk[ ] = L"%s\\drivers\\%s.sys";
 
@@ -46,10 +47,27 @@ int _benchmark(
 		bench_item *bench
 	);
 
-int _set_boot_loader(
+int dc_get_ldr_config(
+		int			dsk_num, 
+		ldr_config	*conf
+	);
+
+int dc_set_ldr_config(
+		int			dsk_num,
+		ldr_config	*conf
+	);
+
+int _set_boot_loader_mbr(
 		HWND  hwnd,
 		int   dsk_num,
 		int   is_small
+	);
+
+int _set_boot_loader_efi(
+		HWND  hwnd,
+		int   dsk_num,
+		int   is_small,
+		int   add_bme
 	);
 
 BOOL _is_boot_device(

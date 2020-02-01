@@ -1,6 +1,8 @@
 /*
     *
     * DiskCryptor - open source partition encryption tool
+	* Copyright (c) 2019-2020
+	* DavidXanatos <info@diskcryptor.org>
 	* Copyright (c) 2007-2010
 	* ntldr <ntldr@diskcryptor.net> PGP key ID - 0xC48251EB4F8E4E6E
     *
@@ -271,10 +273,11 @@ _about_dlg_proc(
 					L"This program is free software: you can redistribute "
 					L"it under the terms of the GNU General Public License "
 					L"version 3 as published by the Free Software Foundation.\r\n\r\n"
-					L"Contacts:\r\n"
-					L"ntldr@diskcryptor.net (PGP key ID 0xC48251EB4F8E4E6E)\r\n\r\n"
-					L"Special thanks to:\r\n"
-					L"Aleksey Bragin and ReactOS Foundation\r\n\r\n"
+					L"Contacts: "
+					L"info@diskcryptor.org\r\n\r\n"
+					//L"ntldr@diskcryptor.net (PGP key ID 0xC48251EB4F8E4E6E)\r\n\r\n"
+					//L"Special thanks to:\r\n"
+					//L"Aleksey Bragin and ReactOS Foundation\r\n\r\n"
 					L"Portions of this software:\r\n"
 					L"Copyright \xa9 1998, 2001, 2002 Brian Palmer\r\n"
 					L"Copyright \xa9 2003, Dr Brian Gladman, Worcester, UK\r\n"

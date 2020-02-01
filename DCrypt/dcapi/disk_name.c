@@ -21,7 +21,9 @@
 
 #include <windows.h>
 #include <aclapi.h>
+#pragma warning( disable : 4091 )
 #include <ntddscsi.h>
+#pragma warning( default : 4091 )
 #include <stdio.h>
 #include "drv_ioctl.h"
 #include "misc.h"

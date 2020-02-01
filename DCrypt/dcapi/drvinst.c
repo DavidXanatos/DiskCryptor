@@ -300,7 +300,9 @@ DWORD dc_install_driver()
 	if ( (status = add_to_reg_multi_sz(g_volume_filter_key, _T("LowerFilters"), g_dcrypt_service_name)) != NO_ERROR ) goto cleanup;
 	if ( (status = add_to_reg_multi_sz(g_cdrom_filter_key, _T("UpperFilters"), g_dcrypt_service_name)) != NO_ERROR ) goto cleanup;
 
+#pragma warning( disable : 4996 )
 	if (LOBYTE(LOWORD(GetVersion())) >= 6) {
+#pragma warning( default : 4996 )
 		// add crashdump filter (Vista+)
 		if ( (status = add_to_reg_multi_sz(g_crash_filter_key, _T("DumpFilters"), g_maindriver_filename)) != NO_ERROR ) goto cleanup;
 	}
@@ -322,7 +324,9 @@ DWORD dc_remove_driver()
 	if ( (ret = remove_from_reg_multi_sz(g_cdrom_filter_key, _T("UpperFilters"), g_dcrypt_service_name)) != NO_ERROR ) status = ret;
 	if ( (ret = remove_from_reg_multi_sz(g_volume_filter_key, _T("LowerFilters"), g_dcrypt_service_name)) != NO_ERROR ) status = ret;
 
+#pragma warning( disable : 4996 )
 	if (LOBYTE(LOWORD(GetVersion())) >= 6) {
+#pragma warning( default : 4996 )
 		// remove crashdump filtes (Vista+)
 		if ( (ret = remove_from_reg_multi_sz(g_crash_filter_key, _T("DumpFilters"), g_maindriver_filename)) != NO_ERROR ) status = ret;
 	}
@@ -333,7 +337,7 @@ DWORD dc_remove_driver()
 	// delete driver file
 	if ( (ret = make_driver_path(path, _countof(path), g_maindriver_filename)) == NO_ERROR )
 	{
-		if (DeleteFile(path) == FALSE) status = GetLastError();
+		if (MoveFileEx(path, NULL, MOVEFILE_DELAY_UNTIL_REBOOT) == FALSE) status = GetLastError();
 	} else {
 		status = ret;
 	}
@@ -390,7 +394,9 @@ DWORD dc_update_driver()
 		config.conf_flags |= CONF_ENABLE_SSD_OPT;
 	}
 	
+#pragma warning( disable : 4996 )
 	if (config.build < 818 && LOBYTE(LOWORD(GetVersion())) >= 6) {
+#pragma warning( default : 4996 )
 		// add crashdump filter (Vista+)
 		if ( (status = add_to_reg_multi_sz(g_crash_filter_key, _T("DumpFilters"), g_maindriver_filename)) != NO_ERROR ) goto cleanup;
 	}

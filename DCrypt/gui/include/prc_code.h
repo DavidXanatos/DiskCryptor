@@ -3,6 +3,7 @@
 
 #include "drv_ioctl.h"
 #include "mbrinst.h"
+#include "efiinst.h"
 
 #define IDC_TIMER			0x4100
 
@@ -99,6 +100,7 @@ typedef struct __dnode
 {
 	list_entry list;	
 	BOOL       is_root;
+	BOOL       is_efi;
 	BOOL       exists;
 	_droot     root;
 	_dmnt      mnt;

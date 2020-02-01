@@ -1,5 +1,7 @@
 /*  *
     * DiskCryptor - open source partition encryption tool
+	* Copyright (c) 2019-2020
+	* DavidXanatos <info@diskcryptor.org>
 	* Copyright (c) 2007-2010 
 	* ntldr <ntldr@diskcryptor.net> PGP key ID - 0xC48251EB4F8E4E6E
     *
@@ -71,7 +73,7 @@ _tab_proc(
 				{
 					_get_item_text( __lists[HBOT_WIZARD_BOOT_DEVS], msg_info->iItem, 2, tmpb, countof(tmpb) );
 
-					if ( wcscmp(tmpb, L"installed") == 0 )
+					if ( wcsstr(tmpb, L"installed") != NULL )
 					{
 						SendMessage( GetParent(GetParent(hwnd)), WM_COMMAND, MAKELONG(IDC_BTN_CHANGE_CONF, 0), 0 );
 					} else 
@@ -80,15 +82,16 @@ _tab_proc(
 
 						int dsk_num;
 
-						int type = _get_combo_val( GetDlgItem(hwnd, IDC_COMBO_LOADER_TYPE), loader_type );
+						int is_efi = _get_check(hwnd, IDC_EFI_BOOT);
+						int type = _get_combo_val( GetDlgItem(hwnd, IDC_COMBO_LOADER_TYPE), is_efi ? loader_type_efi : loader_type_mbr );
 						int is_small = _get_check( hwnd, IDC_USE_SMALL_BOOT );
 
 						_get_item_text( __lists[HBOT_WIZARD_BOOT_DEVS], msg_info->iItem, 0, vol, countof(vol) );
 						dsk_num = _ext_disk_num( __lists[HBOT_WIZARD_BOOT_DEVS] );
 
-						_menu_set_loader_vol( hwnd, vol, dsk_num, type, is_small );
+						_menu_set_loader_mbr( hwnd, vol, dsk_num, type, is_small );
 
-						_list_devices( __lists[HBOT_WIZARD_BOOT_DEVS], type == CTL_LDR_MBR, -1 );
+						_list_devices( __lists[HBOT_WIZARD_BOOT_DEVS], type == CTL_LDR_HDD, -1 );
 						_refresh_boot_buttons( hwnd, msg_hdr->hwndFrom, msg_info->iItem );
 
 					}
@@ -108,7 +111,8 @@ _tab_proc(
 					HMENU popup       = CreatePopupMenu( );
 					BOOL  item_update = FALSE;
 
-					int type     = _get_combo_val( GetDlgItem(hwnd, IDC_COMBO_LOADER_TYPE), loader_type );
+					int is_efi = _get_check(hwnd, IDC_EFI_BOOT);
+					int type     = _get_combo_val( GetDlgItem(hwnd, IDC_COMBO_LOADER_TYPE), is_efi ? loader_type_efi : loader_type_mbr );
 					int is_small = _get_check( hwnd, IDC_USE_SMALL_BOOT );
 
 					ldr_config conf;
@@ -125,22 +129,23 @@ _tab_proc(
 					{
 						_get_item_text( __lists[HBOT_WIZARD_BOOT_DEVS], msg_info->iItem, 2, tmpb, countof(tmpb) );
 
-						if ( !wcscmp(tmpb, L"installed") )
+						if ( wcsstr(tmpb, L"installed") != NULL )
 						{
 							AppendMenu(popup, MF_STRING, ID_BOOT_REMOVE, IDS_BOOTREMOVE);
 
-							if ( !type )
+							if ( type == CTL_LDR_HDD )
 							{
-								item_update = 
-									dc_get_mbr_config( dsk_num, NULL, &conf ) == ST_OK && 
-									conf.ldr_ver < DC_BOOT_VER;
+								item_update =
+									dc_get_ldr_config( dsk_num, &conf ) == ST_OK &&
+									(int)conf.ldr_ver < (conf.sign1 == 0 ? DC_UEFI_VER : DC_BOOT_VER);
 								
 								if ( item_update )
 								{
 									AppendMenu(popup, MF_STRING, ID_BOOT_UPDATE, IDS_BOOTUPDATE);
 								}
-								AppendMenu(popup, MF_SEPARATOR, 0, NULL);	
 							}
+
+							AppendMenu(popup, MF_SEPARATOR, 0, NULL);
 							AppendMenu(popup, MF_STRING, ID_BOOT_CHANGE_CONFIG, IDS_BOOTCHANGECGF);
 						} else {
 							AppendMenu(popup, MF_STRING, ID_BOOT_INSTALL, IDS_BOOTINSTALL);
@@ -159,8 +164,8 @@ _tab_proc(
 					DestroyMenu( popup );
 					switch ( item )
 					{
-						case ID_BOOT_INSTALL: _menu_set_loader_vol( hwnd, vol, dsk_num, type, is_small ); break;
-						case ID_BOOT_REMOVE:  _menu_unset_loader_mbr(hwnd, vol, dsk_num, type ); break;
+						case ID_BOOT_INSTALL: _menu_set_loader_mbr( hwnd, vol, dsk_num, type, is_small ); break;
+						case ID_BOOT_REMOVE:  _menu_unset_loader(hwnd, vol, dsk_num, type ); break;
 
 						case ID_BOOT_UPDATE: _menu_update_loader( hwnd, vol, dsk_num ); break;
 						case ID_BOOT_CHANGE_CONFIG: 
@@ -171,7 +176,7 @@ _tab_proc(
 					}
 					if ( ( item == ID_BOOT_INSTALL ) || ( item == ID_BOOT_REMOVE ) )
 					{
-						_list_devices( __lists[HBOT_WIZARD_BOOT_DEVS], type == CTL_LDR_MBR, -1 );
+						_list_devices( __lists[HBOT_WIZARD_BOOT_DEVS], type == CTL_LDR_HDD, -1 );
 						_refresh_boot_buttons( hwnd, msg_hdr->hwndFrom, msg_info->iItem );
 					}
 				}
@@ -302,7 +307,8 @@ _tab_proc(
 
 				case IDB_BOOT_PATH :
 				{
-					int boot_type = _get_combo_val( GetDlgItem(hwnd, IDC_COMBO_LOADER_TYPE), loader_type );
+					int is_efi = _get_check(hwnd, IDC_EFI_BOOT);
+					int boot_type = _get_combo_val( GetDlgItem(hwnd, IDC_COMBO_LOADER_TYPE), is_efi ? loader_type_efi : loader_type_mbr );
 
 					wchar_t s_file[MAX_PATH];					
 					wcscpy( s_file, boot_type == CTL_LDR_ISO ? L"loader.iso" : L"loader.img" );
@@ -341,6 +347,34 @@ _tab_proc(
 					{						
 						SetWindowText(GetDlgItem(hwnd, IDE_ISO_DST_PATH), s_dst_file);
 					}
+				}
+				break;
+
+				case IDC_EFI_BOOT:
+				case IDC_MBR_BOOT:
+				{
+					int is_efi = _get_check(hwnd, IDC_EFI_BOOT);
+				
+					if (is_efi != __is_efi_boot)
+					{
+						wchar_t message[1024];
+						swprintf_s(message, _countof(message), 
+							L"This windows installation is setup for %s boot, it won't be able to boot with a different bootloader type.\n"
+							L"Do you want to select the correct bootloader type?"
+							, __is_efi_boot ? L"EFI" : L"MBR");
+
+						if(__msg_w(hwnd,message)) {
+							_set_check(hwnd, IDC_EFI_BOOT, __is_efi_boot ? TRUE : FALSE);
+							_set_check(hwnd, IDC_MBR_BOOT, __is_efi_boot ? FALSE : TRUE);
+							break;
+						}
+					}
+
+					SendMessage( GetDlgItem(hwnd, IDC_COMBO_LOADER_TYPE), CB_RESETCONTENT, 0, 0 );
+					_init_combo( GetDlgItem(hwnd, IDC_COMBO_LOADER_TYPE), is_efi ? loader_type_efi : loader_type_mbr, CTL_LDR_HDD, FALSE, -1 );
+
+					ShowWindow(GetDlgItem(hwnd, IDC_USE_SMALL_BOOT), is_efi ? SW_HIDE : SW_SHOW);
+					ShowWindow(GetDlgItem(hwnd, IDC_USE_SHIM_BOOT), is_efi ? SW_SHOW : SW_HIDE);
 				}
 				break;
 			}
@@ -471,7 +505,7 @@ _tab_proc(
 
 							GetWindowTextA( (HWND)lparam, s_msg, sizeof(s_msg) );
 
-							_snprintf( s_count, sizeof(s_count), "%d / %d", strlen(s_msg), 0 );
+							_snprintf( s_count, sizeof(s_count), "%zd / %d", strlen(s_msg), 0 );
 							SetWindowTextA( GetDlgItem(hwnd, IDC_CNT_BOOTMSG), s_count );
 					
 						}

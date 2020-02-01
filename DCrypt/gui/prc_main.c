@@ -565,7 +565,7 @@ _main_dialog_proc(
 					int rlt;
 					if ( (rlt = _drv_action(DA_REMOVE, 0)) != NO_ERROR )
 					{
-						__error_s( __dlg, L"Error remove DiskCryptor driver", rlt );
+						__error_s( __dlg, L"Error remove DiskCryptor driver", -rlt );
 					} else {
 						return 0L;
 					}

@@ -1,6 +1,8 @@
 /*
     *
     * DiskCryptor - open source partition encryption tool
+	* Copyright (c) 2020
+	* DavidXanatos <info@diskcryptor.org>
 	* Copyright (c) 2008
 	* ntldr <ntldr@diskcryptor.net> PGP key ID - 0xC48251EB4F8E4E6E
     *
@@ -26,6 +28,7 @@
 #include "bootloader.h"
 #include "misc.h"
 #include "mbrinst.h"
+#include "efiinst.h"
 #include "disk_name.h"
 #include "console.h"
 
@@ -509,12 +512,27 @@ static int dsk_num(wchar_t *str, int *num)
 int boot_menu(int argc, wchar_t *argv[])
 {
 	ldr_config conf;
-	int        resl;
-	int        is_small;
+	int        resl = ST_INVALID_PARAM;
+	int        is_small = 0;
+	int        is_shim = -1;
 
-	is_small = is_param(L"-small");
+	if (is_param(L"-small")) is_small = 1;
+
+	if (is_param(L"-shim")) is_shim = 1;
+	else if (is_param(L"-noshim")) is_shim = 0;
+
 	do
 	{
+		if ((argc == 3) && (wcscmp(argv[2], L"-mode") == 0))
+		{
+			int			is_efi = dc_efi_check();
+			int			is_secure = is_efi ? dc_efi_is_secureboot() : 0;
+
+			wprintf(L"Boot mode: %s%s\n", is_efi ? L"EFI" : L"MBR", is_secure ? L" (SecureBoot)" : L"");
+
+			resl = ST_OK; break;
+		}
+		
 		if ( (argc == 3) && (wcscmp(argv[2], L"-enum") == 0) )
 		{
 			wchar_t  s_size[MAX_PATH];
@@ -522,11 +540,13 @@ int boot_menu(int argc, wchar_t *argv[])
 			wchar_t *str;
 			u64      size;
 			int      i, bd_1, bd_2;
+			int      is_gpt;
+			int      mbr_ldr, efi_ldr;
 
 			wprintf(
-				L"--------------------------------------------------------------\n"
-				L"HDD |           name           |  size   | bootable | bootloader\n" 
-				L"----+--------------------------+---------+----------+-----------\n");
+				L"------------------------------------------------------------------\n"
+				L"HDD |           name            |  size   | bootable | bootloader\n" 
+				L"----+---------------------------+---------+----------+------------\n");
 
 			if (dc_get_boot_disk(&bd_1, &bd_2) != ST_OK) {
 				bd_1 = bd_2 = -1;
@@ -541,17 +561,25 @@ int boot_menu(int argc, wchar_t *argv[])
 					if (dc_get_hw_name(i, 0, h_name, countof(h_name)) != ST_OK) {
 						h_name[0] = 0;
 					}
-					
-					if (dc_get_mbr_config(i, NULL, &conf) == ST_OK) {
-						str = L"installed"; 
+
+					is_gpt = (dc_is_gpt_disk(i) == 1);
+					mbr_ldr = (dc_get_mbr_config(i, NULL, &conf) == ST_OK);
+					efi_ldr = (dc_efi_config(i, 0, &conf) == ST_OK);
+
+					if (mbr_ldr && efi_ldr) {
+						str = L"EFI + MBR";
+					} else if (mbr_ldr) {
+						str = L"MBR";
+					} else if (efi_ldr) {
+						str = L"EFI";
 					} else {
 						str = L"none";
 					}
 
 					wprintf(
-						L"hd%d | %-24s | %-8s| %-8s | %s\n", 
-						i, h_name, s_size, (i == bd_1) || (i == bd_2) ? L"yes":L"no", str
-						);
+						L"hd%d | %-25s | %-8s| %-3s, %-3s | %s\n",
+						i, h_name, s_size, is_gpt ? L"GPT" : L"MBR", (i == bd_1) || (i == bd_2) ? L"yes" : L"no", str
+					);
 				} 
 			}
 			resl = ST_OK; break;
@@ -652,7 +680,7 @@ int boot_menu(int argc, wchar_t *argv[])
 				&conf, L"Please set bootloader options:");
 
 			if ( (resl = dc_set_mbr_config(0, argv[3], &conf)) == ST_OK ) {
-				wprintf(L"Bootloader .iso image successfully created\n", argv[3]);
+				wprintf(L"Bootloader .iso image successfully created: %s\n", argv[3]);
 			}
 			break;
 		}
@@ -674,7 +702,7 @@ int boot_menu(int argc, wchar_t *argv[])
 				&conf, L"Please set bootloader options:");
 
 			if ( (resl = dc_set_mbr_config(0, argv[3], &conf)) == ST_OK ) {
-				wprintf(L"Bootloader PXE image successfully created\n", argv[3]);
+				wprintf(L"Bootloader PXE image successfully created: %s\n", argv[3]);
 			}
 			break;
 		}
@@ -684,12 +712,14 @@ int boot_menu(int argc, wchar_t *argv[])
 			int      d_num;
 			wchar_t *file;
 			int      ispar;
+			int      isefi;
 			
 			if ( ((argv[3][1] == L':')  && (argv[3][2] == 0)) ||
 				 ((argv[3][0] == L'\\') && (argv[3][5] == L':')) )
 			{
 				ispar = 1;
-			} else 
+			} 
+			else 
 			{
 				if (dsk_num(argv[3], &d_num) == 0) {
 					file = argv[3]; d_num = 0;
@@ -700,10 +730,17 @@ int boot_menu(int argc, wchar_t *argv[])
 				ispar = 0;
 			}
 
-			if (ispar != 0) {
-				resl = dc_mbr_config_by_partition(argv[3], 0, &conf);
-			} else {
-				resl = dc_get_mbr_config(d_num, file, &conf);
+			if (!file){
+				if (ispar != 0) { isefi = dc_is_dcs_on_partition(argv[3]);
+				} else { isefi = dc_is_dcs_on_disk(d_num); }
+			}
+
+			if (isefi) { // EFI
+				if (ispar != 0) { resl = dc_efi_config_by_partition(argv[3], 0, &conf); }
+				else { resl = dc_efi_config(d_num, 0, &conf); }
+			} else { // MBR
+				if (ispar != 0) { resl = dc_mbr_config_by_partition(argv[3], 0, &conf); }
+				else { resl = dc_get_mbr_config(d_num, file, &conf); }
 			}
 
 			if (resl != ST_OK) {
@@ -713,14 +750,139 @@ int boot_menu(int argc, wchar_t *argv[])
 			boot_conf_menu(
 				&conf, L"Please change bootloader options:");
 
-			if (ispar != 0) {
-				resl = dc_mbr_config_by_partition(argv[3], 1, &conf);
-			} else {
-				resl = dc_set_mbr_config(d_num, file, &conf);
+			if (isefi) { // EFI
+				if (ispar != 0) { resl = dc_efi_config_by_partition(argv[3], 1, &conf); }
+				else { resl = dc_efi_config(d_num, 1, &conf); }
+			} else { // MBR
+				if (ispar != 0) { resl = dc_mbr_config_by_partition(argv[3], 1, &conf); }
+				else { resl = dc_set_mbr_config(d_num, file, &conf); }
 			}
 
 			if (resl == ST_OK) {
 				wprintf(L"Bootloader configuration successfully changed\n");
+			}
+			break;
+		}
+
+		// EFI
+		if ((argc >= 4) && (wcscmp(argv[2], L"-setefi") == 0))
+		{
+			int d_num;
+			
+			if (dsk_num(argv[3], &d_num) == 0) {
+				resl = ST_OK; break;
+			}			
+
+			if ( (resl = dc_set_efi_boot_interactive(d_num, is_shim, -1)) == ST_OK) {
+				wprintf(L"EFI bootloader successfully installed to %s\n", argv[3]);
+			}
+			break;
+		}
+
+		if ((argc == 4) && (wcscmp(argv[2], L"-updefi") == 0))
+		{
+			int d_num;
+			
+			if (dsk_num(argv[3], &d_num) == 0) {
+				resl = ST_OK; break;
+			}
+
+			if ( (resl = dc_update_efi_boot(d_num)) == ST_OK ) {
+				wprintf(L"EFI bootloader on %s successfully updated\n", argv[3]);
+			}
+			break;
+		}
+
+		if ((argc == 4) && (wcscmp(argv[2], L"-delefi") == 0))
+		{
+			int d_num;
+			
+			if (dsk_num(argv[3], &d_num) == 0) {
+				resl = ST_OK; break;
+			}
+
+			if ( (resl = dc_unset_efi_boot(d_num)) == ST_OK ) {
+				wprintf(L"EFI bootloader successfully removed from %s\n", argv[3]);
+			}
+			break;
+		}
+
+		if ((argc == 4) && (wcscmp(argv[2], L"-getinfo") == 0))
+		{
+			int d_num;
+			char* infoContent = NULL;
+			DWORD size = 0;
+			
+			if (dsk_num(argv[3], &d_num) == 0) {
+				resl = ST_OK; break;
+			}
+
+			resl = dc_get_platform_info(d_num, &infoContent, &size);
+			if (resl == ST_OK) {
+				for (DWORD i = 0; i < size; i++) {
+					if (infoContent[i] == '\r') continue;
+					putchar(infoContent[i]);
+				}
+
+				free(infoContent);
+			}
+			break;
+		}
+
+		if ((argc >= 3) && (wcscmp(argv[2], L"-addbme") == 0))
+		{
+			int d_num;
+
+			if (dsk_num(argv[3], &d_num) == 0) {
+				resl = ST_OK; break;
+			}
+
+			if ((resl = dc_efi_set_bme(L"DiskCrypto (DCS) loader", d_num)) == ST_OK) {
+				wprintf(L"DCS boot menu entry successfully added for %s\n", argv[3]);
+			}
+			break;
+		}
+
+		if ((argc >= 3) && (wcscmp(argv[2], L"-rembme") == 0))
+		{
+			if ((resl = dc_efi_del_bme()) == ST_OK) {
+				wprintf(L"DCS boot menu entry successfully removed\n");
+			}
+			break;
+		}
+
+		if ((argc >= 4) && (wcscmp(argv[2], L"-makerec") == 0))
+		{
+			if ( (resl = dc_mk_efi_rec(argv[3], 0, is_shim)) == ST_FORMAT_NEEDED )
+			{
+				wprintf(
+				   L"Removable media not correctly formatted\n"
+				   L"Format media? (Y/N)\n"
+				   );
+
+				if (tolower(_getch()) == 'y') {
+					resl = dc_mk_efi_rec(argv[3], 1, is_shim);
+				} else {
+					resl = ST_OK; break;
+				}
+			}
+
+			if (resl != ST_OK) {
+				break;
+			}
+
+			if ( (resl = dc_efi_config_by_partition(argv[3], 0, &conf)) != ST_OK ) {
+				break;
+			}
+
+			conf.options  |= LDR_OP_EXTERNAL;
+			conf.boot_type = LDR_BT_AP_PASSWORD;
+
+			boot_conf_menu(
+				&conf, L"Please set EFI bootloader options:");
+
+			if ( (resl = dc_efi_config_by_partition(argv[3], 1, &conf)) == ST_OK ) {
+				wprintf(L"EFI recovery bootloader successfully installed\n");
 			}
 			break;
 		}

@@ -1,6 +1,8 @@
 /*
     *
     * DiskCryptor - open source partition encryption tool
+	* Copyright (c) 2019-2020
+	* DavidXanatos <info@diskcryptor.org>
 	* Copyright (c) 2007-2010
 	* ntldr <ntldr@diskcryptor.net> PGP key ID - 0xC48251EB4F8E4E6E
     *
@@ -61,13 +63,13 @@ int _update_layout(
 	{
 		if ( boot_dev )
 		{
-			if ( (rlt = dc_get_mbr_config( -1, NULL, &conf )) != ST_OK )
+			if ( (rlt = dc_get_ldr_config( -1, &conf )) != ST_OK )
 			{
 				return rlt;
 			}
 			conf.kbd_layout = new_layout;
 
-			if ( (rlt = dc_set_mbr_config( -1, NULL, &conf )) != ST_OK )
+			if ( (rlt = dc_set_ldr_config( -1, &conf )) != ST_OK )
 			{
 				return rlt;
 			}
@@ -76,7 +78,7 @@ int _update_layout(
 	} 
 	else 
 	{
-		BOOL result = dc_get_mbr_config( -1, NULL, &conf ) == ST_OK;
+		BOOL result = dc_get_ldr_config( -1, &conf ) == ST_OK;
 
 		if ( old_layout )
 		{
@@ -110,6 +112,8 @@ void _run_wizard_action(
 	int is_small = (
 		IsWindowEnabled( GetDlgItem( sheets[WPAGE_ENC_CONF].hwnd, IDC_COMBO_ALGORT ) ) ? FALSE : TRUE
 	);
+
+	int is_shim = __is_efi_boot ? dc_efi_is_secureboot() : 0;
 
 	crypt_info  crypt;
 	dc_pass    *pass = NULL;
@@ -188,7 +192,8 @@ void _run_wizard_action(
 
 			if ( !node->dlg.iso.h_thread || resume == (DWORD) -1 )
 			{
-				__error_s( hwnd, L"Error create thread", -1 );
+				int rlt = GetLastError();
+				__error_s( hwnd, L"Error create thread", -rlt );
 				secure_free(pass);
 			}
 		}		
@@ -205,7 +210,10 @@ void _run_wizard_action(
 		{
 			if ( set_loader )
 			{
-				node->dlg.rlt = _set_boot_loader( hwnd, -1, is_small );
+				if ( __is_efi_boot )
+					node->dlg.rlt = _set_boot_loader_efi( hwnd, -1, is_shim, 2); // add boot menu entry and repalce windows loader
+				else
+					node->dlg.rlt = _set_boot_loader_mbr( hwnd, -1, is_small );
 			}
 		}
 		if ( ( node->dlg.rlt == ST_OK ) && 
@@ -288,7 +296,8 @@ int _get_info_install_boot_page(
 	rlt = dc_get_boot_disk( &boot_disk_1, &boot_disk_2 );
 	if ( rlt == ST_OK )
 	{	
-		if ( dc_get_mbr_config( boot_disk_1, NULL, &conf ) == ST_OK )
+		// check if bootloader is present and if so skip the bootloader instalation page
+		if ( dc_get_ldr_config( boot_disk_1, &conf ) == ST_OK )
 		{
 			sheets[WPAGE_ENC_BOOT].show = FALSE;
 		}
@@ -323,6 +332,9 @@ int _init_wizard_encrypt_pages(
 	);
 	BOOL    force_small = (
 		boot_device && ( dc_device_control(DC_CTL_GET_FLAGS, NULL, 0, &flags, sizeof(flags)) == NO_ERROR ) && ( flags.load_flags & DST_SMALL_MEM )
+	);
+	BOOL    force_shim = (
+		__is_efi_boot && dc_efi_is_secureboot()
 	);
 
 	while ( sheets[count].id != -1 )
@@ -380,17 +392,33 @@ int _init_wizard_encrypt_pages(
 			GetDlgItem(hwnd, IDC_COMBO_ALGORT), cipher_names, CF_AES, FALSE, -1
 			);
 
-		if ( force_small )
+		if( __is_efi_boot )
 		{
-			EnableWindow( GetDlgItem(hwnd, IDC_COMBO_ALGORT), FALSE );
-			SendMessage( GetDlgItem(hwnd, IDC_WIZ_CONF_WARNING), (UINT)WM_SETFONT, (WPARAM)__font_bold, 0 );
-
-			SetWindowText( 
-				GetDlgItem(hwnd, IDC_WIZ_CONF_WARNING),
-				L"Your BIOS does not provide enough base memory,\n"
-				L"you can only use AES to encrypt the boot partition!"
-			);
+			if (force_shim)
+			{
+				SendMessage(GetDlgItem(hwnd, IDC_WIZ_CONF_WARNING), (UINT)WM_SETFONT, (WPARAM)__font_bold, 0);
+				SetWindowText(
+					GetDlgItem(hwnd, IDC_WIZ_CONF_WARNING),
+					L"Your UEFI is configured for secure boot, you will need to use a shim loader!\n"
+					L"It is strongly recommended to disable secure boot in your firmware settings.\n"
+				);
+			}
 		}
+		else
+		{
+			if ( force_small )
+			{
+				EnableWindow( GetDlgItem(hwnd, IDC_COMBO_ALGORT), FALSE );
+
+				SendMessage( GetDlgItem(hwnd, IDC_WIZ_CONF_WARNING), (UINT)WM_SETFONT, (WPARAM)__font_bold, 0 );
+				SetWindowText( 
+					GetDlgItem(hwnd, IDC_WIZ_CONF_WARNING),
+					L"Your BIOS does not provide enough base memory,\n"
+					L"you can only use AES to encrypt the boot partition!"
+				);
+			}
+		}
+
 		for ( k = 0; k < countof(combo_sel); k++ )
 		{
 			SendMessage( GetDlgItem(hwnd, combo_sel[k]), CB_SETCURSEL, 0, 0 );

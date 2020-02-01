@@ -1,0 +1,40 @@
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+Library/VeraCryptLib/BootCommon.h
+Library/VeraCryptLib/BootDefs.h
+Library/VeraCryptLib/common/
+Library/VeraCryptLib/crypto/
+SecureBoot/keys/
+SecureBoot/makecert.exe
+SecureBoot/pvk2pfx.exe
+SecureBoot/sb_create_keys.bat
+SecureBoot/sb_create_siglists.ps1
+SecureBoot/signtool.exe

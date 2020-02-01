@@ -1,0 +1,43 @@
+##  @file
+#   Graph library
+#
+# Copyright (c) 2016. Disk Cryptography Services for EFI (DCS), Alex Kolotnikov
+# Copyright (c) 2016. VeraCrypt, Mounir IDRASSI 
+#
+# This program and the accompanying materials are licensed and made available 
+# under the terms and conditions of the GNU Lesser General Public License, version 3.0 (LGPL-3.0).
+# 
+# The full text of the license may be found at
+# https://opensource.org/licenses/LGPL-3.0
+#
+##
+
+[Defines]
+  INF_VERSION                    = 0x00010006
+  BASE_NAME                      = GraphLib
+  MODULE_UNI_FILE                = GraphLib.uni
+  FILE_GUID                      = 9BD93C5C-7EF7-4B07-A53D-1E84A9F00F2C
+  MODULE_TYPE                    = UEFI_DRIVER
+  VERSION_STRING                 = 1.0
+  LIBRARY_CLASS                  = GraphLib|DXE_DRIVER DXE_RUNTIME_DRIVER UEFI_APPLICATION UEFI_DRIVER
+
+#
+#  VALID_ARCHITECTURES           = IA32 X64
+#
+
+
+[Sources.common]
+  EfiGraph.c
+  font.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  DcsPkg/DcsPkg.dec
+
+[LibraryClasses]
+  MemoryAllocationLib
+  UefiLib
+  PrintLib
+  
+[Protocols]
+  gEfiGraphicsOutputProtocolGuid

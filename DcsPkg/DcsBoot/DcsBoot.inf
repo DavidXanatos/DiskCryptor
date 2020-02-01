@@ -1,0 +1,67 @@
+## @file
+#  This is DCS boot loader application
+#
+# Copyright (c) 2016. Disk Cryptography Services for EFI (DCS), Alex Kolotnikov
+# Copyright (c) 2016. VeraCrypt, Mounir IDRASSI 
+# 
+# This program and the accompanying materials are licensed and made available
+# under the terms and conditions of the GNU Lesser General Public License, version 3.0 (LGPL-3.0).
+# 
+#  The full text of the license may be found at
+# https://opensource.org/licenses/LGPL-3.0
+#
+##
+
+[Defines]
+  INF_VERSION                    = 0x00010006
+  BASE_NAME                      = DcsBoot
+  FILE_GUID                      = DE8AB4B2-EB47-44E1-A4D7-1001E5E9F0A5
+  MODULE_TYPE                    = UEFI_APPLICATION
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = DcsBootMain
+
+#
+# The following information is for reference only and not required by the build tools.
+#
+#  VALID_ARCHITECTURES           = IA32 X64 IPF EBC
+#
+
+[Sources]
+  DcsBoot.c
+
+
+[Packages]
+  MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+  DcsPkg/DcsPkg.dec
+
+[LibraryClasses]
+  UefiApplicationEntryPoint
+  UefiLib
+  BaseLib
+  MemoryAllocationLib
+  CommonLib
+  DcsCfgLib
+
+[Guids]
+  gEfiGlobalVariableGuid
+  gEfiDcsVariableGuid
+  gEfiFileInfoGuid
+  gEfiPartTypeSystemPartGuid
+  gEfiGlobalVariableGuid
+
+[Protocols]
+  gEfiBlockIoProtocolGuid
+
+[BuildOptions.IA32]
+RELEASE_VS2010x86_IA32_CC_FLAGS    =  /arch:IA32 /FAcs
+DEBUG_VS2010x86_IA32_CC_FLAGS    = /arch:IA32 /FAcs
+NOOPT_VS2010x86_IA32_CC_FLAGS    = /arch:IA32  /FAcs
+
+RELEASE_VS2015x86_IA32_CC_FLAGS    =  /arch:IA32 /FAcs
+DEBUG_VS2015x86_IA32_CC_FLAGS    = /arch:IA32 /FAcs
+NOOPT_VS2015x86_IA32_CC_FLAGS    = /arch:IA32  /FAcs
+[FeaturePcd]
+
+[Pcd]
+

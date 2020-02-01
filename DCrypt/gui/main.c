@@ -1,5 +1,7 @@
 /*  *
     * DiskCryptor - open source partition encryption tool
+	* Copyright (c) 2019-2020
+	* DavidXanatos <info@diskcryptor.org>
 	* Copyright (c) 2007-2010 
 	* ntldr <ntldr@diskcryptor.net> PGP key ID - 0xC48251EB4F8E4E6E
     *
@@ -40,6 +42,7 @@ int _tmr_elapse[ ] =
 int __status;
 
 dc_conf_data __config;
+int          __is_efi_boot;
 
 list_entry __volumes;
 list_entry __action;
@@ -80,14 +83,39 @@ void _refresh(
 		);
 }
 
+int dc_get_ldr_config(int dsk_num, ldr_config *conf)
+{
+	if (dsk_num == -1 ? __is_efi_boot : dc_is_dcs_on_disk(dsk_num)) {
+		return dc_efi_config(dsk_num, 0, conf);
+	}
+	else {
+		return dc_get_mbr_config(dsk_num, NULL, conf);
+	}
+}
+
+int dc_set_ldr_config(int dsk_num, ldr_config *conf)
+{
+	if (dsk_num == -1 ? __is_efi_boot : dc_is_dcs_on_disk(dsk_num)) {
+		return dc_efi_config(dsk_num, 1, conf);
+	}
+	else {
+		return dc_set_mbr_config(dsk_num, NULL, conf);
+	}
+}
 
 static DWORD _dc_upd_bootloader( )
 {
 	ldr_config conf;
 	DWORD      status;
 	
-	if ( dc_get_mbr_config( -1, NULL, &conf ) != ST_OK ) return NO_ERROR;
-	if ( (status =  dc_update_boot(-1)) != ST_OK ) return 100000 + status;
+	if ( dc_get_ldr_config( -1, &conf ) != ST_OK ) return NO_ERROR;
+	if ( __is_efi_boot ) {
+		status = dc_update_efi_boot(-1);
+	}
+	else {
+		status = dc_update_boot(-1);
+	}
+	if (status != ST_OK) return 100000 + status;
 	return NO_ERROR;
 }
 
@@ -243,7 +271,7 @@ int WINAPI wWinMain(
 	{
 		if ( ( rlt = _drv_action(DA_INSTAL, 0) ) != NO_ERROR )
 		{
-			__error_s( HWND_DESKTOP, NULL, rlt );
+			__error_s( HWND_DESKTOP, NULL, -rlt );
 		}
 		return 0;
 	}
@@ -259,11 +287,12 @@ int WINAPI wWinMain(
 	_log( L"%0.8X dc version", ver );
 #endif
 
+#ifndef _DEBUG // todo remove this
 	if ( ver < DC_DRIVER_VER )
 	{
 		if ( ( rlt = _drv_action(DA_UPDATE, ver) ) != NO_ERROR )
 		{
-			__error_s( HWND_DESKTOP, NULL, rlt );
+			__error_s( HWND_DESKTOP, NULL, -rlt );
 		}
 		return 0;
 	}
@@ -278,6 +307,12 @@ int WINAPI wWinMain(
 
 		return 0;
 	}
+#endif
+
+	dc_efi_init();
+
+	__is_efi_boot = dc_efi_check();
+
 	{
 		HWND h_find;
 		WNDCLASS wc = { 0 };
@@ -318,7 +353,7 @@ int WINAPI wWinMain(
 
 	if ( (rlt = dc_load_config(&__config) == NO_ERROR ? ST_OK : ST_ERROR) != ST_OK )
 	{
-		__error_s( HWND_DESKTOP, L"Error get config", rlt );
+		__error_s( HWND_DESKTOP, L"Error get config", -rlt );
 		return 0;		
 	}
 	InitializeCriticalSection( &crit_sect );

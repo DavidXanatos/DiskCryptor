@@ -1,0 +1,134 @@
+##  @file
+#   Library used for DCS
+#
+##
+
+[Defines]
+  INF_VERSION                    = 0x00010006
+  BASE_NAME                      = VeraCryptLib
+  MODULE_UNI_FILE                = VeraCryptLib.uni
+  FILE_GUID                      = 6E5F01BD-D550-40AC-AC63-167DE971E3A1
+  MODULE_TYPE                    = UEFI_DRIVER
+  VERSION_STRING                 = 1.0
+  LIBRARY_CLASS                  = VeraCryptLib|DXE_DRIVER DXE_RUNTIME_DRIVER UEFI_APPLICATION UEFI_DRIVER
+
+#
+#  VALID_ARCHITECTURES           = IA32 X64
+#
+
+[Sources.common]
+common\Crc.c
+common\Crc.h
+common\Crypto.c
+common\Crypto.h
+common\Endian.c
+common\Endian.h
+common\GfMul.h
+common\Password.h
+common\Pkcs5.c
+common\Pkcs5.h
+common\Tcdefs.h
+common\Volumes.c
+common\Volumes.h
+common\Xts.c
+common\Xts.h
+crypto\Aes.h
+crypto\Aeskey.c
+crypto\Aesopt.h
+crypto\Aestab.c
+crypto\Aestab.h
+crypto\Aes_hw_cpu.nasm
+crypto\Aes_hw_cpu.h
+crypto\config.h
+crypto\Rmd160.c
+crypto\Rmd160.h
+crypto\Serpent.c
+crypto\Serpent.h
+crypto\Sha2.c
+crypto\Sha2.h
+crypto\Twofish.c
+crypto\Twofish.h
+crypto\Whirlpool.c
+crypto\Whirlpool.h
+crypto\GostCipher.c
+crypto\GostCipher.h
+crypto\Streebog.c
+crypto\Streebog.h
+crypto\kuznyechik.c
+crypto\kuznyechik.h
+crypto\Camellia.c
+crypto\Camellia.h
+crypto\cpu.c
+crypto\cpu.h
+DcsVeraCrypt.c
+DcsVeraCryptImpl.c
+DcsVeraCrypt.h
+
+[Sources.X64]
+crypto\Aes_x64.nasm
+crypto\Gost89_x64.nasm
+
+[Sources.IA32]
+llmath.c
+crypto\Aes_x86.nasm
+
+[Binaries.X64]
+LIB|Twofish_x64.obj|*
+LIB|Camellia_aesni_x64.obj|*
+LIB|Camellia_x64.obj|*
+
+[Packages]
+  MdePkg/MdePkg.dec
+  DcsPkg/DcsPkg.dec
+  CryptoPkg/CryptoPkg.dec
+
+[LibraryClasses]
+  MemoryAllocationLib
+  UefiLib
+  RngLib
+  BaseCryptLib
+
+[Protocols]
+
+
+[BuildOptions.IA32]
+DEBUG_VS2010x86_IA32_CC_FLAGS      == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /FIAutoGen.h /EHs-c- /GR- /GF /Gy /Zi /Gm /FAcs /D_UEFI
+RELEASE_VS2010x86_IA32_CC_FLAGS    == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /FIAutoGen.h /EHs-c- /GR- /GF /FAcs /D_UEFI
+NOOPT_VS2010x86_IA32_CC_FLAGS      == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /FIAutoGen.h /EHs-c- /GR- /GF /Gy /Zi /Gm /Od /FAcs /D_UEFI
+
+DEBUG_VS2015x86_IA32_CC_FLAGS      == /arch:IA32 /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /FIAutoGen.h /EHs-c- /GR- /GF /Gy /Zi /Gm /FAcs /D_UEFI
+RELEASE_VS2015x86_IA32_CC_FLAGS    == /arch:IA32 /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /FIAutoGen.h /EHs-c- /GR- /GF /FAcs /D_UEFI
+NOOPT_VS2015x86_IA32_CC_FLAGS      == /arch:IA32 /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /FIAutoGen.h /EHs-c- /GR- /GF /Gy /Zi /Gm /Od /FAcs /D_UEFI
+
+RELEASE_VS2010x86_IA32_NASM_FLAGS    = -Xvc --prefix _ -d_UEFI=1
+DEBUG_VS2010x86_IA32_NASM_FLAGS      = -Xvc --prefix _ -d_UEFI=1
+NOOPT_VS2010x86_IA32_NASM_FLAGS      = -Xvc --prefix _ -d_UEFI=1
+
+RELEASE_VS2015x86_IA32_NASM_FLAGS    = -Xvc --prefix _ -d_UEFI=1
+DEBUG_VS2015x86_IA32_NASM_FLAGS      = -Xvc --prefix _ -d_UEFI=1
+NOOPT_VS2015x86_IA32_NASM_FLAGS      = -Xvc --prefix _ -d_UEFI=1
+
+[BuildOptions.X64]
+DEBUG_VS2010x86_X64_CC_FLAGS     == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /Zi /Gm /D_UEFI
+RELEASE_VS2010x86_X64_CC_FLAGS     == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /D_UEFI
+NOOPT_VS2010x86_X64_CC_FLAGS       == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /Zi /Gm /Od /D_UEFI
+
+DEBUG_VS2015x86_X64_CC_FLAGS     == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /Zi /Gm /D_UEFI
+RELEASE_VS2015x86_X64_CC_FLAGS     == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /D_UEFI
+NOOPT_VS2015x86_X64_CC_FLAGS       == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /Zi /Gm /Od /D_UEFI
+
+DEBUG_VS2017_X64_CC_FLAGS     == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /Zi /Gm /D_UEFI
+RELEASE_VS2017_X64_CC_FLAGS     == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /D_UEFI
+NOOPT_VS2017_X64_CC_FLAGS       == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /Zi /Gm /Od /D_UEFI
+
+RELEASE_VS2010x86_X64_NASM_FLAGS    = -Xvc -d_UEFI=1
+DEBUG_VS2010x86_X64_NASM_FLAGS      = -Xvc -d_UEFI=1
+NOOPT_VS2010x86_X64_NASM_FLAGS      = -Xvc -d_UEFI=1
+
+RELEASE_VS2015x86_X64_NASM_FLAGS    = -Xvc -d_UEFI=1
+DEBUG_VS2015x86_X64_NASM_FLAGS      = -Xvc -d_UEFI=1
+NOOPT_VS2015x86_X64_NASM_FLAGS      = -Xvc -d_UEFI=1
+
+RELEASE_VS2017_X64_NASM_FLAGS    = -Xvc -d_UEFI=1
+DEBUG_VS2017_X64_NASM_FLAGS      = -Xvc -d_UEFI=1
+NOOPT_VS2017_X64_NASM_FLAGS      = -Xvc -d_UEFI=1

@@ -1,0 +1,91 @@
+##  @file
+#   Library for DCS Block R/W interceptor
+#
+# Copyright (c) 2016. Disk Cryptography Services for EFI (DCS), Alex Kolotnikov
+# Copyright (c) 2016. VeraCrypt, Mounir IDRASSI 
+# Copyright (c) 2019. DiskCryptor, David Xanatos 
+#
+# This program and the accompanying materials are licensed and made available 
+# under the terms and conditions of the GNU Lesser General Public License, version 3.0 (LGPL-3.0).
+# 
+# The full text of the license may be found at
+# https://opensource.org/licenses/LGPL-3.0
+#
+##
+
+[Defines]
+  INF_VERSION                    = 0x00010006
+  BASE_NAME                      = DcsIntLib
+  MODULE_UNI_FILE                = DcsIntLib.uni
+  FILE_GUID                      = 26D7760E-8276-4590-A88E-80739B0E73B5
+  MODULE_TYPE                    = UEFI_DRIVER
+  VERSION_STRING                 = 1.0
+  LIBRARY_CLASS                  = DcsIntLib|DXE_DRIVER UEFI_APPLICATION UEFI_DRIVER
+
+#
+#  VALID_ARCHITECTURES           = IA32 X64
+#
+
+[Sources.common]
+  DcsIntName.c
+  DcsIntHook.c
+
+[Sources.X64]
+
+[Sources.IA32]
+
+[Packages]
+  MdePkg/MdePkg.dec
+  DcsPkg/DcsPkg.dec
+  CryptoPkg/CryptoPkg.dec
+
+[LibraryClasses]
+  MemoryAllocationLib
+  UefiLib
+  RngLib
+  BaseCryptLib
+
+[Protocols]
+
+
+[BuildOptions.IA32]
+DEBUG_VS2010x86_IA32_CC_FLAGS      == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /FIAutoGen.h /EHs-c- /GR- /GF /Gy /Zi /Gm /FAcs /D_UEFI
+RELEASE_VS2010x86_IA32_CC_FLAGS    == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /FIAutoGen.h /EHs-c- /GR- /GF /FAcs /D_UEFI
+NOOPT_VS2010x86_IA32_CC_FLAGS      == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /FIAutoGen.h /EHs-c- /GR- /GF /Gy /Zi /Gm /Od /FAcs /D_UEFI
+
+DEBUG_VS2015x86_IA32_CC_FLAGS      == /arch:IA32 /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /FIAutoGen.h /EHs-c- /GR- /GF /Gy /Zi /Gm /FAcs /D_UEFI
+RELEASE_VS2015x86_IA32_CC_FLAGS    == /arch:IA32 /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /FIAutoGen.h /EHs-c- /GR- /GF /FAcs /D_UEFI
+NOOPT_VS2015x86_IA32_CC_FLAGS      == /arch:IA32 /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /FIAutoGen.h /EHs-c- /GR- /GF /Gy /Zi /Gm /Od /FAcs /D_UEFI
+
+RELEASE_VS2010x86_IA32_NASM_FLAGS    = -Xvc --prefix _ -d_UEFI=1
+DEBUG_VS2010x86_IA32_NASM_FLAGS      = -Xvc --prefix _ -d_UEFI=1
+NOOPT_VS2010x86_IA32_NASM_FLAGS      = -Xvc --prefix _ -d_UEFI=1
+
+RELEASE_VS2015x86_IA32_NASM_FLAGS    = -Xvc --prefix _ -d_UEFI=1
+DEBUG_VS2015x86_IA32_NASM_FLAGS      = -Xvc --prefix _ -d_UEFI=1
+NOOPT_VS2015x86_IA32_NASM_FLAGS      = -Xvc --prefix _ -d_UEFI=1
+
+[BuildOptions.X64]
+DEBUG_VS2010x86_X64_CC_FLAGS     == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /Zi /Gm /D_UEFI
+RELEASE_VS2010x86_X64_CC_FLAGS     == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /D_UEFI
+NOOPT_VS2010x86_X64_CC_FLAGS       == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /Zi /Gm /Od /D_UEFI
+
+DEBUG_VS2015x86_X64_CC_FLAGS     == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /Zi /Gm /D_UEFI
+RELEASE_VS2015x86_X64_CC_FLAGS     == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /D_UEFI
+NOOPT_VS2015x86_X64_CC_FLAGS       == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /Zi /Gm /Od /D_UEFI
+
+DEBUG_VS2017_X64_CC_FLAGS     == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /Zi /Gm /D_UEFI
+RELEASE_VS2017_X64_CC_FLAGS     == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /D_UEFI
+NOOPT_VS2017_X64_CC_FLAGS       == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /Zi /Gm /Od /D_UEFI
+
+RELEASE_VS2010x86_X64_NASM_FLAGS    = -Xvc -d_UEFI=1
+DEBUG_VS2010x86_X64_NASM_FLAGS      = -Xvc -d_UEFI=1
+NOOPT_VS2010x86_X64_NASM_FLAGS      = -Xvc -d_UEFI=1
+
+RELEASE_VS2015x86_X64_NASM_FLAGS    = -Xvc -d_UEFI=1
+DEBUG_VS2015x86_X64_NASM_FLAGS      = -Xvc -d_UEFI=1
+NOOPT_VS2015x86_X64_NASM_FLAGS      = -Xvc -d_UEFI=1
+
+RELEASE_VS2017_X64_NASM_FLAGS    = -Xvc -d_UEFI=1
+DEBUG_VS2017_X64_NASM_FLAGS      = -Xvc -d_UEFI=1
+NOOPT_VS2017_X64_NASM_FLAGS      = -Xvc -d_UEFI=1

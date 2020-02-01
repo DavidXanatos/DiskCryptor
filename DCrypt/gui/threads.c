@@ -287,9 +287,11 @@ _dact *_create_act_thread(
 
 			if ( !act->h_thread || resume == (DWORD)-1 )
 			{
+				int rlt = GetLastError();
+
 				free(act);
 				
-				__error_s( __dlg, L"Error create thread", -1 );
+				__error_s( __dlg, L"Error create thread", -rlt );
 				return NULL;
 			}
 		}

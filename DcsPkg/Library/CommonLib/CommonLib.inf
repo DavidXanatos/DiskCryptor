@@ -1,0 +1,75 @@
+##  @file
+# EFI common library (helpers)
+#
+# Copyright (c) 2016. Disk Cryptography Services for EFI (DCS), Alex Kolotnikov, Alex Kolotnikov
+# Copyright (c) 2016. VeraCrypt, Mounir IDRASSI 
+# 
+# This program and the accompanying materials are licensed and made available
+# under the terms and conditions of the GNU Lesser General Public License, version 3.0 (LGPL-3.0).
+# 
+# The full text of the license may be found at
+# https://opensource.org/licenses/LGPL-3.0
+#
+##
+
+[Defines]
+  INF_VERSION                    = 0x00010006
+  BASE_NAME                      = CommonLib
+  MODULE_UNI_FILE                = CommonLib.uni
+  FILE_GUID                      = F779769D-58F4-4A49-A7D7-59473BBD3CCE
+  MODULE_TYPE                    = UEFI_DRIVER
+  VERSION_STRING                 = 1.0
+  LIBRARY_CLASS                  = CommonLib|DXE_DRIVER DXE_RUNTIME_DRIVER UEFI_APPLICATION UEFI_DRIVER
+
+#
+#  VALID_ARCHITECTURES           = IA32 X64
+#
+
+[Sources.common]
+  EfiMem.c
+  EfiBio.c
+  EfiVar.c
+  EfiFile.c
+  EfiConsole.c
+  KbMapper.c
+  EfiAttrPrint.c
+  EfiBeep.c
+  EfiExec.c
+  EfiUsb.c
+  EfiTouch.c
+  EfiBluetooth.c
+  EfiTpm.c
+  GptRead.c
+  EfiBml.c
+
+[Sources.IA32]
+  IA32/EfiCpuHalt.asm
+
+[Sources.X64]
+  X64/EfiCpuHalt.asm
+
+[Packages]
+  MdePkg/MdePkg.dec
+  DcsPkg/DcsPkg.dec
+  ShellPkg/ShellPkg.dec
+
+
+[LibraryClasses]
+  MemoryAllocationLib
+  UefiLib
+  PrintLib
+  UefiUsbLib
+  
+[Protocols]
+  gEfiBlockIoProtocolGuid
+  gEfiSimpleFileSystemProtocolGuid
+  gEfiLoadedImageProtocolGuid
+  gEfiUsbIoProtocolGuid
+  gEfiAbsolutePointerProtocolGuid
+  gEfiGraphicsOutputProtocolGuid
+  gEfiSimpleTextOutProtocolGuid
+  gEfiBluetoothIoProtocolGuid
+  gEfiBluetoothHcProtocolGuid
+  gEfiBluetoothConfigProtocolGuid
+  gEfiTcgProtocolGuid
+  gEfiTcg2ProtocolGuid

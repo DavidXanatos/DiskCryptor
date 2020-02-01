@@ -75,36 +75,68 @@ static void dc_restore_ints(bd_data *bdb)
 	}
 }
 
-void dc_get_boot_pass()
+int gc_try_load_bdb(PHYSICAL_ADDRESS addr)
 {
-	PHYSICAL_ADDRESS addr;
+	int              ret = ST_ERROR;
 	u8              *bmem;
 	bd_data         *bdb;
-	int              bcount;
 
+	//DbgMsg("checking for boot data block at 0x%x\n", addr.LowPart);
+	if ((bmem = MmMapIoSpace(addr, PAGE_SIZE, MmCached)) == NULL) return ret;
+	/* find boot data block */
+	if (bdb = find_8b(bmem, PAGE_SIZE - offsetof(bd_data, ret_32), 0x01F53F55, 0x9E4361E4)) 
+	{
+		//DbgMsg("boot data block found at %p\n", bdb);
+		DbgMsg("boot data block found at 0x%x\n", addr.LowPart);
+		DbgMsg("boot loader base 0x%x size %d\n", bdb->bd_base, bdb->bd_size);
+		//DbgMsg("boot password %S\n", bdb->password.pass); // no no no
+		/* restore realmode interrupts */
+		dc_restore_ints(bdb);
+		/* add password to cache */
+		dc_add_password(&bdb->password);
+		/* save bootloader size */
+		dc_boot_kbs = bdb->bd_size / 1024;
+		/* set bootloader load flag */
+		dc_load_flags |= DST_BOOTLOADER;
+		/* zero bootloader body */
+		dc_zero_boot(bdb->bd_base, bdb->bd_size);
+		
+		ret = ST_OK;
+	}
+	MmUnmapIoSpace(bmem, PAGE_SIZE);
+
+	return ret;
+}
+
+int dc_get_legacy_boot_pass()
+{
+	PHYSICAL_ADDRESS addr;
+	/* scan memory in range 500-640k */
+	for (addr.QuadPart = 500*1024; addr.LowPart < 640*1024; addr.LowPart += PAGE_SIZE)
+	{
+		if (gc_try_load_bdb(addr) == ST_OK) return ST_OK;
+	}
+	return ST_ERROR;
+}
+
+int dc_get_uefi_boot_pass() 
+{
+	PHYSICAL_ADDRESS addr;
+	/* scan memory in range 1-16M in steps of 1M */
+	for (addr.QuadPart = 0x00100000; addr.LowPart <= 0x01000000; addr.LowPart += (256 * PAGE_SIZE))
+	{
+		if (gc_try_load_bdb(addr) == ST_OK) return ST_OK;
+	}
+	return ST_ERROR;
+}
+
+void dc_get_boot_pass()
+{
 	DbgMsg("dc_get_boot_pass\n");
 
-	/* scan memory in range 500-640k */
-	for (addr.QuadPart = 500*1024, bcount = 0; addr.LowPart < 640*1024 && bcount < 2; addr.LowPart += PAGE_SIZE)
-	{
-		if ( (bmem = MmMapIoSpace(addr, PAGE_SIZE, MmCached)) == NULL ) continue;
-		/* find boot data block */
-		if (bdb = find_8b(bmem, PAGE_SIZE - offsetof(bd_data, ret_32), 0x01F53F55, 0x9E4361E4)) 
-		{
-			DbgMsg("boot data block found at %p\n", bdb);
-			/* restore realmode interrupts */
-			dc_restore_ints(bdb);
-			/* add password to cache */
-			dc_add_password(&bdb->password);
-			/* save bootloader size */
-			dc_boot_kbs = bdb->bd_size / 1024;
-			/* set bootloader load flag */
-			dc_load_flags |= DST_BOOTLOADER;
-			/* zero bootloader body */
-			dc_zero_boot(bdb->bd_base, bdb->bd_size);
-			/* increment bootloaders counter */
-			bcount++;
+	if (dc_get_legacy_boot_pass() != ST_OK) {
+		if (dc_get_uefi_boot_pass() != ST_OK) {
+			DbgMsg("boot data block NOT found\n");
 		}
-		MmUnmapIoSpace(bmem, PAGE_SIZE);
 	}
 }

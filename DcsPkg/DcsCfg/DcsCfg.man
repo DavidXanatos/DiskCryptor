@@ -1,0 +1,143 @@
+.TH DcsCfg 0 "Configuration tool of DCS"
+.SH NAME
+Configure boot loader parameters and tests EFI environment for compatibility
+.SH SYNOPSIS
+
+DcsCfg -dl <d|a>
+DcsCfg -dc -ds <BN> -de <BN> -aa
+DcsCfg -aa
+DcsCfg -ds <BN> -pl
+DcsCfg -pf <gpt_file_name> -pl 
+DcsCfg -ds <BN> -pf <gpt_file_name> -ps
+DcsCfg -ds <BN> -pf <gpt_file_name> -pa
+DcsCfg -pf <gpt_file_name> -pe -aa -rnd <rnd_data>
+DcsCfg -pf <gpt_file_name> -pd -aa -rnd <rnd_data>
+DcsCfg -pf <gpt_file_name> -pnt <PNT> -phide <HS> <HE> -ps
+DcsCfg -kp <key_file>
+DcsCfg -ds <BN> -srm <total_security_regions>
+DcsCfg -ds <BN> -srw <total_security_regions>
+DcsCfg -ds <BN> -sra <security_region>
+DcsCfg -ds <BN> -wipe <start> <end>
+
+.SH OPTIONS
+
+** Devices
+ -dl - block device list (numbers are used in -ds, -de)
+ -ds <BN> – select device
+ -de <BN> – end device to check (starts from select)
+ -dc - check devices (try to authorize)
+ -ul - USB devices list
+ -tl - Touch devices list
+ -tt <TN> - Test touch device
+ -gl - graphics device list
+ -gd <GN> - graphics device select
+ -gm <mode> - graphics mode select
+ -bl - Beep device list
+ -bt - Beep device test
+ -setup - interactive setup (TODO)
+
+** Crypt volume 
+ -aa - ask authorization parameters
+ -ach - create header on block device
+ -vec <BN> - block device encrypt
+ -vdc <BN> - block device decrypt
+ -vcp <BN> - block device change password
+
+** Random
+ -rnd <type> <param>- select rnadom type (0 - none, 1 - file, 2- rdrand, 3 HMAC, 4 OPENSSL 5 TPM)
+ -rndgen <file> - generate random file
+ -rndload - load rnd generator state from file
+ -rndsave - save rnd generator state to file
+
+** Disk entries table/partitions
+ -pl - GPT list
+ -pf <gpt_file_name> - file with GPT and params
+ -ps - save GPT to file
+ -pz - delete info from GPT to file
+ -pa - applay GPT from file to disk
+ -pe - encrypt GPT
+ -pd - decrypt GPT
+ -pnt <PNT> - partition number as template (from -pl)
+ -phide <PHS> <PHE> - hide partions from <PHS> to <PHE>; <PHS> - start sector of hidden partition, <PHE> - end sector of hidden partition
+ -pedt <PN> - partition number to edit(from -pl)
+ -pexec - edit executable parameter
+ -prndsave - save random state to params
+ -prndload - load random state from params
+ -pwdcache - edit password cache in params
+
+** Security region data
+ -kp <key_file_name> - keys file of platform to save
+ -srm <SRT> - mark disk as security regions container(write CRC of platform to 61 sector); <SRT> - number of possible security regions
+ -srw <SRT> - wipe security regions data with random data (write random data [62, 62 + 256 * SRT]) it has to be free! check first partition start sector!
+ -sra <SRN> - add <gpt_file_name> to security region <SRN>
+ -srdump <SFX> - dump security regions from USB to files (list of files created - N<SFX>)
+ -wipe <SS SE> - write random data to sectors range [SS,SE]
+
+** Rescue
+ -osdecrypt - decrypt OS (rescue)
+ -osrestorekey - restore key (rescue)
+
+** TPM
+ -tpmpcrs <s> <e>- print PCRs
+ -tpmnvlist - List NV regions in TPM
+ -tpmcfg - Configure TPM
+
+** Table configuration
+ -tbf <tbl_file> - name of tables file
+ -tbz - zero tables 
+ -tbl - list tables
+ -tbn <name> - name of table to delete or appened (DCSPROP_, PICTPWD_)
+ -tbd - delete table (<name>)
+ -tba <tbl_data_file> - append table (dcsprop or picture)
+ -tbdump - save tables
+
+ .SH DESCRIPTION
+
+NOTES:
+This is test tool for DCS developers. Use it with care.
+
+.SH EXAMPLES
+
+EXAMPLES:
+
+  * To list block devices
+    Shell> dcscfg -dl
+ 
+  * To change password on block device 1
+    Shell> dcscfg -aa -scp 1
+ 
+  * To list graphics devices
+    Shell> dcscfg -gl
+
+  * To select graphics devices mode 1 on device 1
+    Shell> dcscfg -gd 1 -gm 1
+
+  * To list GPT
+    Shell> dcscfg -ds 1 -pl
+
+  * To save GPT
+    Shell> dcscfg -ds 1 -pf gpt_org -ps
+
+  * To apply GPT to disk
+    Shell> dcscfg -ds 1 -pf gpt_disk -pa
+
+  * To hide partition [123456,5678910] as template use partition(9)
+    Shell> dcscfg -pf gpt_disk -pht 9 -phide 123456 5678910 -ps
+
+  * To encrypt GPT before adding to security region
+    Shell> dcscfg -aa -pf gpt_hidden_boot -pe -ps
+
+  * To mark USB disk(1) as security regions container(write CRC of platform to 61 sector)
+    Shell> dcscfg -ds 1 -srm 5
+
+  * To wipe 5 security regions with random data (write random data [62, 62 + 256 * 5]) 
+  Sectors has to free! check first partition start sector!
+    Shell> dcscfg -ds 1 -srw 5
+
+  * To add gpt_hidden_boot to security region 2 on device 1
+    Shell> dcscfg -ds 1 -pf gpt_hidden_boot -sra 2
+
+.SH RETURNVALUES
+ 
+RETURN VALUES:
+  0          Exited normally

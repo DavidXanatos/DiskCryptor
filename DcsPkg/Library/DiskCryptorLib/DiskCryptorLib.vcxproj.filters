@@ -1,0 +1,116 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="include">
+      <UniqueIdentifier>{19ae587a-1f74-4024-a1d0-7b82ec9f7037}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\boot">
+      <UniqueIdentifier>{e531b1f4-71fe-4802-b7cd-6266b8bbeeeb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="crypto">
+      <UniqueIdentifier>{bdeae058-ae62-4cd7-a0fd-df857ce4ee9c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\boot\bios.h">
+      <Filter>include\boot</Filter>
+    </ClInclude>
+    <ClInclude Include="include\boot\boot.h">
+      <Filter>include\boot</Filter>
+    </ClInclude>
+    <ClInclude Include="include\boot\e820.h">
+      <Filter>include\boot</Filter>
+    </ClInclude>
+    <ClInclude Include="include\defines.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\volume.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\boot\dc_header.h">
+      <Filter>include\boot</Filter>
+    </ClInclude>
+    <ClInclude Include="crypto\sha512_small.h">
+      <Filter>crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="crypto\twofish_small.h">
+      <Filter>crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="crypto\xts_small.h">
+      <Filter>crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="crypto\aes_small.h">
+      <Filter>crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="crypto\serpent_small.h">
+      <Filter>crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="crypto\sha512_pkcs5_2_small.h">
+      <Filter>crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="crypto\intrin.h">
+      <Filter>crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="include\boot\dc_io.h">
+      <Filter>include\boot</Filter>
+    </ClInclude>
+    <ClInclude Include="include\boot\boot_hook.h">
+      <Filter>include\boot</Filter>
+    </ClInclude>
+    <ClInclude Include="include\boot\hdd.h">
+      <Filter>include\boot</Filter>
+    </ClInclude>
+    <ClInclude Include="include\boot\hdd_io.h">
+      <Filter>include\boot</Filter>
+    </ClInclude>
+    <ClInclude Include="DcsDiskCryptor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="DiskCryptorLib.inf">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="crypto\sha512_small.c">
+      <Filter>crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="crypto\twofish_small.c">
+      <Filter>crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="crypto\xts_small.c">
+      <Filter>crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="crypto\aes_small.c">
+      <Filter>crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="crypto\serpent_small.c">
+      <Filter>crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="crypto\sha512_pkcs5_2_small.c">
+      <Filter>crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="dc_header.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dc_io.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DcsDiskCryptor.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

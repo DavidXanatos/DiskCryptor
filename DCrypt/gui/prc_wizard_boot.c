@@ -1,6 +1,8 @@
 /*
     *
     * DiskCryptor - open source partition encryption tool
+	* Copyright (c) 2019-2020
+	* DavidXanatos <info@diskcryptor.org>
 	* Copyright (c) 2007-2010
 	* ntldr <ntldr@diskcryptor.net> PGP key ID - 0xC48251EB4F8E4E6E
     *
@@ -44,6 +46,7 @@ void _refresh_boot_buttons(
 	BOOL	   enable      = FALSE;
 	BOOL       boot_device = FALSE;
 	BOOL       force_small = FALSE;
+	BOOL       force_shim = FALSE;
 	HWND       h_parent    = GetParent( GetParent( hwnd ) );
 
 	int        sel_disk    = _ext_disk_num(h_list);
@@ -67,22 +70,26 @@ void _refresh_boot_buttons(
 		enable = TRUE;
 
 		_get_item_text( h_list, item, 2, s_item, countof(s_item) );
-		if ( !wcscmp(s_item, L"installed") )
+		if ( wcsstr(s_item, L"installed") != NULL )
 		{
 			remove = TRUE;
-			update = dc_get_mbr_config( sel_disk, NULL, &conf ) == ST_OK && conf.ldr_ver < DC_BOOT_VER;
+			update = dc_get_mbr_config( sel_disk, NULL, &conf ) == ST_OK && (int)conf.ldr_ver < (conf.sign1 == 0 ? DC_UEFI_VER : DC_BOOT_VER);
 		}
 	}
+
+	force_shim = dc_efi_is_secureboot();
+
 	SetWindowText( GetDlgItem( h_parent, IDC_BTN_INSTALL ), remove ? IDS_BOOTREMOVE : IDS_BOOTINSTALL );
 	EnableWindow( GetDlgItem( h_parent, IDC_BTN_INSTALL ), enable );
 
 	EnableWindow( GetDlgItem( h_parent, IDC_BTN_CHANGE_CONF ), remove );
 	EnableWindow( GetDlgItem( h_parent, IDC_BTN_UPDATE ), update );
 
-	EnableWindow( GetDlgItem( hwnd, IDC_USE_SMALL_BOOT ), enable && !remove && !force_small );
+	EnableWindow( GetDlgItem( hwnd, IDC_USE_SMALL_BOOT ), enable && (remove || !force_small) );
 	_set_check( hwnd, IDC_USE_SMALL_BOOT, _get_check( hwnd, IDC_USE_SMALL_BOOT ) || force_small );
 
-
+	EnableWindow( GetDlgItem( hwnd, IDC_USE_SHIM_BOOT ), enable && (remove || !force_shim) );
+	_set_check( hwnd, IDC_USE_SHIM_BOOT, _get_check( hwnd, IDC_USE_SHIM_BOOT) || force_shim );
 }
 
 
@@ -104,18 +111,41 @@ int _init_boot_config(
 	_wnd_data *wnd;
 
 	int rlt;
+	int isefi = -1;
 
 	switch ( type )
 	{
-		case CTL_LDR_MBR:   rlt = dc_get_mbr_config( dsk_num, NULL, conf ); break;
-		case CTL_LDR_STICK: rlt = dc_mbr_config_by_partition(vol, FALSE, conf); break;
+		case CTL_LDR_HDD: 
+		{
+			isefi = dc_is_dcs_on_disk(dsk_num);
+			if (isefi)
+				rlt = dc_efi_config(dsk_num, 0, conf);
+			else
+				rlt = dc_get_mbr_config(dsk_num, NULL, conf);
+		}
+		break;
+
+		case CTL_LDR_STICK:
+		{
+			isefi = dc_is_dcs_on_partition(vol);
+			if (isefi)
+				rlt = dc_efi_config_by_partition(vol, 0, conf);
+			else
+				rlt = dc_mbr_config_by_partition(vol, FALSE, conf);
+		}
+		break;
+
 		case CTL_LDR_ISO:
-		case CTL_LDR_PXE:   rlt = dc_get_mbr_config( 0, path, conf ); break;
+		case CTL_LDR_PXE:   
+		{
+			rlt = dc_get_mbr_config(0, path, conf);
+		}
+		break;
 	}
 
 	if ( rlt != ST_OK )
 	{
-		__error_s( hwnd, L"Error getting bootloader configuration", rlt );
+		__error_s( hwnd, L"Error getting %sbootloader configuration", rlt, (isefi == 1 ? L"EFI " : (isefi == 0 ? L"MBR " : L"")) );
 		return rlt;
 	}
 
@@ -227,7 +257,12 @@ int _init_boot_config(
 	{
 	///////////////////////////////////////////////////////////////
 		_sub_class( GetDlgItem(wnd->dlg[3], IDC_USE_HARD_CRYPTO), SUB_STATIC_PROC, HWND_NULL );
-		_set_check( wnd->dlg[3], IDC_USE_HARD_CRYPTO, conf->options & LDR_OP_HW_CRYPTO );
+		EnableWindow(GetDlgItem(wnd->dlg[3], IDC_USE_HARD_CRYPTO), isefi == 1 ? FALSE : TRUE);
+		_set_check( wnd->dlg[3], IDC_USE_HARD_CRYPTO, (conf->options & LDR_OP_HW_CRYPTO) != 0 );
+
+		_sub_class( GetDlgItem(wnd->dlg[3], IDC_SET_VERBOSE), SUB_STATIC_PROC, HWND_NULL );
+		EnableWindow(GetDlgItem(wnd->dlg[3], IDC_SET_VERBOSE), isefi == 1 ? TRUE : FALSE); 
+		_set_check( wnd->dlg[3], IDC_SET_VERBOSE, (conf->logon_type & LDR_LT_DEBUG) != 0 );
 	}
 
 	tab_item.pszText = L"Main";
@@ -268,6 +303,7 @@ int _save_boot_config(
 {
 	_wnd_data *wnd;
 	int rlt = ST_OK;
+	int isefi = -1;
 
 	wnd = wnd_get_long( GetDlgItem(hwnd, IDT_BOOT_TAB), GWL_USERDATA );
 
@@ -378,6 +414,10 @@ int _save_boot_config(
 		set_flag( 
 			conf->options, LDR_OP_HW_CRYPTO, _get_check(wnd->dlg[3], IDC_USE_HARD_CRYPTO) 
 			);
+
+		set_flag( 
+			conf->logon_type, LDR_LT_DEBUG, _get_check(wnd->dlg[3], IDC_SET_VERBOSE)
+			);
 	}
 
 	if ( rlt != ST_OK )
@@ -386,14 +426,35 @@ int _save_boot_config(
 	}
 	switch ( type )
 	{
-		case CTL_LDR_MBR:   rlt = dc_set_mbr_config( dsk_num, NULL, conf ); break;
-		case CTL_LDR_STICK: rlt = dc_mbr_config_by_partition( vol, TRUE, conf ); break;
+		case CTL_LDR_HDD: 
+		{
+			isefi = dc_is_dcs_on_disk(dsk_num);
+			if (isefi)
+				rlt = dc_efi_config(dsk_num, TRUE, conf);
+			else
+				rlt = dc_set_mbr_config(dsk_num, NULL, conf);
+		}
+		break;
+		case CTL_LDR_STICK:
+		{
+			isefi = dc_is_dcs_on_partition(vol);
+			if (isefi)
+				rlt = dc_efi_config_by_partition(vol, TRUE, conf);
+			else
+				rlt = dc_mbr_config_by_partition(vol, TRUE, conf); 
+		}
+		break;
+
 		case CTL_LDR_ISO:
-		case CTL_LDR_PXE:   rlt = dc_set_mbr_config( 0, path, conf ); break;
+		case CTL_LDR_PXE:
+		{
+			rlt = dc_set_mbr_config(0, path, conf);
+		}
+		break;
 	}
 	if ( rlt != ST_OK )
 	{
-		__error_s( hwnd, L"Error set bootloader configuration", rlt );
+		__error_s( hwnd, L"Error set %sbootloader configuration", rlt, (isefi == 1 ? L"EFI " : (isefi == 0 ? L"MBR " : L"")) );
 		return rlt;				
 	}
 	EndDialog( GetParent(GetParent(hwnd)), IDOK );
@@ -489,10 +550,12 @@ _wizard_boot_dlg_proc(
 
 			hwnd = bt_sheets[0].hwnd;
 			{
+				_set_check( hwnd, __is_efi_boot ? IDC_EFI_BOOT : IDC_MBR_BOOT, TRUE );
+
 				__lists[HBOT_WIZARD_BOOT_DEVS] = GetDlgItem( hwnd, IDC_WZD_BOOT_DEVS );
 
 				_init_combo(
-					GetDlgItem(hwnd, IDC_COMBO_LOADER_TYPE), loader_type, lparam ? CTL_LDR_ISO : CTL_LDR_MBR, FALSE, -1
+					GetDlgItem(hwnd, IDC_COMBO_LOADER_TYPE), __is_efi_boot ? loader_type_efi : loader_type_mbr, lparam ? CTL_LDR_ISO : CTL_LDR_HDD, FALSE, -1
 					);
 
 				_list_devices( __lists[HBOT_WIZARD_BOOT_DEVS], TRUE, -1 );
@@ -503,7 +566,11 @@ _wizard_boot_dlg_proc(
 
 				_sub_class( GetDlgItem(hwnd, IDC_USE_SMALL_BOOT), SUB_STATIC_PROC, HWND_NULL );
 				_set_check( hwnd, IDC_USE_SMALL_BOOT, FALSE );
+				ShowWindow(GetDlgItem(hwnd, IDC_USE_SMALL_BOOT), __is_efi_boot ? SW_HIDE : SW_SHOW);
 
+				_sub_class( GetDlgItem(hwnd, IDC_USE_SHIM_BOOT), SUB_STATIC_PROC, HWND_NULL );
+				_set_check( hwnd, IDC_USE_SHIM_BOOT, FALSE );
+				ShowWindow(GetDlgItem(hwnd, IDC_USE_SHIM_BOOT), __is_efi_boot ? SW_SHOW : SW_HIDE);
 			}
 			ShowWindow(bt_sheets[0].hwnd, SW_SHOW);
 
@@ -512,8 +579,10 @@ _wizard_boot_dlg_proc(
 
 		case WM_COMMAND: 
 		{
-			int  type     = _get_combo_val( GetDlgItem(bt_sheets[0].hwnd, IDC_COMBO_LOADER_TYPE), loader_type );
+			int  is_efi   = _get_check(bt_sheets[0].hwnd, IDC_EFI_BOOT);
+			int  type     = _get_combo_val( GetDlgItem(bt_sheets[0].hwnd, IDC_COMBO_LOADER_TYPE), is_efi ? loader_type_efi : loader_type_mbr );
 			int  is_small = _get_check( bt_sheets[0].hwnd, IDC_USE_SMALL_BOOT );			
+			int  is_shim  = _get_check(bt_sheets[0].hwnd, IDC_USE_SHIM_BOOT);
 			int  dsk_num  = _ext_disk_num( __lists[HBOT_WIZARD_BOOT_DEVS] );
 
 			int rlt;
@@ -548,11 +617,14 @@ _wizard_boot_dlg_proc(
 
 					if ( wcscmp(btn_text, IDS_BOOTINSTALL) == 0 )
 					{
-						_menu_set_loader_vol( hwnd, vol, dsk_num, type, is_small );
+						if(is_efi)
+							_menu_set_loader_efi( hwnd, vol, dsk_num, type, is_shim );
+						else
+							_menu_set_loader_mbr( hwnd, vol, dsk_num, type, is_small );
 					}
 					if ( wcscmp(btn_text, IDS_BOOTREMOVE) == 0 )
 					{
-						_menu_unset_loader_mbr(hwnd, vol, dsk_num, type);
+						_menu_unset_loader(hwnd, vol, dsk_num, type);
 					}
 					if ( wcscmp(btn_text, IDS_BOOTCREATE) == 0 )
 					{
@@ -569,7 +641,7 @@ _wizard_boot_dlg_proc(
 						_save_boot_config(bt_sheets[1].hwnd, type, dsk_num, vol, path, &conf);
 						return 0L;
 					}
-					_list_devices( __lists[HBOT_WIZARD_BOOT_DEVS], type == CTL_LDR_MBR, -1 );
+					_list_devices( __lists[HBOT_WIZARD_BOOT_DEVS], type == CTL_LDR_HDD, -1 );
 					_refresh_boot_buttons( bt_sheets[0].hwnd, __lists[HBOT_WIZARD_BOOT_DEVS], -1 );
 
 				} 

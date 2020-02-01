@@ -70,7 +70,7 @@ typedef struct __size_move_ctls
 
 } _size_move_ctls;
 
-#define CTL_LDR_MBR           0
+#define CTL_LDR_HDD           0
 #define CTL_LDR_STICK         1
 #define CTL_LDR_ISO           2
 #define CTL_LDR_PXE           3
@@ -109,7 +109,8 @@ extern _init_list bad_pass_act[ ];
 extern _init_list auth_type[ ];
 
 extern _init_list cipher_names[ ];
-extern _init_list loader_type[ ];
+extern _init_list loader_type_mbr[ ];
+extern _init_list loader_type_efi[ ];
 
 extern _init_list pass_status[ ];
 

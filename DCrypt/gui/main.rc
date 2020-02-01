@@ -13,13 +13,11 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// English (U.S.) resources
+// English (United States) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-#ifdef _WIN32
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
-#endif //_WIN32
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -268,17 +266,21 @@ DLG_BOOT_SET DIALOGEX 0, 0, 436, 185
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    COMBOBOX        IDC_COMBO_LOADER_TYPE,7,6,200,139,CBS_DROPDOWNLIST | CBS_OWNERDRAWFIXED | CBS_AUTOHSCROLL | CBS_HASSTRINGS | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "",IDC_WZD_BOOT_DEVS,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_OWNERDRAWFIXED | LVS_ALIGNLEFT | LVS_NOSCROLL | LVS_NOSORTHEADER | WS_TABSTOP,7,33,260,81,WS_EX_TRANSPARENT
+    CONTROL         "",IDC_TAB,"Static",SS_OWNERDRAW | SS_SUNKEN,0,0,284,160
+    COMBOBOX        IDC_COMBO_LOADER_TYPE,62,6,154,139,CBS_DROPDOWNLIST | CBS_OWNERDRAWFIXED | CBS_AUTOHSCROLL | CBS_HASSTRINGS | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "",IDC_WZD_BOOT_DEVS,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_OWNERDRAWFIXED | LVS_ALIGNLEFT | LVS_NOSCROLL | LVS_NOSORTHEADER | WS_TABSTOP,7,33,266,81,WS_EX_TRANSPARENT
     CONTROL         "Small bootloader, only with AES",IDC_USE_SMALL_BOOT,
                     "Button",BS_OWNERDRAW | WS_TABSTOP,7,117,224,11
-    EDITTEXT        IDE_BOOT_PATH,7,141,241,12,ES_AUTOHSCROLL | WS_DISABLED | NOT WS_BORDER,WS_EX_STATICEDGE
-    CONTROL         "..",IDB_BOOT_PATH,"Button",BS_OWNERDRAW | WS_DISABLED | WS_TABSTOP,252,140,15,13
-    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ | WS_DISABLED,7,32,262,1
-    LTEXT           "Bootloader place",IDC_STATIC,212,8,55,10
-    CONTROL         "Select device",IDC_HEAD_BOOT_DEV,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,7,22,260,10,WS_EX_TRANSPARENT
-    CONTROL         "Select path to file",IDC_HEAD_BOOT_FILE,"Static",SS_LEFTNOWORDWRAP | WS_DISABLED | WS_GROUP,7,130,260,10
-    CONTROL         "",IDC_TAB,"Static",SS_OWNERDRAW | SS_SUNKEN,0,0,284,160
+    CONTROL         "Install shim, to support secure boot",IDC_USE_SHIM_BOOT,
+                    "Button",BS_OWNERDRAW | WS_TABSTOP,7,117,224,11
+    EDITTEXT        IDE_BOOT_PATH,7,141,249,12,ES_AUTOHSCROLL | WS_DISABLED | NOT WS_BORDER,WS_EX_STATICEDGE
+    CONTROL         "..",IDB_BOOT_PATH,"Button",BS_OWNERDRAW | WS_DISABLED | WS_TABSTOP,259,140,15,13
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ | WS_DISABLED,7,32,268,1
+    LTEXT           "Bootloader place",IDC_STATIC,219,8,55,10
+    CONTROL         "Select device",IDC_HEAD_BOOT_DEV,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,7,22,267,10,WS_EX_TRANSPARENT
+    CONTROL         "Select path to file",IDC_HEAD_BOOT_FILE,"Static",SS_LEFTNOWORDWRAP | WS_DISABLED | WS_GROUP,7,130,266,10
+    CONTROL         "MBR",IDC_MBR_BOOT,"Button",BS_AUTORADIOBUTTON,5,8,27,10
+    CONTROL         "EFI",IDC_EFI_BOOT,"Button",BS_AUTORADIOBUTTON,34,8,27,10
 END
 
 DLG_BOOT_CONF_MAIN DIALOGEX 0, 0, 316, 185
@@ -345,10 +347,11 @@ BEGIN
     EDITTEXT        IDC_EDIT_NOTICE,5,65,268,127,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | ES_WANTRETURN | NOT WS_BORDER | WS_VSCROLL,WS_EX_STATICEDGE
     CONTROL         "OK",IDOK,"Button",BS_OWNERDRAW | WS_TABSTOP,5,216,268,18
     LTEXT           "Static",IDC_ABOUT1,57,12,201,9,0,WS_EX_TRANSPARENT
-    LTEXT           "Copyright © 2007-2010 ntldr, jet-phryx",IDC_ABOUT2,57,21,201,9,0,WS_EX_TRANSPARENT
-    LTEXT           "http://diskcryptor.net/index.php/DiskCryptor",IDC_ABOUT_URL1,57,37,201,9,SS_NOTIFY,WS_EX_TRANSPARENT
-    LTEXT           "Static",IDC_ABOUT_URL2,57,46,201,9,SS_NOTIFY,WS_EX_TRANSPARENT
-    ICON            "",IDC_ICON_MAIN,13,13,21,20,SS_REALSIZEIMAGE
+    LTEXT           "Copyright © 2019-2020 David Xanatos",IDC_ABOUT2,57,21,201,9,0,WS_EX_TRANSPARENT
+    LTEXT           "Copyright © 2007-2014 ntldr, jet-phryx",IDC_ABOUT5,57,30,201,9,0,WS_EX_TRANSPARENT
+    LTEXT           "Static",IDC_ABOUT_URL1,57,43,201,9,SS_NOTIFY,WS_EX_TRANSPARENT
+    LTEXT           "Static",IDC_ABOUT_URL2,57,52,201,9,SS_NOTIFY,WS_EX_TRANSPARENT
+    ICON            "",IDC_ICON_MAIN,13,13,20,20,SS_REALSIZEIMAGE
     CONTROL         "",IDC_STATIC,"Static",SS_OWNERDRAW | SS_SUNKEN,5,5,267,59,WS_EX_TRANSPARENT
     EDITTEXT        IDC_EDIT_CIPHER_INFO,5,193,268,22,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | ES_WANTRETURN | NOT WS_BORDER,WS_EX_STATICEDGE
 END
@@ -449,6 +452,8 @@ FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     CONTROL         "Use Hardware Cryptography When Possible",IDC_USE_HARD_CRYPTO,
                     "Button",BS_OWNERDRAW | WS_TABSTOP,7,17,224,11
+    CONTROL         "Display verbose debug information during boot",IDC_SET_VERBOSE,
+                    "Button",BS_OWNERDRAW | WS_TABSTOP,7,125,224,11
 END
 
 DLG_CONF_EXTNDED DIALOGEX 0, 0, 333, 199
@@ -473,7 +478,7 @@ END
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO 
+GUIDELINES DESIGNINFO
 BEGIN
     IDD_MAIN_DLG, DIALOG
     BEGIN
@@ -519,16 +524,29 @@ BEGIN
         BOTTOMMARGIN, 169
     END
 
+    DLG_BOOT_CONF, DIALOG
+    BEGIN
+    END
+
     DLG_BOOT_SET, DIALOG
     BEGIN
         RIGHTMARGIN, 401
         VERTGUIDE, 7
         VERTGUIDE, 267
+        VERTGUIDE, 274
     END
 
     DLG_BOOT_CONF_MAIN, DIALOG
     BEGIN
         VERTGUIDE, 15
+    END
+
+    DLG_BOOT_CONF_LOGON, DIALOG
+    BEGIN
+    END
+
+    DLG_BOOT_CONF_BADPASS, DIALOG
+    BEGIN
     END
 
     IDD_DIALOG_ABOUT, DIALOG
@@ -592,7 +610,7 @@ END
 // Menu
 //
 
-IDR_MENU MENU 
+IDR_MENU MENU
 BEGIN
     POPUP "&File"
     BEGIN
@@ -640,7 +658,7 @@ BEGIN
     MENUITEM "Home&page",                   ID_HOMEPAGE
 END
 
-IDR_BOOT_MENU MENU 
+IDR_BOOT_MENU MENU
 BEGIN
     POPUP "Popup"
     BEGIN
@@ -660,13 +678,21 @@ END
 //
 
 IDB_CHECK               BITMAP                  "check.bmp"
+
 IDB_CHECK_MASK          BITMAP                  "check_mask.bmp"
+
 IDB_CDROM               BITMAP                  "cdrom.bmp"
+
 IDB_DISK_MASK           BITMAP                  "disk_mask.bmp"
+
 IDB_UNDISK              BITMAP                  "undisk.bmp"
+
 IDB_UNDISK_MASK         BITMAP                  "undisk_mask.bmp"
+
 IDB_DISK                BITMAP                  "disk.bmp"
+
 IDB_CDROM_MASK          BITMAP                  "cdrom_mask.bmp"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -676,31 +702,51 @@ IDB_CDROM_MASK          BITMAP                  "cdrom_mask.bmp"
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 IDI_ICON_TRAY           ICON                    "icon.ico.ico"
-#endif    // English (U.S.) resources
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_DIALOG_ABOUT AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+DLG_BOOT_SET AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+DLG_BOOT_CONF_OTHER AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+#endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
 /////////////////////////////////////////////////////////////////////////////
-// English (U.K.) resources
+// English (United Kingdom) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENG)
-#ifdef _WIN32
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_UK
 #pragma code_page(1252)
-#endif //_WIN32
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // Accelerator
 //
 
-IDR_MAIN_ACCEL ACCELERATORS 
+IDR_MAIN_ACCEL ACCELERATORS
 BEGIN
     VK_TAB,         ID_TAB,                 VIRTKEY, NOINVERT
     VK_TAB,         ID_SHIFT_TAB,           VIRTKEY, SHIFT, NOINVERT
 END
 
-#endif    // English (U.K.) resources
+#endif    // English (United Kingdom) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

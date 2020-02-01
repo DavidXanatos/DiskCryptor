@@ -1,0 +1,107 @@
+## @file
+#  This is DCS configuration EFI shell application
+#
+# Copyright (c) 2016. Disk Cryptography Services for EFI (DCS), Alex Kolotnikov
+# Copyright (c) 2016. VeraCrypt, Mounir IDRASSI 
+# 
+# This program and the accompanying materials are licensed and made available
+# under the terms and conditions of the GNU Lesser General Public License, version 3.0 (LGPL-3.0).
+# 
+# The full text of the license may be found at
+# https://opensource.org/licenses/LGPL-3.0
+#
+##
+
+[Defines]
+  INF_VERSION                    = 0x00010006
+  BASE_NAME                      = DcsCfg
+  FILE_GUID                      = 4F0E068D-2EA1-4014-943C-3E4B86BB0E43
+  MODULE_TYPE                    = UEFI_APPLICATION
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = DcsCfgMain
+
+#
+# The following information is for reference only and not required by the build tools.
+#
+#  VALID_ARCHITECTURES           = IA32 X64 IPF EBC
+#
+
+[Sources]
+  DcsCfg.h
+  DcsCfgMain.c
+  DcsCfgCrypt.c
+  DcsCfgBeep.c
+  DcsCfgGraphics.c
+  DcsCfgBlockio.c
+  DcsCfgTouch.c
+  DcsCfgTpm.c
+  DcsCfgSetup.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+  ShellPkg/ShellPkg.dec
+  DcsPkg/DcsPkg.dec
+
+[LibraryClasses]
+  UefiApplicationEntryPoint
+  UefiLib
+  BaseLib
+  MemoryAllocationLib
+  CommonLib
+  GraphLib
+  PasswordLib
+  DcsCfgLib
+  DcsTpmLib
+  VeraCryptLib
+  ShellLib
+
+[Guids]
+  gEfiGlobalVariableGuid
+  gEfiDcsVariableGuid
+  gEfiPartTypeUnusedGuid
+  gEfiPartTypeSystemPartGuid
+
+[Protocols]
+  gEfiBlockIoProtocolGuid
+
+[BuildOptions.IA32]
+RELEASE_VS2010x86_IA32_CC_FLAGS  = /FAcs /D_UEFI
+DEBUG_VS2010x86_IA32_CC_FLAGS    = /FAcs /D_UEFI
+NOOPT_VS2010x86_IA32_CC_FLAGS    = /FAcs /D_UEFI
+
+RELEASE_VS2015x86_IA32_CC_FLAGS  = /arch:IA32 /FAcs /D_UEFI
+DEBUG_VS2015x86_IA32_CC_FLAGS    = /arch:IA32 /FAcs /D_UEFI
+NOOPT_VS2015x86_IA32_CC_FLAGS    = /arch:IA32 /FAcs /D_UEFI
+
+[BuildOptions.X64]
+RELEASE_VS2010x86_X64_CC_FLAGS    =  /D_UEFI
+DEBUG_VS2010x86_X64_CC_FLAGS    = /D_UEFI
+NOOPT_VS2010x86_X64_CC_FLAGS    = /D_UEFI
+
+RELEASE_VS2015x86_X64_CC_FLAGS    =  /D_UEFI
+DEBUG_VS2015x86_X64_CC_FLAGS    = /D_UEFI
+NOOPT_VS2015x86_X64_CC_FLAGS    = /D_UEFI
+
+RELEASE_VS2017_X64_CC_FLAGS  = /D_UEFI
+DEBUG_VS2017_X64_CC_FLAGS    = /D_UEFI
+NOOPT_VS2017_X64_CC_FLAGS    = /D_UEFI
+
+DEBUG_VS2010x86_X64_DLINK_FLAGS  == /NOLOGO /NODEFAULTLIB /IGNORE:4001 /OPT:REF /OPT:ICF=10 /MAP /ALIGN:64 /SECTION:.xdata,D /SECTION:.pdata,D /Machine:X64 /LTCG /DLL /ENTRY:$(IMAGE_ENTRY_POINT) /SUBSYSTEM:EFI_BOOT_SERVICE_DRIVER /SAFESEH:NO /BASE:0 /DRIVER /DEBUG
+RELEASE_VS2010x86_X64_DLINK_FLAGS  == /NOLOGO /NODEFAULTLIB /IGNORE:4001 /IGNORE:4254 /OPT:REF /OPT:ICF=10 /MAP /ALIGN:64 /SECTION:.xdata,D /SECTION:.pdata,D /Machine:X64 /LTCG /DLL /ENTRY:$(IMAGE_ENTRY_POINT) /SUBSYSTEM:EFI_BOOT_SERVICE_DRIVER /SAFESEH:NO /BASE:0 /DRIVER /MERGE:.rdata=.data
+NOOPT_VS2010x86_X64_DLINK_FLAGS    == /NOLOGO /NODEFAULTLIB /IGNORE:4001 /OPT:REF /OPT:ICF=10 /MAP /ALIGN:64 /SECTION:.xdata,D /SECTION:.pdata,D /Machine:X64 /LTCG /DLL /ENTRY:$(IMAGE_ENTRY_POINT) /SUBSYSTEM:EFI_BOOT_SERVICE_DRIVER /SAFESEH:NO /BASE:0 /DRIVER /DEBUG
+
+DEBUG_VS2015x86_X64_DLINK_FLAGS  == /NOLOGO /NODEFAULTLIB /IGNORE:4001 /OPT:REF /OPT:ICF=10 /MAP /ALIGN:64 /SECTION:.xdata,D /SECTION:.pdata,D /Machine:X64 /LTCG /DLL /ENTRY:$(IMAGE_ENTRY_POINT) /SUBSYSTEM:EFI_BOOT_SERVICE_DRIVER /SAFESEH:NO /BASE:0 /DRIVER /DEBUG
+RELEASE_VS2015x86_X64_DLINK_FLAGS  == /NOLOGO /NODEFAULTLIB /IGNORE:4001 /IGNORE:4254 /OPT:REF /OPT:ICF=10 /MAP /ALIGN:64 /SECTION:.xdata,D /SECTION:.pdata,D /Machine:X64 /LTCG /DLL /ENTRY:$(IMAGE_ENTRY_POINT) /SUBSYSTEM:EFI_BOOT_SERVICE_DRIVER /SAFESEH:NO /BASE:0 /DRIVER /MERGE:.rdata=.data
+NOOPT_VS2015x86_X64_DLINK_FLAGS    == /NOLOGO /NODEFAULTLIB /IGNORE:4001 /OPT:REF /OPT:ICF=10 /MAP /ALIGN:64 /SECTION:.xdata,D /SECTION:.pdata,D /Machine:X64 /LTCG /DLL /ENTRY:$(IMAGE_ENTRY_POINT) /SUBSYSTEM:EFI_BOOT_SERVICE_DRIVER /SAFESEH:NO /BASE:0 /DRIVER /DEBUG
+
+DEBUG_VS2017_X64_DLINK_FLAGS    == /NOLOGO /NODEFAULTLIB /IGNORE:4001 /OPT:REF /OPT:ICF=10 /MAP /ALIGN:64 /SECTION:.xdata,D /SECTION:.pdata,D /Machine:X64 /LTCG /DLL /ENTRY:$(IMAGE_ENTRY_POINT) /SUBSYSTEM:EFI_BOOT_SERVICE_DRIVER /SAFESEH:NO /BASE:0 /DRIVER /DEBUG
+RELEASE_VS2017_X64_DLINK_FLAGS  == /NOLOGO /NODEFAULTLIB /IGNORE:4001 /IGNORE:4254 /OPT:REF /OPT:ICF=10 /MAP /ALIGN:64 /SECTION:.xdata,D /SECTION:.pdata,D /Machine:X64 /LTCG /DLL /ENTRY:$(IMAGE_ENTRY_POINT) /SUBSYSTEM:EFI_BOOT_SERVICE_DRIVER /SAFESEH:NO /BASE:0 /DRIVER /MERGE:.rdata=.data
+NOOPT_VS2017_X64_DLINK_FLAGS    == /NOLOGO /NODEFAULTLIB /IGNORE:4001 /OPT:REF /OPT:ICF=10 /MAP /ALIGN:64 /SECTION:.xdata,D /SECTION:.pdata,D /Machine:X64 /LTCG /DLL /ENTRY:$(IMAGE_ENTRY_POINT) /SUBSYSTEM:EFI_BOOT_SERVICE_DRIVER /SAFESEH:NO /BASE:0 /DRIVER /DEBUG
+
+[FeaturePcd]
+
+[Pcd]
+
+[Binaries]
+  UEFI_APP|DcsCfg.man|*

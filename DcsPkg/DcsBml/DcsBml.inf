@@ -1,0 +1,74 @@
+## @file
+#  This is DCS boot loader application
+#
+# Copyright (c) 2016. Disk Cryptography Services for EFI (DCS), Alex Kolotnikov
+# Copyright (c) 2016. VeraCrypt, Mounir IDRASSI 
+# 
+# This program and the accompanying materials are licensed and made available
+# under the terms and conditions of the GNU Lesser General Public License, version 3.0 (LGPL-3.0).
+# 
+# The full text of the license may be found at
+# https://opensource.org/licenses/LGPL-3.0
+#
+##
+
+[Defines]
+  INF_VERSION                    = 0x00010006
+  BASE_NAME                      = DcsBml
+  FILE_GUID                      = E0A7843A-828F-4EDC-AC55-75FE3255ABA5
+  MODULE_TYPE                    = DXE_RUNTIME_DRIVER
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = DcsBmlMain
+
+#
+# The following information is for reference only and not required by the build tools.
+#
+#  VALID_ARCHITECTURES           = IA32 X64 IPF EBC
+#
+
+[Sources]
+  DcsBml.c
+  DcsBml.h
+  ComponentName.c
+  ComponentName.h
+
+[Packages]
+  MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+  DcsPkg/DcsPkg.dec
+
+[LibraryClasses]
+  BaseLib
+  MemoryAllocationLib
+  UefiDriverEntryPoint
+  UefiLib
+  UefiRuntimeLib
+  UefiBootServicesTableLib
+  CommonLib
+
+[Guids]
+  gEfiGlobalVariableGuid
+  gEfiDcsVariableGuid
+  gEfiEventVirtualAddressChangeGuid
+  gEfiFileInfoGuid
+
+[Protocols]
+  gEfiBlockIoProtocolGuid
+  gEfiComponentName2ProtocolGuid
+  gEfiComponentNameProtocolGuid
+
+[BuildOptions.IA32]
+RELEASE_VS2010x86_IA32_CC_FLAGS    =  /arch:IA32 /FAcs
+DEBUG_VS2010x86_IA32_CC_FLAGS    = /arch:IA32 /FAcs
+NOOPT_VS2010x86_IA32_CC_FLAGS    = /arch:IA32  /FAcs
+
+RELEASE_VS2015x86_IA32_CC_FLAGS    =  /arch:IA32 /FAcs
+DEBUG_VS2015x86_IA32_CC_FLAGS    = /arch:IA32 /FAcs
+NOOPT_VS2015x86_IA32_CC_FLAGS    = /arch:IA32  /FAcs
+
+[FeaturePcd]
+
+[Pcd]
+
+[Depex]
+  TRUE

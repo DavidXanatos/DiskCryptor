@@ -1,6 +1,8 @@
 ﻿/*
     *
     * DiskCryptor - open source partition encryption tool
+	* Copyright (c) 2019-2020 
+	* DavidXanatos <info@diskcryptor.org>
 	* Copyright (c) 2008-2013
 	* ntldr <ntldr@diskcryptor.net> PGP key ID - 0xC48251EB4F8E4E6E
     *
@@ -24,6 +26,7 @@
 #include "drv_ioctl.h"
 #include "misc.h"
 #include "dcapi.h"
+#include <winternl.h>
 
 int dc_open_device()
 {
@@ -117,11 +120,40 @@ static int dc_get_vol_info(wchar_t *name, vol_inf *info)
 	return resl;
 }
 
-int dc_get_boot_device(wchar_t *device)
+int dc_get_boot_device(wchar_t* bootVolumePath)
+{
+	ULONG    len;
+	NTSTATUS res;
+	char tempBuf[1024];
+	memset(tempBuf, 0, sizeof(tempBuf));
+
+	// Undocumented NT-API: SysPartitionInformation = 0x62
+
+	res = NtQuerySystemInformation(/*SysPartitionInformation*/ 0x62, tempBuf, sizeof(tempBuf), &len);
+	if (res != S_OK)
+	{
+		//ULONG win32err = RtlNtStatusToDosError(res);
+		//if (win32err != ERROR_MR_MID_NOT_FOUND)
+		//	res = (NTSTATUS)win32err;
+		//SetLastError(res);
+		return ST_ERROR;
+	}
+
+	PUNICODE_STRING pStr = (PUNICODE_STRING)tempBuf;
+
+	wcscpy_s(bootVolumePath, MAX_PATH, pStr->Buffer);
+	//if (path) swprintf_s(path, MAX_PATH, L"\\\\?%s", &pStr->Buffer[7]);
+
+	return ST_OK;
+}
+
+/*int dc_get_boot_device(wchar_t *device)
 {
 	dc_ioctl dctl;
 	u32      bytes;
 	int      succs;
+
+	// Note: This approach is not reliable!
 
 	wcscpy(dctl.device, L"\\ArcName\\multi(0)disk(0)rdisk(0)partition(1)");
 
@@ -132,13 +164,13 @@ int dc_get_boot_device(wchar_t *device)
 	if (succs != 0) 
 	{
 		if (dctl.status == ST_OK) {
-			wcscpy(device, dctl.device);			
+			wcscpy(device, dctl.device);
 		}
 		return dctl.status;
 	} else {		
 		return ST_ERROR;
 	}
-}
+}*/
 
 int dc_first_volume(vol_inf *info)
 {

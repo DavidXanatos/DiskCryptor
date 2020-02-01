@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<VeraCrypt>
+  <!-- EFI boot DCS configuration -->
+  <configuration>
+    <!-- PasswordType 0/1
+         0 - text message is displayed
+         PasswordMsg to specify message
+         1 - touch picture password if touch is supported by EFI. check PlatformInfo
+         PasswordPicture to specify bitmap
+    -->
+    <config key="PasswordType">0</config>
+    <config key="PasswordMsg">Password:</config>
+    <config key="PasswordPicture">EFI\VeraCrypt\login.bmp</config>
+
+    <!-- Show "*" on each key pressed or picture zone touched -->
+    <config key="AuthorizeProgress">1</config>
+    <!-- Show chars on each key press -->
+    <config key="AuthorizeVisible">0</config>
+    <!-- Show zones touched -->
+    <config key="AuthorizeMarkTouch">0</config>
+
+    <!-- Number of authorization retries -->
+    <config key="AuthorizeRetry">10</config>
+    <!-- Timeout in seconds before <ESC> from password prompt -->
+    <config key="PasswordTimeout">0</config>
+
+    <!-- authorization start message -->
+    <config key="AuthStartMsg">Authorizing...</config>
+    <!-- authorization error message -->
+    <config key="AuthErrorMsg">Authorization failed. Wrong password, PIM or hash.</config>
+    
+    <!-- PictureChars specifies PasswordPicture alphabet order
+         It is possible to save it on external USB if SecRegionSearch selected
+     --> 
+    <!-- config key="PictureChars">MN/[aQ-eyPr}GT: |V^UqiI_gbdA9YwZ%f8t6S@D\"7uXl\\30R#+zH*,W4J?= BLFv]hx~E;$ .o'sp1`(>C)O{!5j2nmkcK</config -->
+
+    <!-- AutoLogin 0/1 
+    Posibility to avoid password prompt
+    AutoPassword is  password by default
+    Use it with PlatformLocked or TPMLocked enabled to lock password to the computer.
+    -->
+    <config key="AutoLogin">0</config>
+    <config key="AutoPassword"></config>
+
+    <!-- PimRqt 0/1 
+    Request PIM during authorization
+    PimMsg - message
+    Pim - default value
+    -->
+    <config key="PimMsg">Pim:</config>
+    <config key="Pim">0</config>
+    <config key="PimRqt">1</config>
+
+    <!-- HashRqt 0/1 
+    Request hash during authorization
+    HashMsg - message. It is generated if not specified
+    Hash - default value
+    -->
+    <!-- config key="HashMsg">(0) TEST ALL (1) SHA512 (2) WHIRLPOOL (3) SHA256 (4) RIPEMD160 (5) STREEBOG
+Hash:</config-->
+    <config key="Hash">0</config>
+    <config key="HashRqt">0</config>
+
+    <!-- PlatformLocked 0/1 (it is controled by <F7>)
+    Password is mixed with data from SMBIOS and USB serial structures
+    to avoid authorization on another computer
+    -->
+    <config key="PlatformLocked">0</config>
+
+    <!-- TPMLocked 0/1 (it is controled by <F8>)
+    Password is mixed with data from TPM
+    data is in TPM NVRAM and the data is locked to PCRs selected (use configuration <F2> and "c" "t")
+    BIOS modification or any other boot module blocks authorization with TPMLocked=1
+    DcsProp is measured to PCR8 also.
+    TPM 1.2 support only.
+    -->
+    <config key="TPMLocked">0</config>
+    <!-- Display error if TPM configured and locked before password to inform user with pause (sec) -->
+    <config key="TPMLockedInfoDelay">0</config>
+    
+    <!-- Random generator to generate salt to change password <F2> function key
+    2 RDRAND
+    3 PRNDGEN but state hast to be saved on external USB
+    5 TPM 1.2 if pressent
+    -->
+    <config key="Random">2</config>
+
+    <!-- RUD - Require USB device (authorization started if the USB is attached. "what I have")
+    0 - skip
+    NNNN - CRC32 decimal value of USB "VID_PID_SERIAL" string
+    It is possible to configure via DcsWinCfg
+    or from EFI shell: DcsCfg.dcs -ul
+    -->
+    <config key="RUD">0</config>
+
+    <!-- Try to find security region -->
+    <config key="SecRegionSearch">0</config>
+    <!-- Display device of RUD or SecRegion found with pause (sec) -->
+    <config key="SecRegionInfoDelay">0</config>
+
+    <!-- Ask password even no USB with SecRegions found 
+    ForcePasswordMsg, ForcePasswordType,ForcePasswordProgress keys can overide default values
+    -->
+    <config key="DcsBootForce">1</config>
+
+    <!-- 
+    to find OS partition GUID if ESP and OS uses diffrent disks
+    -->
+    <!-- config key="PartitionGuidOS">XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX</config-->
+
+
+    <!-- Actions
+    Success  - authorization OK
+    NotFound - RUD of SecRegion search failed
+    Failed   - <ESC> pressed or AuthorizeRetry limit
+
+    It can contain several keywords space separated
+
+    Keywords:
+    Exit           – simple exit (default)
+    Status(code)   – override exit status code (0 is OK)
+    File(path)     – path to file to be executed
+    Guid(xxx-x..)  – GUID of partition with file to be executed
+    Printinfo      – print guid, file and status.
+    Message(msg)   – message to display for the action
+    Postexec       – send loader path to DcsBoot to execute after exit
+    Exec           – execute module
+    Halt           – CPU halt
+    Delay(N)       – delay boot
+    -->
+    <config key="ActionSuccess">Exit</config>
+    <config key="ActionNotFound">Exit</config>
+    <config key="ActionFailed">Exit</config>
+
+    <!-- Devices to configure PicturePassword if possible. Check PlatformInfo of your computer
+    GraphDevice - Graphics device and mode
+    TouchDevice - Touch device
+    BeepDevice  - ordinary speaker to beep on touch zone
+    -->
+    
+    <!-- GraphDevice 
+    -1  - initialize + autodetect
+    -2  - ignore
+    <n> - number in list of devices (see PlatformInfo or use DcsCfg.dcs -gl )
+    -->
+    <config key="GraphDevice">-1</config>
+    
+    <!-- GraphMode 
+    -1 default (see PlatformInfo. or use DcsCfg.dcs -gm <n> to test)
+    -->
+    <config key="GraphMode">-1</config>
+
+    <!-- 
+    TouchDevice 
+    -1 init + autodetect
+    -2 ignore; 
+    <N> number in list of devices (See platformInfo or use DcsCfg -tl and to test DcsCfg -tt <N>)
+    -->
+    <config key="TouchDevice">-1</config>
+
+    <!-- TouchSimulate to use keyboard arrows to move touch <F11>/<F12> speed -->
+    <config key="TouchSimulate">1</config>
+
+    <!-- 0/1 Beep if picture zone touched -->
+    <config key="Beep">0</config>
+    
+    <!-- BeepDevice (LegacySpeaker.dcs driver is used to support)
+    -1  - initialize + autodetect
+    <n> - number in list of devices (see PlatformInfo or use DcsCfg.dcs -gl )
+    -->
+    <config key="BeepDevice">-1</config>
+    
+    <!-- Beep paramters -->
+    <config key="BeepNumber">1</config>
+    <config key="BeepDuration">100</config>
+    <config key="BeepInterval">0</config>
+    <config key="BeepTone">1280</config>
+    <!-- <F4> enable/disable beeps -->
+    <config key="BeepControl">1</config>
+
+  </configuration>
+</VeraCrypt>

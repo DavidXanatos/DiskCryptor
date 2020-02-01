@@ -1,3 +1,17 @@
+[01.02.2020] - 1.2.846.118.200
+  [*] Project moved to Visual Studio 2017, using win 7 sdk for compatybility
+  [+] Added EFI bootloader
+  [+] Added shim bootloader to achieve secure boot compatibility (https://habr.com/ru/post/446238/)
+  [+] Added bootloader instalation routine for GPT partitions
+  [+] Integrated EFI bootloader instalation in the CLI
+  [*] Enabled GUI high DPI awareness
+  [*] Fixed boot partitions not being properly detected
+  [+] Added disk type display to bootloader instalation dialog
+  [+] Integrated EFI bootloader instalation in the GUI
+  [+] Error messages now provide an error string instead of a cryptic error code
+  [*] Fixed driver uninstall not being able to delete dcrypt.sys
+  
+
 [09.07.2014] - 1.1.846.118
   [+] More accurate handling writing of the volume header. Reduced risk of data loss in the encryption process.
   [*] Small Windows 8 compatibility bugfixes.

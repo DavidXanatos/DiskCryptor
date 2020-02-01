@@ -1,0 +1,6 @@
+// /** @file
+// This Package provides all definitions, library classes and libraries instances.
+//
+// **/
+
+#string STR_PACKAGE_ABSTRACT            #language en-US "This Package provides all definitions, library classes and libraries instances."

@@ -73,7 +73,7 @@
 #define ST_DEVICE_BUSY    39 /* device is busy */
 #define ST_INV_MEDIA_TYPE 40 /* media type not supported */
 #define ST_FORMAT_NEEDED  41 /* */
-#define ST_CANCEL         42 /* */
+#define ST_CANCEL         42 /* operation canceled */
 #define ST_INV_VOL_VER    43 /* invalid volume version */
 #define ST_EMPTY_KEYFILES 44 /* keyfiles not found */
 #define ST_NOT_BACKUP     45 /* this is a not backup file */
@@ -85,7 +85,11 @@
 #define ST_ENCRYPTED      51 /* */
 #define ST_INCOMPATIBLE   52 /* */
 #define ST_LOADED         53 /* */
-#define ST_VOLUME_TOO_NEW 54
+#define ST_VOLUME_TOO_NEW 54 /* */
+#define ST_INVALID_PARAM  55 /* an invalid parameter was provided */
+#define ST_INV_FORMAT     56 /* disk has incompatible partition format */
+#define ST_NO_OPEN_DIR    57 /* can not open directory */
+#define ST_DIR_NOT_EMPTY  58 /* directory is not empty */
 
 /* data wipe modes */
 #define WP_NONE    0 /* no data wipe                           */

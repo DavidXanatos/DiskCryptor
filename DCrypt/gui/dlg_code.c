@@ -1,6 +1,8 @@
 /*
     *
     * DiskCryptor - open source partition encryption tool
+	* Copyright (c) 2019-2020
+	* DavidXanatos <info@diskcryptor.org>
 	* Copyright (c) 2007-2010
 	* ntldr <ntldr@diskcryptor.net> PGP key ID - 0xC48251EB4F8E4E6E
     *
@@ -42,7 +44,7 @@ _colinfo _boot_headers[ ] =
 	{ L"Device ",		115,	LVCFMT_LEFT,	TRUE	},
 	{ L"Size",			60,		LVCFMT_RIGHT,	FALSE	},
 	{ L"Bootloader",	75,		LVCFMT_RIGHT,	FALSE	},
-	{ STR_SPACE,		40,		LVCFMT_RIGHT,	FALSE	},
+	{ L"Disk type",		75,		LVCFMT_RIGHT,	FALSE	},
 	{ STR_NULL }
 };
 
@@ -154,8 +156,9 @@ _init_list auth_tmount[ ] =
 	{ 20,	L"20 sec"		},
 	{ 30,	L"30 sec"		},
 	{ 50,	L"50 sec"		},
-	{ 60,	L"2 minutes"	},
-	{ 120,	L"5 minutes"	},
+	{ 120,	L"2 minutes"	},
+	{ 180,	L"3 minutes"	},
+	{ 300,	L"5 minutes"	},
 	{ 0,STR_NULL }
 };
 
@@ -188,12 +191,20 @@ _init_list bad_pass_act[ ] =
 	{ 0, STR_NULL }
 };
 
-_init_list loader_type[ ] =
+_init_list loader_type_mbr[ ] =
 {
-	{ CTL_LDR_MBR,		L"HDD master boot record"					},
+	{ CTL_LDR_HDD,		L"HDD master boot record"					},
 	{ CTL_LDR_STICK,	L"Bootable partition (USB-Stick, etc)"		},
 	{ CTL_LDR_ISO,		L"ISO bootloader image"						},
 	{ CTL_LDR_PXE,		L"Bootloader image for PXE network booting"	},
+	{ 0, STR_NULL }
+};
+
+_init_list loader_type_efi[ ] =
+{
+	{ CTL_LDR_HDD,		L"EFI partition on HDD"					},
+	{ CTL_LDR_STICK,	L"Removable media (USB-Stick, etc)"		},
+	// { CTL_LDR_PXE,		L"Bootloader image for PXE network booting"	}, // x-todo
 	{ 0, STR_NULL }
 };
 

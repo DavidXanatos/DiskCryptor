@@ -20,7 +20,9 @@
 
 #include <ntifs.h>
 #include <ntddcdrm.h>
+#pragma warning( disable : 4091 )
 #include <ntddscsi.h>
+#pragma warning( default : 4091 )
 #include <ntdddisk.h>
 #include <ata.h>
 #include "defines.h"

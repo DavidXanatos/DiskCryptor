@@ -1,0 +1,56 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "boot_hook", "vc2008_src\boot_hook.vcproj", "{272E05BF-8D8C-476F-9210-E1FE68E98DA9}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D6B67094-40B7-4839-BE1F-62C636EA3525} = {D6B67094-40B7-4839-BE1F-62C636EA3525}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "boot_load", "vc2008_src\boot_load.vcproj", "{41B3372A-8CF3-4697-AC8A-7FC669427D86}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D6B67094-40B7-4839-BE1F-62C636EA3525} = {D6B67094-40B7-4839-BE1F-62C636EA3525}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "boot", "boot", "{032E0BC0-B01C-47CB-98A4-945C20FDA05C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pe2boot", "vc2008_src\pe2boot.vcproj", "{D6B67094-40B7-4839-BE1F-62C636EA3525}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "boot_stage0", "vc2008_src\boot_stage0.vcproj", "{2FAD3A8A-9699-4423-B491-7D4789971FF2}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F84A5B22-3D9C-44C5-9F91-0A06228925B6} = {F84A5B22-3D9C-44C5-9F91-0A06228925B6}
+		{41B3372A-8CF3-4697-AC8A-7FC669427D86} = {41B3372A-8CF3-4697-AC8A-7FC669427D86}
+		{272E05BF-8D8C-476F-9210-E1FE68E98DA9} = {272E05BF-8D8C-476F-9210-E1FE68E98DA9}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "boot_hook_small", "vc2008_src\boot_hook_small.vcproj", "{F84A5B22-3D9C-44C5-9F91-0A06228925B6}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D6B67094-40B7-4839-BE1F-62C636EA3525} = {D6B67094-40B7-4839-BE1F-62C636EA3525}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{272E05BF-8D8C-476F-9210-E1FE68E98DA9}.Release|Win32.ActiveCfg = Release|Win32
+		{272E05BF-8D8C-476F-9210-E1FE68E98DA9}.Release|Win32.Build.0 = Release|Win32
+		{41B3372A-8CF3-4697-AC8A-7FC669427D86}.Release|Win32.ActiveCfg = Release|Win32
+		{41B3372A-8CF3-4697-AC8A-7FC669427D86}.Release|Win32.Build.0 = Release|Win32
+		{D6B67094-40B7-4839-BE1F-62C636EA3525}.Release|Win32.ActiveCfg = Release|Win32
+		{D6B67094-40B7-4839-BE1F-62C636EA3525}.Release|Win32.Build.0 = Release|Win32
+		{2FAD3A8A-9699-4423-B491-7D4789971FF2}.Release|Win32.ActiveCfg = Release|Win32
+		{2FAD3A8A-9699-4423-B491-7D4789971FF2}.Release|Win32.Build.0 = Release|Win32
+		{F84A5B22-3D9C-44C5-9F91-0A06228925B6}.Release|Win32.ActiveCfg = Release|Win32
+		{F84A5B22-3D9C-44C5-9F91-0A06228925B6}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{41B3372A-8CF3-4697-AC8A-7FC669427D86} = {032E0BC0-B01C-47CB-98A4-945C20FDA05C}
+		{272E05BF-8D8C-476F-9210-E1FE68E98DA9} = {032E0BC0-B01C-47CB-98A4-945C20FDA05C}
+		{D6B67094-40B7-4839-BE1F-62C636EA3525} = {032E0BC0-B01C-47CB-98A4-945C20FDA05C}
+		{2FAD3A8A-9699-4423-B491-7D4789971FF2} = {032E0BC0-B01C-47CB-98A4-945C20FDA05C}
+		{F84A5B22-3D9C-44C5-9F91-0A06228925B6} = {032E0BC0-B01C-47CB-98A4-945C20FDA05C}
+	EndGlobalSection
+EndGlobal

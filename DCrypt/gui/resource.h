@@ -196,10 +196,11 @@
 #define IDC_STATIC_KEY_UNMOUNT          1077
 #define IDC_STATIC_KEY_WIPE             1078
 #define IDC_STATIC_KEY_BSOD             1079
-#define IDC_RADIO1                      1081
 #define IDC_RADIO_ENCRYPT               1081
+#define IDC_MBR_BOOT                    1081
 #define IDC_NEXT                        1082
 #define IDC_RADIO_REENCRYPT             1082
+#define IDC_EFI_BOOT                    1082
 #define IDC_BACK                        1083
 #define IDC_RADIO_FORMAT                1083
 #define IDC_BACK2                       1084
@@ -296,6 +297,7 @@
 #define IDC_ABOUT_URL2                  1169
 #define IDC_SPEED                       1170
 #define IDC_DRIVES_HEAD                 1171
+#define IDC_ABOUT5                      1171
 #define IDC_BT_ACTION_NOPASS            1172
 #define IDC_LIST_BENCHMARK              1173
 #define IDB_REFRESH_TEST                1174
@@ -333,8 +335,11 @@
 #define IDC_ISO_PROGRESS                1214
 #define IDC_USE_HARD_CRYPTO             1215
 #define IDC_EDIT2                       1216
+#define IDC__DEBUG                      1216
+#define IDC_SET_VERBOSE                 1216
 #define IDC_CONF_WARNING                1217
 #define IDC_USE_SMALL_BOOT              1218
+#define IDC_USE_SHIM_BOOT               1219
 #define ID_FILE_EXIT                    40001
 #define ID_VOLUMES_ENCRYPT              40002
 #define ID_VOLUMES_DECRYPT              40003
@@ -415,7 +420,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        175
+#define _APS_NEXT_RESOURCE_VALUE        177
 #define _APS_NEXT_COMMAND_VALUE         40079
 #define _APS_NEXT_CONTROL_VALUE         1219
 #define _APS_NEXT_SYMED_VALUE           101

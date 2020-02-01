@@ -95,6 +95,7 @@ BOOL _ui_init(
 	__hinst = h_inst;
 	__dlg = HWND_DESKTOP;
 
+	// x-todo: fix font dpi
 	metric.lfMessageFont.lfWeight = FW_BOLD;
 	metric.lfMessageFont.lfHeight = -11;
 	__font_bold = CreateFontIndirect( &metric.lfMessageFont );

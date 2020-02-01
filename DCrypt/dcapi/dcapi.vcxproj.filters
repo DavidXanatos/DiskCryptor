@@ -41,6 +41,15 @@
     <ClCompile Include="rand.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="efiinst.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="misc\zip.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="misc\xml.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="dcres.rc">
@@ -76,6 +85,21 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\rand.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\efiinst.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="misc\miniz.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="misc\zip.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="misc\dirent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="misc\xml.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

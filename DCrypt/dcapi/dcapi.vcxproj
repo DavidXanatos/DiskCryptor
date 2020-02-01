@@ -22,34 +22,33 @@
     <ProjectGuid>{613B5FDD-A682-4252-8F9B-B29827BC88F2}</ProjectGuid>
     <RootNamespace>dcapi</RootNamespace>
     <Keyword>Win32Proj</Keyword>
-    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>false</WholeProgramOptimization>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v141</PlatformToolset>
-    <SpectreMitigation>false</SpectreMitigation>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseOfMfc>Dynamic</UseOfMfc>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>false</WholeProgramOptimization>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -85,15 +84,16 @@
       <AdditionalIncludeDirectories>include;$(SolutionDir)_include_;$(SolutionDir)include;$(SolutionDir)crypto\crypto_fast</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;DCAPI_DLL;_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0600;_CRT_NON_CONFORMING_SWPRINTFS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <ResourceCompile>
       <AdditionalIncludeDirectories>include;$(SolutionDir)_include_</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>advapi32.lib;user32.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>advapi32.lib;user32.lib;psapi.lib;ntdll.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <EnableUAC>false</EnableUAC>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OptimizeReferences>false</OptimizeReferences>
@@ -109,20 +109,21 @@
       <Optimization>Disabled</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>include;$(SolutionDir)_include_;$(SolutionDir)include;$(SolutionDir)crypto\crypto_fast</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;DCAPI_DLL;_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0600;_CRT_NON_CONFORMING_SWPRINTFS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;DCAPI_DLL;_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0600;_CRT_NON_CONFORMING_SWPRINTFS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <AssemblerListingLocation>
       </AssemblerListingLocation>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <ResourceCompile>
       <AdditionalIncludeDirectories>include;$(SolutionDir)_include_</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>advapi32.lib;user32.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>advapi32.lib;user32.lib;psapi.lib;ntdll.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <EnableUAC>false</EnableUAC>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <TargetMachine>MachineX64</TargetMachine>
@@ -137,15 +138,16 @@
       <AdditionalIncludeDirectories>include;$(SolutionDir)_include_;$(SolutionDir)include;$(SolutionDir)crypto\crypto_fast</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;DCAPI_DLL;_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0600;_CRT_NON_CONFORMING_SWPRINTFS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <ResourceCompile>
       <AdditionalIncludeDirectories>include;$(SolutionDir)_include_</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>msvcrt_winxp.obj;user32.lib;advapi32.lib;psapi.lib</AdditionalDependencies>
+      <AdditionalDependencies>user32.lib;advapi32.lib;psapi.lib;ntdll.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(DDK)\lib\Crt\i386;$(DDK)\lib\win7\i386</AdditionalLibraryDirectories>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -164,15 +166,16 @@
       <AdditionalIncludeDirectories>include;$(SolutionDir)_include_;$(SolutionDir)include;$(SolutionDir)crypto\crypto_fast</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;DCAPI_DLL;_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0600;_CRT_NON_CONFORMING_SWPRINTFS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <ResourceCompile>
       <AdditionalIncludeDirectories>include;$(SolutionDir)_include_</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>advapi32.lib;user32.lib;psapi.lib</AdditionalDependencies>
+      <AdditionalDependencies>advapi32.lib;user32.lib;psapi.lib;ntdll.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(DDK)\lib\Crt\amd64;$(DDK)\lib\win7\amd64</AdditionalLibraryDirectories>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -185,9 +188,12 @@
     <ClCompile Include="disk_name.c" />
     <ClCompile Include="drv_ioctl.c" />
     <ClCompile Include="drvinst.c" />
+    <ClCompile Include="efiinst.c" />
     <ClCompile Include="keyfiles.c" />
     <ClCompile Include="mbrinst.c" />
     <ClCompile Include="misc.c" />
+    <ClCompile Include="misc\xml.c" />
+    <ClCompile Include="misc\zip.c" />
     <ClCompile Include="rand.c" />
   </ItemGroup>
   <ItemGroup>
@@ -205,10 +211,15 @@
     <ClInclude Include="include\disk_name.h" />
     <ClInclude Include="include\drvinst.h" />
     <ClInclude Include="include\drv_ioctl.h" />
+    <ClInclude Include="include\efiinst.h" />
     <ClInclude Include="include\keyfiles.h" />
     <ClInclude Include="include\mbrinst.h" />
     <ClInclude Include="include\misc.h" />
     <ClInclude Include="include\rand.h" />
+    <ClInclude Include="misc\dirent.h" />
+    <ClInclude Include="misc\miniz.h" />
+    <ClInclude Include="misc\xml.h" />
+    <ClInclude Include="misc\zip.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

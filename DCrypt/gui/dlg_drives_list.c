@@ -1,6 +1,8 @@
 /*
     *
     * DiskCryptor - open source partition encryption tool
+	* Copyright (c) 2019-2020
+	* DavidXanatos <info@diskcryptor.org>
 	* Copyright (c) 2007-2010
 	* ntldr <ntldr@diskcryptor.net> PGP key ID - 0xC48251EB4F8E4E6E
     *
@@ -31,7 +33,9 @@ void _set_device_item(
 		wchar_t *mnt_point,
 		_dnode  *root,
 		BOOL     fixed,
-		BOOL     installed,
+		BOOL     is_gpt,
+		BOOL     mbr_ldr,
+		BOOL     efi_ldr,
 		BOOL     boot
 	)
 {
@@ -42,6 +46,8 @@ void _set_device_item(
 
 	wchar_t s_size[MAX_PATH];
 	wchar_t s_hdd[MAX_PATH];
+	wchar_t* s_ldr;
+	wchar_t s_type[128];
 
 	lvitem.mask		= LVIF_TEXT | LVIF_PARAM;
 	lvitem.iItem	= lvcount;
@@ -56,11 +62,18 @@ void _set_device_item(
 
 	_snwprintf( s_hdd, countof(s_hdd), L"HardDisk %d", num );
 
+	if (mbr_ldr && efi_ldr) s_ldr = L"EFI + MBR installed";
+	else if (mbr_ldr)		s_ldr = L"MBR installed";
+	else if (efi_ldr)		s_ldr = L"EFI installed";
+	else					s_ldr = L"none";
+
+	_snwprintf(s_type, countof(s_type), L"%s%s", is_gpt ? L"GPT" : L"MBR", boot ? L", boot" : L"");
+
 	ListView_SetItemText( h_list, lvcount, lvsub++, fixed ? s_hdd : mnt_point );
 	ListView_SetItemText( h_list, lvcount, lvsub++, s_size );
 
-	ListView_SetItemText( h_list, lvcount, lvsub++, installed ? L"installed" : L"none" );
-	ListView_SetItemText( h_list, lvcount, lvsub++, boot ? L"boot" : STR_NULL );
+	ListView_SetItemText( h_list, lvcount, lvsub++, s_ldr);
+	ListView_SetItemText(h_list, lvcount, lvsub++, s_type);
 
 }
 
@@ -147,7 +160,7 @@ void _load_diskdrives(
 
 				if (! vol_name ) vol_name = wcsrchr( mnt->mnt.info.device, L'\\' ) + 1;
 
-				if ( (int)vol_name > 1 )
+				if ( vol_name )
 				{
 					_snwprintf( s_display, countof(s_display), L"&%s", vol_name );
 				}
@@ -186,7 +199,10 @@ void _load_diskdrives(
 
 				if ( wcscmp(mnt->mnt.info.device, s_boot_dev) == 0 )
 				{
-					wcscat( s_boot, L"boot" );
+					if(__is_efi_boot)
+						wcscat( s_boot, L"efi" );
+					else
+						wcscat( s_boot, L"boot" );
 				}
 				if ( mnt->mnt.info.status.flags & F_SYSTEM )
 				{
@@ -227,6 +243,8 @@ void _list_devices(
 	int lvcount     = 0;
 	int boot_disk_1 = -1;
 	int boot_disk_2 = -1;
+	int is_gpt;
+	int mbr_ldr, efi_ldr;
 
 	ldr_config conf;
 	_dnode *root = malloc(sizeof(_dnode));
@@ -254,16 +272,21 @@ void _list_devices(
 
 				if ( _is_removable_media(drv->root.dsk_num) )
 				{
+					is_gpt = (dc_is_gpt_disk(drv->root.dsk_num) == 1);
+					mbr_ldr = (dc_get_mbr_config(drv->root.dsk_num, NULL, &conf) == ST_OK);
+					efi_ldr = (dc_efi_config(drv->root.dsk_num, 0, &conf) == ST_OK);
+
 					_set_device_item(
 							h_list, lvcount++, drv->root.dsk_num, st->mnt_point, 
 							drv->root.dsk_num == sel ? root : NULL, FALSE, 
-							dc_get_mbr_config( drv->root.dsk_num, NULL, &conf ) == ST_OK, 
+							is_gpt, mbr_ldr, efi_ldr, 
 							drv->root.dsk_num == boot_disk_1
 						);
 				}
 			}
 		}
-	} else 
+	} 
+	else 
 	{
 		for ( ; k < 100; k++ ) 
 		{
@@ -271,9 +294,14 @@ void _list_devices(
 			{
 				if (! _is_removable_media(k) )
 				{
+					is_gpt = (dc_is_gpt_disk(k) == 1);
+					mbr_ldr = (dc_get_mbr_config(k, NULL, &conf) == ST_OK);
+					efi_ldr = (dc_efi_config(k, 0, &conf) == ST_OK);
+
 					_set_device_item(
-							h_list, lvcount++, k, NULL, k == sel ? root : NULL,
-							TRUE, dc_get_mbr_config( k, NULL, &conf ) == ST_OK, k == boot_disk_1
+							h_list, lvcount++, k, NULL, k == sel ? root : NULL, TRUE, 
+						    is_gpt, mbr_ldr, efi_ldr,
+						    k == boot_disk_1
 						);
 				}
 			}

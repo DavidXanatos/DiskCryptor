@@ -166,4 +166,9 @@
     <None Include="undisk.bmp" />
     <None Include="undisk_mask.bmp" />
   </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="dcrypt.manifest">
+      <Filter>Resource Files</Filter>
+    </Manifest>
+  </ItemGroup>
 </Project>

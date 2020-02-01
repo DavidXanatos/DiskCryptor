@@ -1,5 +1,7 @@
 /*  *
     * DiskCryptor - open source partition encryption tool
+	* Copyright (c) 2020
+	* DavidXanatos <info@diskcryptor.org>
 	* Copyright (c) 2009-2013
 	* ntldr <ntldr@diskcryptor.net> PGP key ID - 0xC48251EB4F8E4E6E
     *
@@ -21,6 +23,7 @@
 #include "drv_ioctl.h"
 #include "drvinst.h"
 #include "mbrinst.h"
+#include "efiinst.h"
 
 /*
     -setup  - install or update driver (update bootloader when needed)
@@ -36,6 +39,10 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
                        int       nCmdShow)
 {
 	DWORD status = ERROR_INVALID_FUNCTION;
+	int is_efi_boot;
+
+	dc_efi_init();
+	is_efi_boot = dc_efi_check();
 
 	if (dc_is_old_runned() != 0) return ERROR_REVISION_MISMATCH;
 	dc_open_device();
@@ -44,7 +51,14 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	{
 		if (dc_is_driver_installed() != FALSE)
 		{
-			if ( (status = dc_update_boot(-1)) != ST_OK && status != ST_BLDR_NOTINST )
+			if (is_efi_boot) {
+				status = dc_update_efi_boot(-1);
+			}
+			else {
+				status = dc_update_boot(-1);
+			}
+
+			if ( status != ST_OK && status != ST_BLDR_NOTINST )
 			{
 				return 100000 + status;
 			}
@@ -63,7 +77,14 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	}
 	if (_tcsicmp(lpCmdLine, _T("-unldr")) == 0)
 	{
-		if ( (status = dc_unset_mbr(-1)) != ST_OK )
+		if (is_efi_boot) {
+			status = dc_unset_efi_boot(-1);
+		}
+		else {
+			status = dc_unset_mbr(-1);
+		}
+
+		if ( status != ST_OK )
 		{
 			return 100000 + status; 
 		}
@@ -72,7 +93,14 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	{
 		ldr_config conf;
 		
-		if ( (status = dc_get_mbr_config(-1, NULL, &conf)) != ST_OK )
+		if (is_efi_boot) {
+			status = dc_efi_config(-1, 0, &conf);
+		}
+		else {
+			status = dc_get_mbr_config(-1, NULL, &conf);
+		}
+
+		if ( status != ST_OK )
 		{
 			return 100000 + status; 
 		}

@@ -40,15 +40,15 @@ BOOL _key_name(
 
 	if ( code >= 0x30 && code <= 0x5a )
 	{
-		_snwprintf( text, 1, L"%c", code );
+		_snwprintf( text, 1, L"%c", (int)code );
 
 	} else if ( code >= VK_F1 && code <= VK_F24 )
 	{
-		_snwprintf( text, 3, L"F%d", code - VK_F1 + 1 );
+		_snwprintf( text, 3, L"F%d", (int)(code - VK_F1 + 1) );
 
 	} else if ( code >= VK_NUMPAD0 && code <= VK_NUMPAD9 )
 	{
-		_snwprintf( text, 9, L"NumPad %d", code - VK_NUMPAD0 );
+		_snwprintf( text, 9, L"NumPad %d", (int)(code - VK_NUMPAD0) );
 	}
 	else {
 		switch ( code ) {

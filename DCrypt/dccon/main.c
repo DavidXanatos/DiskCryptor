@@ -1,6 +1,8 @@
 /*
     *
     * DiskCryptor - open source partition encryption tool
+	* Copyright (c) 2019-2020
+	* DavidXanatos <info@diskcryptor.org>
 	* Copyright (c) 2008-2010 
 	* ntldr <ntldr@diskcryptor.net> PGP key ID - 0xC48251EB4F8E4E6E
     *
@@ -26,6 +28,7 @@
 #include "boot_menu.h"
 #include "misc.h"
 #include "mbrinst.h"
+#include "efiinst.h"
 #include "drv_ioctl.h"
 #include "drvinst.h"
 #include "rand.h"
@@ -131,8 +134,10 @@ static void print_usage()
 		L"________________________________________________________________________________\n"
 		L"\n"
 		L" -boot [action]\n"
+		L"    -mode                        Show boot mode (MBR/EFI [SecureBoot])\n"
 		L"    -enum                        Enumerate all HDDs\n"
 		L"    -config  [hdd/file]          Change bootloader configuration\n"
+		L"  MBR (or legacy CSM) boot:\n"
 		L"    -setmbr  [hdd] [opt]         Setup bootloader to HDD master boot record\n"
 		L"    -updmbr  [hdd]               Update bootloader on HDD master boot record\n"
 		L"    -delmbr  [hdd]               Delete bootloader from HDD master boot record\n"
@@ -140,7 +145,31 @@ static void print_usage()
 		L"    -makeiso [file] [opt]        Make bootloader image (.iso)\n"
 		L"    -makepxe [file] [opt]        Make bootloader image for PXE network booting\n"
 		L"       -small             Use small bootloader, only with AES\n"
+		L"  EFI boot:\n"
+		L"    -setefi  [hdd] [opt]         Setup DCS bootloader to HDD EFI partition\n"
+		L"    -updefi  [hdd]               Update DCS bootloader on HDD EFI partition\n"
+		L"    -delefi  [hdd]               Delete DCS bootloader from HDD EFI partition\n"
+		L"    -getinfo [hdd]               Print collected PlatformInfo file to console\n"
+		L"    -addbme  [hdd]               Add DCS entry to EFI boot menu\n"
+		L"    -rembme                      Remove DCS entry from EFI boot menu\n"
+		L"    -makerec [root par] [opt]    Setup EFI recovery DCS to bootable partition\n"
+		L"       -shim              Force adding shim loader for secure boot\n"
+		L"       -noshim            Dont add shim loader for secure boot, even when needed\n"
 		);
+}
+
+static void print_error(int resl)
+{
+	if (resl == ST_OK) {
+		wprintf(L"Success\n");
+		return;
+	}
+
+	wchar_t* status_str = dc_get_status_str(resl);
+	if(status_str != NULL)
+		wprintf(L"Error: %s\n", status_str);
+	else
+		wprintf(L"Undefined Error: %d\n", resl);
 }
 
 static void make_dev_status(vol_inf *inf, wchar_t *status)
@@ -554,6 +583,39 @@ int dc_set_boot_interactive(int d_num, int small_boot)
 	return resl;
 }
 
+int dc_set_efi_boot_interactive(int d_num, int shim, int add_bme)
+{
+	int        resl;
+	int        repalce_ms = 0;
+
+	if (add_bme == -1) {
+		wprintf(L"Do you want to add a DCS loader boot menu entry (recommended). Y/N?\n");
+		add_bme = (tolower(_getch()) == 'y');
+	}
+
+	if (add_bme == 1 && dc_efi_is_msft_on_disk(d_num))
+	{
+		wprintf(L"Note: Some EFI implementations are not adhering to the standard and always start the windows bootloader.\n");
+
+		if (shim) {
+			wprintf(L"Shil loader is used, hence a workaround for this issue cannot be applied.\n");
+		}
+		else {
+			wprintf(L"Do you want to replace the windows bootloader file (BOOTMGFW.EFI) with a redirection to the DCS loader as a workaround? Y/N?\n");
+			repalce_ms = (tolower(_getch()) == 'y');
+		}
+	}
+
+	wprintf(L"Installing EFI Disk Cryptography Services (DCS) bootloader...\n");
+
+	resl = dc_set_efi_boot(d_num, shim, repalce_ms);
+
+	if (resl == ST_OK && add_bme == 1) {
+		resl = dc_efi_set_bme(L"DiskCrypto (DCS) loader", d_num);
+	}
+
+	return resl;
+}
 
 static 
 dc_pass* dc_load_pass_and_keyfiles(
@@ -679,6 +741,8 @@ int wmain(int argc, wchar_t *argv[])
 		}
 
 		d_inited = 0;
+
+		dc_efi_init();
 
 		if ( dc_is_driver_works() && (dc_open_device() == ST_OK) )
 		{
@@ -994,14 +1058,19 @@ int wmain(int argc, wchar_t *argv[])
 				ldr_config conf;
 				DC_FLAGS   flags;
 				int        dsk_1, dsk_2;
+				int        is_efi;
 
-				if ( (crypt.cipher_id != CF_AES) && (dc_device_control(DC_CTL_GET_FLAGS, NULL, 0, &flags, sizeof(flags)) == NO_ERROR) && 
-					 (flags.load_flags & DST_SMALL_MEM) )
+				is_efi = dc_efi_check();
+
+				if ( (crypt.cipher_id != CF_AES) )
 				{
-					wprintf(
-						L"Your BIOS does not provide enough base memory, "
-						L"you can only use AES to encrypt the boot partition.");
-					resl = ST_OK; break;
+					if (!is_efi && (dc_device_control(DC_CTL_GET_FLAGS, NULL, 0, &flags, sizeof(flags)) == NO_ERROR) && (flags.load_flags & DST_SMALL_MEM) )
+					{
+						wprintf(
+							L"Your BIOS does not provide enough base memory, "
+							L"you can only use AES to encrypt the boot partition.");
+						resl = ST_OK; break;
+					}
 				}				
 				if (dc_get_boot_disk(&dsk_1, &dsk_2) != ST_OK)
 				{
@@ -1025,8 +1094,15 @@ int wmain(int argc, wchar_t *argv[])
 
 					if (getchr('1', '2') == '1') 
 					{
-						if ( (resl = dc_set_boot_interactive(-1, -1)) != ST_OK ) {
-							break;
+						if (is_efi) {
+							if ((resl = dc_set_efi_boot_interactive(-1, -1, -1)) != ST_OK) {
+								break;
+							}
+						}
+						else {
+							if ((resl = dc_set_boot_interactive(-1, -1)) != ST_OK) {
+								break;
+							}
 						}
 					}
 				}				
@@ -1500,7 +1576,8 @@ int wmain(int argc, wchar_t *argv[])
 	} while (0);
 
 	if (resl != ST_OK) {
-		wprintf(L"Error: %d\n", resl);
+		//wprintf(L"Error: %d\n", resl); // wprintf(L"Error: 0x%08x\n", resl);
+		print_error(resl);
 	}
 
 	return resl;

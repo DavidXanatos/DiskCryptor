@@ -59,7 +59,7 @@ void _menu_wizard(
 		_dnode *node 
 	);
 
-int _menu_set_loader_vol(
+int _menu_set_loader_mbr(
 		HWND     hwnd,
 		wchar_t *vol,
 		int      dsk_num,
@@ -67,7 +67,15 @@ int _menu_set_loader_vol(
 		int      is_small
 	);
 
-int _menu_unset_loader_mbr(
+int _menu_set_loader_efi(
+		HWND     hwnd,
+		wchar_t *vol,
+		int      dsk_num,
+		int      type,
+		int      is_shim
+	);
+
+int _menu_unset_loader(
 		HWND     hwnd,
 		wchar_t *vol,
 		int      dsk_num,

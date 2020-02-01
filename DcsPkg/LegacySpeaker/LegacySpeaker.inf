@@ -1,0 +1,46 @@
+## @file
+#  TODO: Brief Description of UEFI Driver LegacySpeaker
+#  
+#  TODO: Detailed Description of UEFI Driver LegacySpeaker
+#
+#  TODO: Copyright for UEFI Driver LegacySpeaker
+#  
+#  TODO: License for UEFI Driver LegacySpeaker
+#  
+##
+
+[Defines]
+  INF_VERSION               = 0x00010005
+  BASE_NAME                 = LegacySpeaker
+  FILE_GUID                 = f556f20f-1838-11e6-94c2-6067203c4d58
+  MODULE_TYPE               = UEFI_DRIVER
+  VERSION_STRING            = 1.0
+  ENTRY_POINT               = LegacySpeakerDriverEntryPoint
+
+[Packages]
+  MdePkg/MdePkg.dec
+  DcsPkg/DcsPkg.dec
+
+[Sources]
+  LegacySpeaker.h
+  LegacySpeaker.c
+  ComponentName.c
+  ComponentName.h
+
+[LibraryClasses]
+  UefiDriverEntryPoint
+  UefiBootServicesTableLib
+  MemoryAllocationLib
+  BaseMemoryLib
+  BaseLib
+  UefiLib
+  DevicePathLib
+  DebugLib
+  IoLib
+
+[Protocols]
+  gEfiComponentName2ProtocolGuid
+  gEfiComponentNameProtocolGuid
+
+[Guids]
+

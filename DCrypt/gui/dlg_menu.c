@@ -1,6 +1,8 @@
 /*
     *
     * DiskCryptor - open source partition encryption tool
+	* Copyright (c) 2019-2020
+	* DavidXanatos <info@diskcryptor.org>
 	* Copyright (c) 2007-2010
 	* ntldr <ntldr@diskcryptor.net> PGP key ID - 0xC48251EB4F8E4E6E
     *
@@ -223,19 +225,26 @@ int _menu_update_loader(
 	)
 {
 	int rlt = ST_ERROR;
+	int is_dcs;
 
-	if ( (rlt = dc_update_boot(dsk_num)) == ST_OK )
+	is_dcs = dc_is_dcs_on_disk(dsk_num);
+	if (is_dcs)
+		rlt = dc_update_efi_boot (dsk_num);
+	else
+		rlt = dc_update_boot(dsk_num);
+
+	if ( rlt == ST_OK )
 	{
-		__msg_i( hwnd, L"Bootloader on [%s] successfully updated\n", vol );
+		__msg_i( hwnd, L"%s Bootloader on [%s] successfully updated\n", is_dcs ? L"EFI" : L"MBR", vol );
 	} else {
-		__error_s( hwnd, L"Error updated bootloader\n", rlt );
+		__error_s( hwnd, L"Error update %s bootloader\n", rlt, is_dcs ? L"EFI" : L"MBR");
 	}
 
 	return rlt;
 }
 
 
-int _menu_unset_loader_mbr(
+int _menu_unset_loader(
 		HWND     hwnd,
 		wchar_t *vol,
 		int      dsk_num,
@@ -243,6 +252,8 @@ int _menu_unset_loader_mbr(
 	)
 {
 	int rlt = ST_ERROR;
+	int is_dcs;
+
 	if ( type == CTL_LDR_STICK )
 	{
 		wchar_t dev[MAX_PATH];
@@ -257,24 +268,34 @@ int _menu_unset_loader_mbr(
 			{
 				dsk_num = inf.disks[0].number;
 			} else {
-				__msg_w( hwnd, L"One volume on two disks\nIt's very strange.." );
+				__msg_w( hwnd, L"One volume on two disks\nIt's very strange..." );
 				return rlt;
 			}								
 		}
 	}
+
 	if ( __msg_q(
 			hwnd, 
 			L"Are you sure you want to remove bootloader\n"
 			L"from [%s]?", vol)
 			)
 	{
-		rlt = dc_unset_mbr(dsk_num);
+		is_dcs = dc_is_dcs_on_disk(dsk_num);
+		if ( is_dcs ) {
+			rlt = dc_unset_efi_boot(dsk_num);
+
+			if ( rlt == ST_OK && dc_efi_is_bme_set(dsk_num) ) {
+				dc_efi_del_bme();
+			}
+		}
+		else
+			rlt = dc_unset_mbr(dsk_num);
 
 		if ( rlt == ST_OK )
 		{
-			__msg_i( hwnd, L"Bootloader successfully removed from [%s]\n", vol );
+			__msg_i( hwnd, L"%s Bootloader successfully removed from [%s]\n", is_dcs ? L"EFI" : L"MBR", vol );
 		} else {
-			__error_s( hwnd, L"Error removing bootloader\n", rlt );
+			__error_s( hwnd, L"Error removing %s bootloader\n", rlt, is_dcs ? L"EFI" : L"MBR" );
 		}
 		return rlt;
 	} else {
@@ -283,7 +304,7 @@ int _menu_unset_loader_mbr(
 }
 
 
-int _menu_set_loader_vol(
+int _menu_set_loader_mbr(
 		HWND     hwnd,
 		wchar_t *vol,
 		int      dsk_num,
@@ -318,14 +339,87 @@ int _menu_set_loader_vol(
 			}
 		}
 	} else {							
-		rlt = _set_boot_loader( hwnd, dsk_num, is_small );
+		rlt = _set_boot_loader_mbr( hwnd, dsk_num, is_small );
 	}
 
 	if ( rlt == ST_OK )
 	{
-		__msg_i( hwnd, L"Bootloader successfully installed to [%s]", vol );
+		__msg_i( hwnd, L"MBR Bootloader successfully installed to [%s]", vol );
 	} else {
-		__error_s( hwnd, L"Error install bootloader", rlt );
+		__error_s( hwnd, L"Error install MBR bootloader", rlt );
+	}
+	return rlt;
+
+}
+
+
+int _menu_set_loader_efi(
+		HWND     hwnd,
+		wchar_t *vol,
+		int      dsk_num,
+		int      type,
+		int      is_shim
+	)
+{
+	ldr_config conf;
+	int add_bme = 0;
+	int rlt = ST_ERROR;
+
+	if (type == CTL_LDR_STICK)
+	{
+		if ( (rlt = dc_mk_efi_rec( vol, FALSE, is_shim )) == ST_FORMAT_NEEDED )
+		{
+			if ( __msg_q(
+					hwnd,
+					L"Removable media not correctly formatted\n"
+					L"Format media?\n")
+					)
+			{
+				rlt = dc_mk_efi_rec( vol, TRUE, is_shim);
+			}
+		}
+		if (rlt == ST_OK)
+		{
+			if ((rlt = dc_efi_config_by_partition(vol, FALSE, &conf)) == ST_OK)
+			{
+				conf.options |= LDR_OP_EXTERNAL;
+				conf.boot_type = LDR_BT_AP_PASSWORD;
+
+				rlt = dc_efi_config_by_partition(vol, TRUE, &conf);
+			}
+		}
+	}
+	else {
+
+		if (!is_shim && dc_efi_is_secureboot()) {
+			if (__msg_w(hwnd, L"This machines's EFI firmware is configured for secure boot.\n"
+				L"Without the shim loader, or YOU manually signing the bootloader files, it wont be able to boot.\n"
+				L"Do you want to install the the shim loader to?")
+				) {
+				is_shim = 1;
+			}
+		}
+
+		if (__msg_w(hwnd, L"Do you want to add a DCS loader boot menu entry (recommended).")) {
+			add_bme = 1;
+
+			if (!is_shim && dc_efi_is_msft_on_disk(dsk_num))
+			{
+				if (__msg_w(hwnd, L"Note: Some EFI implementations are not adhering to the standard and always start the windows bootloader.\n"
+					L"Do you want to replace the windows bootloader file (BOOTMGFW.EFI) with a redirection to the DCS loader as a workaround?")) {
+					add_bme = 2;
+				}
+			}
+		}
+
+		rlt = _set_boot_loader_efi( hwnd, dsk_num, is_shim, add_bme );
+	}
+
+	if (rlt == ST_OK)
+	{
+		__msg_i(hwnd, L"EFI Bootloader successfully installed to [%s]", vol);
+	} else {
+		__error_s(hwnd, L"Error install EFI bootloader", rlt);
 	}
 	return rlt;
 
@@ -400,7 +494,7 @@ void _menu_decrypt(
 }
 
 
-int _set_boot_loader(
+int _set_boot_loader_mbr(
 		HWND hwnd,
 		int  dsk_num,
 		int  is_small
@@ -436,6 +530,44 @@ int _set_boot_loader(
 
 }
 
+
+int _set_boot_loader_efi(
+		HWND hwnd,
+		int  dsk_num,
+		int  is_shim,
+		int  add_bme
+	)
+{
+	if (is_shim && !dc_efi_shim_available()) {
+		__msg_e(hwnd, 
+		L"For compatibility with secure boot a shim loader must be installed,"
+		L"however the required archive (shim_x64.zip resp. shim_ia32.zip) is missing from the application directory.\n"
+		L"Bootloader installation therefor cannot continue, please reboot and disable secure boot in your firmware settings to resolve this issue.\n"
+		);
+		return ST_CANCEL;
+	}
+
+	if (is_shim && !__msg_w(hwnd, 
+		L"For compatibility with secure boot the shim loader will be installed.\n"
+		L"Upon first boot you will be encounter an 'Access denied' error message, "
+		L"to resolve this, you will need to start the 'MOK Manager' and enroll a certificate located at \\EFI\\Boot\\PreLoader.cer\n"
+		L"After one more reboot the DCS loader should boot and show you a password prompt.\n"
+		L"Do you want to continue?")
+		) {
+		return ST_CANCEL;
+	}
+
+	int rlt;
+
+	rlt = dc_set_efi_boot(dsk_num, is_shim, add_bme == 2);
+
+	if (rlt == ST_OK && add_bme != 0) {
+		rlt = dc_efi_set_bme(L"DiskCrypto (DCS) loader", dsk_num);
+	}
+
+	return rlt;
+
+}
 
 
 void _menu_encrypt_cd(  )
@@ -477,6 +609,15 @@ void _menu_encrypt(
 	)
 {
 	int rlt;
+
+	if ( __is_efi_boot )
+	{
+		wchar_t s_boot_dev[MAX_PATH];
+		if ( (dc_get_boot_device(s_boot_dev) == ST_OK) && (wcscmp(node->mnt.info.device, s_boot_dev) == 0) ){
+			__msg_e(__dlg, L"The EFI boot partition cannot be encrypted because the UEFI firmware itself needs ability to read it.");
+			return;
+		}
+	}
 
 	if ( _create_act_thread(node, -1, -1) == 0 )
 	{

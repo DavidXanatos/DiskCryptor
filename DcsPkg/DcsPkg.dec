@@ -1,0 +1,34 @@
+## @file  DcsPkg.dec
+# This Package provides all definitions, library classes and libraries instances.
+#
+##
+
+
+[Defines]
+  DEC_SPECIFICATION              = 0x00010005
+  PACKAGE_NAME                   = DcsPkg
+  PACKAGE_UNI_FILE               = DcsPkg.uni
+  PACKAGE_GUID                   = 9974377F-5593-492A-A54E-7B23126DE450
+  PACKAGE_VERSION                = 1.0
+
+
+[Includes]
+  Include
+  Library/VeraCryptLib
+  Library/VeraCryptLib/crypto
+  Library/DiskCryptorLib
+
+[LibraryClasses]
+  CommonLib|Include/Library/CommonLib.h
+  GraphLib|Include/Library/GraphLib.h
+  PasswordLib|Include/Library/PasswordLib.h
+  DcsCfgLib|Include/Library/DcsCfgLib.h
+  DcsIntLib|Include/Library/DcsIntLib.h
+
+[Guids]
+  # Include/CommonLib.h
+  # {101F8560-D73A-4FF7-89F6-8170F6615587}
+  gEfiDcsVariableGuid         = { 0x101f8560, 0xd73a, 0x4ff7, { 0x89, 0xf6, 0x81, 0x70, 0xf6, 0x61, 0x55, 0x87 } }
+  # Include/Protocol/DcsBmlProto.h
+  #// {7FB6D090-8755-43FC-84B5-6E297F9EC1CD}
+  gEfiDcsBmlProtocolGuid      = { 0x7fb6d090, 0x8755, 0x43fc, { 0x84, 0xb5, 0x6e, 0x29, 0x7f, 0x9e, 0xc1, 0xcd } }

@@ -7,6 +7,7 @@
 #define LDR_LT_EMBED_KEY 2 // use embedded key
 #define LDR_LT_MESSAGE   4 // display enter password message
 #define LDR_LT_DSP_PASS  8 // display '*'
+#define LDR_LT_DEBUG     16 // enable debug output
 
 #define LDR_ET_MESSAGE      1  // display error message
 #define LDR_ET_REBOOT       2  // reboot after 1 second
@@ -38,22 +39,24 @@
 #define LDR_CFG_SIGN2 0x7269DA46
 
 typedef struct _ldr_config {
-	unsigned long  sign1; // сигнатура для поиска загрузчика в памяти
-	unsigned long  sign2; // сигнатура для поиска загрузчика в памяти
-	unsigned long  ldr_ver;    // версия загрузчика
-	unsigned char  logon_type; // настройки авторизации (константы LDR_LT_x)
-	unsigned char  error_type; // настройки действия при ошибке авторизации (константы LDR_ET_x)
-	unsigned char  boot_type;  // настройки загрузки авторизация успешно завершена (константы LDR_BT_x)
-	unsigned long  disk_id; // ID раздела, используется при LDR_BT_DISK_ID
-	unsigned short options; // прочик настройки и флаги (константы LDR_OP_x)
-	unsigned char  kbd_layout; // раскладка клавиатуры загрузчика (константы LDR_KB_x)
-	char  eps_msg[128]; // текст сообщения запроса авторизации
-	char  err_msg[128]; // тест сообщения ошибки авторизации
-	unsigned char save_mbr[512]; // сохраненный оригинальный MBR
-	unsigned long timeout;  // таймаут авторизации (используется при включенном флаге LDR_OP_EPS_TMO)
-	unsigned char emb_key[64]; // встроенный в загрузчик ключ
+	unsigned long sign1;         // signature to search for bootloader in memory
+	unsigned long sign2;         // signature to search for bootloader in memory
+	unsigned long ldr_ver;       // bootloader version
+	unsigned char logon_type;    // authorization settings (constants LDR_LT_x)
+	unsigned char error_type;    // action settings for an authorization error (constants LDR_ET_x)
+	unsigned char boot_type;     // boot settings authorization completed successfully (constants LDR_BT_x)
+	unsigned long disk_id;       // section ID, used with LDR_BT_DISK_ID
+	unsigned short options;      // settings and flags (LDR_OP_x constants)
+	unsigned char kbd_layout;    // bootloader keyboard layout (constants LDR_KB_x)
+	char eps_msg[128];           // message text of the authorization request
+	char err_msg[128];           // test authorization error message
+	unsigned char save_mbr[512]; // saved original MBR
+	unsigned long timeout;       // authorization timeout (used when the LDR_OP_EPS_TMO flag is on)
+	unsigned char emb_key[64];   // key in the bootloader
 
 } ldr_config;
+
+
 
 #define E820MAX	64 // number of entries in E820MAP
 
@@ -137,5 +140,8 @@ typedef struct _bd_data {
 } bd_data;
 
 #pragma pack (pop)
+
+// EFI
+#define LDR_DCS_ID 0xDC5B // DCS boot menu id
 
 #endif

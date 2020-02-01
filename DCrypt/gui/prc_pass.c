@@ -1,6 +1,8 @@
 /*
     *
     * DiskCryptor - open source partition encryption tool
+	* Copyright (c) 2019-2020
+	* DavidXanatos <info@diskcryptor.org>
 	* Copyright (c) 2007-2010
 	* ntldr <ntldr@diskcryptor.net> PGP key ID - 0xC48251EB4F8E4E6E
     *
@@ -217,7 +219,7 @@ _password_change_dlg_proc(
 
 				if ( info->node && _is_boot_device(&info->node->mnt.info) )
 				{
-					if (dc_get_mbr_config( -1, NULL, &conf ) == ST_OK)
+					if (dc_get_ldr_config( -1, &conf ) == ST_OK)
 					{
 						kb_layout = conf.kbd_layout;
 					}

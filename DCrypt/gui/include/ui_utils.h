@@ -36,8 +36,8 @@
 #define IDS_MODE_NAME		L"XTS"
 #define IDS_PRF_NAME		L"HMAC-SHA-512"
 
-#define DC_HOMEPAGE			L"http://diskcryptor.net/"
-#define DC_FORUMPAGE		L"http://diskcryptor.net/forum"
+#define DC_HOMEPAGE			L"http://diskcryptor.org/"
+#define DC_FORUMPAGE		L"http://diskcryptor.org/forum"
 #define DC_NAME				L"DiskCryptor"
 
 #define DC_MUTEX			L"DC_UI_MUTEX"
