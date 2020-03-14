@@ -133,7 +133,7 @@ void _run_wizard_action(
 		wchar_t mnt_point[MAX_PATH] = { 0 };
 		wchar_t vol[MAX_PATH];
 
-		dlgpass dlg_info = { node, NULL, NULL, mnt_point };
+		dlgpass dlg_info = { node, NULL, NULL, mnt_point, 0 };
 
 		ShowWindow(hwnd, FALSE);
 		if ( _dlg_get_pass(__dlg, &dlg_info) == ST_OK )
@@ -382,11 +382,12 @@ int _init_wizard_encrypt_pages(
 	/////// ENCRYPTION SETTINGS PAGE //////////////////////////////
 	{
 		HWND h_combo_wipe = GetDlgItem(hwnd, IDC_COMBO_PASSES);
+		int is_ssd = dc_is_device_ssd(node->mnt.info.w32_device);
 
 		_init_combo( h_combo_wipe, wipe_modes, WP_NONE, FALSE, -1 );
 
-		EnableWindow( h_combo_wipe, node->dlg.act_type != ACT_ENCRYPT_CD);
-		EnableWindow( GetDlgItem(hwnd, IDC_STATIC_PASSES_LIST), node->dlg.act_type != ACT_ENCRYPT_CD );
+		EnableWindow( h_combo_wipe, node->dlg.act_type != ACT_ENCRYPT_CD && !is_ssd);
+		EnableWindow( GetDlgItem(hwnd, IDC_STATIC_PASSES_LIST), node->dlg.act_type != ACT_ENCRYPT_CD && !is_ssd);
 
 		_init_combo(
 			GetDlgItem(hwnd, IDC_COMBO_ALGORT), cipher_names, CF_AES, FALSE, -1

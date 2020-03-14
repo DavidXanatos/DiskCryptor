@@ -550,6 +550,11 @@ NTSTATUS dc_io_control_irp(dev_hook *hook, PIRP irp)
 	if (hook->flags & F_ENABLED) {
 		if (iocode == IOCTL_STORAGE_MANAGE_DATA_SET_ATTRIBUTES) return dc_trim_irp(hook, irp);
 		if (iocode == IOCTL_VOLUME_UPDATE_PROPERTIES) return dc_release_irp(hook, irp, dc_update_volume(hook));
+		if (iocode == IOCTL_DISK_IS_WRITABLE) {
+			if ((hook->mnt_flags & MF_READ_ONLY)) {
+				return dc_release_irp(hook, irp, STATUS_MEDIA_WRITE_PROTECTED);
+			}
+		}
 	}
 	return dc_forward_irp(hook, irp);
 }

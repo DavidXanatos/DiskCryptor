@@ -1102,6 +1102,7 @@ int dc_efi_config_write(const wchar_t* root, ldr_config *conf)
 
 	// Other
 
+		WriteConfigInteger(configFile, configContent, "UseHardwareCrypto", (conf->options & LDR_OP_HW_CRYPTO) ? 1 : 0);
 
 		WriteConfigInteger(configFile, configContent, "VerboseDebug", (conf->logon_type & LDR_LT_DEBUG) ? 1 : 0);
 
@@ -1275,21 +1276,24 @@ int dc_efi_config_read(const wchar_t* root, ldr_config *conf)
 			// Load Boot Disk MBR			"cancel"	EFI_DCS_USER_CANCELED
 			//								"shutdown"  EFI_DCS_SHUTDOWN_REQUESTED
 		ReadConfigString(configContent, "ActionFailed", "exit", buffer, sizeof(buffer));
-		if (_strcmpi(buffer, "Reboot"))
+		if (_strcmpi(buffer, "Reboot") == 0)
 			conf->error_type |= LDR_ET_REBOOT;
-		else if (_strcmpi(buffer, "Cancel"))
+		else if (_strcmpi(buffer, "Cancel") == 0)
 			//conf->error_type |= LDR_ET_BOOT_ACTIVE;
 			conf->error_type |= LDR_ET_MBR_BOOT;
-		//else if(strcmpi(buffer, "Exit"))
+		//else if(_strcmpi(buffer, "Exit") == 0)
 		//	conf->error_type |= LDR_ET_RETRY;
 
 		// Authentication Tries - new
 		if (ReadConfigInteger(configContent, "AuthorizeRetry", 100)) {
-			conf->options |= LDR_ET_RETRY;
+			conf->error_type |= LDR_ET_RETRY;
 		}
 
 	// Other
 
+		if (ReadConfigInteger(configContent, "UseHardwareCrypto", 1)) {
+			conf->options |= LDR_OP_HW_CRYPTO;
+		}
 
 		if (ReadConfigInteger(configContent, "VerboseDebug", 0)) {
 			conf->logon_type |= LDR_LT_DEBUG;

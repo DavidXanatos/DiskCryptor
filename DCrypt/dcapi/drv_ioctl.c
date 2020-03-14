@@ -28,6 +28,7 @@
 #include "dcapi.h"
 #include <winternl.h>
 
+
 int dc_open_device()
 {
 	HANDLE h_device;
@@ -785,4 +786,29 @@ int dc_restore_header(wchar_t *device, dc_pass *password, void *in)
 	}
 
 	return resl;
+}
+
+int dc_is_device_ssd(wchar_t *device)
+{
+	int						result = 0;
+	DWORD					bytesReturned = 0;
+	HANDLE					hDevice;
+	STORAGE_PROPERTY_QUERY	spqTrim;
+	DEVICE_TRIM_DESCRIPTOR	dtd;
+	
+	hDevice = CreateFile(device, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
+
+	if (hDevice != INVALID_HANDLE_VALUE)
+	{
+		spqTrim.PropertyId = StorageDeviceTrimProperty;
+		spqTrim.QueryType = PropertyStandardQuery;
+		if (DeviceIoControl(hDevice, IOCTL_STORAGE_QUERY_PROPERTY, &spqTrim, sizeof(spqTrim), &dtd, sizeof(dtd), &bytesReturned, NULL) && bytesReturned == sizeof(dtd))
+		{
+			result = dtd.TrimEnabled;
+		}
+
+		CloseHandle(hDevice);
+	}
+
+	return result;
 }

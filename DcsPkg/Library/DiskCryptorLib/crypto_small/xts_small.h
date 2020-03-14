@@ -49,7 +49,7 @@ typedef __declspec(align(16)) struct _xts_key {
 void xts_set_key(const unsigned char *key, int alg, xts_key *skey);
 void xts_encrypt(const unsigned char *in, unsigned char *out, unsigned long len, unsigned __int64 offset, xts_key *key);
 void xts_decrypt(const unsigned char *in, unsigned char *out, unsigned long len, unsigned __int64 offset, xts_key *key);
-void xts_init(int hw_crypt);
+int xts_init(int hw_crypt);
 
 typedef void (*xts_setkey_proc)(const unsigned char *key, int alg, xts_key *skey);
 typedef void (*xts_crypt_proc) (const unsigned char *in, unsigned char *out, unsigned long len, unsigned __int64 offset, xts_key *key);

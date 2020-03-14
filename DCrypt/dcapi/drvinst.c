@@ -193,7 +193,7 @@ static DWORD make_driver_path(PTSTR pszPath, size_t cchPath, PCTSTR driver_name)
 
 static DWORD save_dcrypt_driver_file()
 {
-	TCHAR source_path[MAX_PATH], dest_path[MAX_PATH], *p;
+	TCHAR source_path[MAX_PATH], dest_path[MAX_PATH], temp_path[MAX_PATH], *p;
 	DWORD length, status;
 
 	if (g_inst_dll == NULL || (length = GetModuleFileName(g_inst_dll, source_path, _countof(source_path))) == 0) return ERROR_INVALID_NAME;
@@ -201,7 +201,24 @@ static DWORD save_dcrypt_driver_file()
 	if ( FAILED(StringCchCopy(p + 1, _countof(source_path) - (p - source_path) - 1, g_maindriver_filename)) ) return ERROR_INSUFFICIENT_BUFFER;
 	
 	if ( (status = make_driver_path(dest_path, _countof(dest_path), g_maindriver_filename)) != NO_ERROR ) return status;
+	
+	if ( (status = make_driver_path(temp_path, _countof(temp_path), _T("dcrypt_old.sys"))) != NO_ERROR ) return status;
+
+	// Note: we can not overwrite a driver in use we need to rename it and remove it upon reboot
+
+	// rename old driver if present
+	if (_waccess(dest_path, 0) != -1) {
+		if (MoveFileEx(dest_path, temp_path, MOVEFILE_REPLACE_EXISTING) == FALSE) return GetLastError();
+	}
+
+	// copy new driver
 	if ( CopyFile(source_path, dest_path, FALSE) == FALSE ) return GetLastError();
+
+	// schedule deleting of old driver
+	if (_waccess(temp_path, 0) != -1) {
+		if (MoveFileEx(temp_path, NULL, MOVEFILE_DELAY_UNTIL_REBOOT) == FALSE) return GetLastError();
+	}
+	
 	return NO_ERROR;
 }
 

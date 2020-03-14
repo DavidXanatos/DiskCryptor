@@ -30,6 +30,9 @@
 #define MF_DELMP     0x08 // delete volume mount point when unmount
 #define MF_NOWAIT_IO 0x10 // no wait for IO IRPs completion
 
+/* mount flags */
+#define MF_READ_ONLY 0x20 // mount volume as read only
+
 /* operation status codes */
 #define ST_OK             0  /* operation completed successfull */
 #define ST_ERROR          1  /* unknown error    */

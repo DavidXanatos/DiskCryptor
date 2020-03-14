@@ -501,12 +501,20 @@ void boot_conf_menu(ldr_config *conf, wchar_t *msg)
 
 static int dsk_num(wchar_t *str, int *num) 
 {
+	//if ( ((str[0] == L'h') || (str[0] == L's')) && (str[1] == L'd') && (isdigit(str[2]) != 0) ) { // hd* hdd, sd* ssd
 	if ( (str[0] == L'h') && (str[1] == L'd') && (isdigit(str[2]) != 0) ) {
 		num[0] = _wtoi(str+2);
 		return 1;
 	} else {
 		return 0;
 	}
+}
+
+static int dc_is_disk_ssd(int dsk_num)
+{
+	wchar_t disk[MAX_PATH];
+	_snwprintf(disk, countof(disk), L"\\\\.\\PhysicalDrive%d", dsk_num);
+	return dc_is_device_ssd(disk);
 }
 
 int boot_menu(int argc, wchar_t *argv[])
@@ -544,9 +552,9 @@ int boot_menu(int argc, wchar_t *argv[])
 			int      mbr_ldr, efi_ldr;
 
 			wprintf(
-				L"------------------------------------------------------------------\n"
-				L"HDD |           name            |  size   | bootable | bootloader\n" 
-				L"----+---------------------------+---------+----------+------------\n");
+				L"-------------------------------------------------------------------\n"
+				L"HDD  |           name            |  size   | bootable | bootloader\n" 
+				L"-----+---------------------------+---------+----------+------------\n");
 
 			if (dc_get_boot_disk(&bd_1, &bd_2) != ST_OK) {
 				bd_1 = bd_2 = -1;
@@ -577,8 +585,8 @@ int boot_menu(int argc, wchar_t *argv[])
 					}
 
 					wprintf(
-						L"hd%d | %-25s | %-8s| %-3s, %-3s | %s\n",
-						i, h_name, s_size, is_gpt ? L"GPT" : L"MBR", (i == bd_1) || (i == bd_2) ? L"yes" : L"no", str
+						L"hd%d%s | %-25s | %-8s| %-3s, %-3s | %s\n",
+						i, dc_is_disk_ssd(i) ? L"*" : L" ", h_name, s_size, is_gpt ? L"GPT" : L"MBR", (i == bd_1) || (i == bd_2) ? L"yes" : L"no", str
 					);
 				} 
 			}

@@ -1,6 +1,10 @@
 #include "include\defines.h"
 #include "include\boot\dc_header.h"
-#include "crypto\sha512_pkcs5_2_small.h"
+#ifdef SMALL
+#include "crypto_small\sha512_pkcs5_2_small.h"
+#else
+#include "crypto_fast/sha512_pkcs5_2.h"
+#endif
 #include "include\boot\boot.h"
 
 int dc_decrypt_header(dc_header *header, dc_pass *password)

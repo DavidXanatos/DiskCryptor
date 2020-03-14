@@ -73,7 +73,7 @@ void _refresh_boot_buttons(
 		if ( wcsstr(s_item, L"installed") != NULL )
 		{
 			remove = TRUE;
-			update = dc_get_mbr_config( sel_disk, NULL, &conf ) == ST_OK && (int)conf.ldr_ver < (conf.sign1 == 0 ? DC_UEFI_VER : DC_BOOT_VER);
+			update = dc_get_ldr_config( sel_disk, &conf ) == ST_OK && (int)conf.ldr_ver < (conf.sign1 == 0 ? DC_UEFI_VER : DC_BOOT_VER);
 		}
 	}
 
@@ -257,7 +257,7 @@ int _init_boot_config(
 	{
 	///////////////////////////////////////////////////////////////
 		_sub_class( GetDlgItem(wnd->dlg[3], IDC_USE_HARD_CRYPTO), SUB_STATIC_PROC, HWND_NULL );
-		EnableWindow(GetDlgItem(wnd->dlg[3], IDC_USE_HARD_CRYPTO), isefi == 1 ? FALSE : TRUE);
+		//EnableWindow(GetDlgItem(wnd->dlg[3], IDC_USE_HARD_CRYPTO), isefi == 1 ? FALSE : TRUE);
 		_set_check( wnd->dlg[3], IDC_USE_HARD_CRYPTO, (conf->options & LDR_OP_HW_CRYPTO) != 0 );
 
 		_sub_class( GetDlgItem(wnd->dlg[3], IDC_SET_VERBOSE), SUB_STATIC_PROC, HWND_NULL );

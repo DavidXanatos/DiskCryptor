@@ -464,7 +464,7 @@ void _menu_decrypt(
 		_dnode *node
 	)
 {
-	dlgpass dlg_info = { node, NULL, NULL, NULL };
+	dlgpass dlg_info = { node, NULL, NULL, NULL, 0 };
 
 	int rlt;
 	if ( !_create_act_thread(node, -1, -1) )
@@ -817,7 +817,7 @@ void _menu_mount(
 	wchar_t mnt_point[MAX_PATH] = { 0 };
 	wchar_t vol[MAX_PATH];
 
-	dlgpass dlg_info = { node, NULL, NULL, mnt_point };
+	dlgpass dlg_info = { node, NULL, NULL, mnt_point, 0 };
 
 	int rlt;
 	rlt = 
@@ -829,7 +829,7 @@ void _menu_mount(
 	{
 		if ( _dlg_get_pass(__dlg, &dlg_info) == ST_OK )
 		{
-			rlt = dc_mount_volume( node->mnt.info.device, dlg_info.pass, (mnt_point[0] != 0) ? MF_DELMP : 0 );
+			rlt = dc_mount_volume( node->mnt.info.device, dlg_info.pass, ( (mnt_point[0] != 0) ? MF_DELMP : 0 ) | ( dlg_info.mnt_ro ? MF_READ_ONLY  : 0 ) );
 			secure_free( dlg_info.pass );
 
 			if ( rlt == ST_OK )
@@ -861,7 +861,7 @@ void _menu_mount(
 
 void _menu_mountall( )
 {
-	dlgpass dlg_info  = { NULL, NULL, NULL, NULL };
+	dlgpass dlg_info  = { NULL, NULL, NULL, NULL, 0 };
 	int     mount_cnt = 0;	
 
 	dc_mount_all(NULL, &mount_cnt, 0); 
@@ -869,7 +869,7 @@ void _menu_mountall( )
 	{
 		if ( _dlg_get_pass(__dlg, &dlg_info) == ST_OK )
 		{
-			dc_mount_all( dlg_info.pass, &mount_cnt, 0 );
+			dc_mount_all( dlg_info.pass, &mount_cnt, ( dlg_info.mnt_ro ? MF_READ_ONLY : 0 ) );
 			secure_free( dlg_info.pass );
 
 			__msg_i( __dlg, L"Mounted devices: %d", mount_cnt );
@@ -932,7 +932,7 @@ void _menu_backup_header(
 		_dnode *node
 	)
 {
-	dlgpass dlg_info = { node, NULL, NULL, NULL };
+	dlgpass dlg_info = { node, NULL, NULL, NULL, 0 };
 	BYTE backup[DC_AREA_SIZE];
 
 	wchar_t s_path[MAX_PATH];
@@ -969,7 +969,7 @@ void _menu_restore_header(
 		_dnode *node 
 	)
 {
-	dlgpass dlg_info = { node, NULL, NULL, NULL };
+	dlgpass dlg_info = { node, NULL, NULL, NULL, 0 };
 
 	BYTE   backup[DC_AREA_SIZE];
 	HANDLE hfile;

@@ -310,6 +310,8 @@ void _update_info_table(
 	{
 		if ( !node->is_root )
 		{
+			int is_ssd = dc_is_device_ssd(node->mnt.info.w32_device);
+
 			_list_set_item_text( __lists[HMAIN_INFO], 0, 1, node->mnt.info.w32_device );
 			_list_set_item_text( __lists[HMAIN_INFO], 1, 1, node->mnt.info.device );
 			_list_set_item_text( __lists[HMAIN_INFO], 2, 1, STR_NULL );
@@ -334,7 +336,7 @@ void _update_info_table(
 					wnd->dlg[1], IDC_STATIC_SECTOR), ACT_RUNNING == act->status
 					);
 				EnableWindow(GetDlgItem(
-					wnd->dlg[1], IDC_COMBO_PASSES), ACT_DECRYPT != act->act
+					wnd->dlg[1], IDC_COMBO_PASSES), ACT_DECRYPT != act->act && !is_ssd
 					);
 				EnableWindow(GetDlgItem(
 					wnd->dlg[1], IDB_ACT_PAUSE), ACT_RUNNING == act->status

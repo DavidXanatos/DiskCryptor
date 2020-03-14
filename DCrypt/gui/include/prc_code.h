@@ -100,7 +100,6 @@ typedef struct __dnode
 {
 	list_entry list;	
 	BOOL       is_root;
-	BOOL       is_efi;
 	BOOL       exists;
 	_droot     root;
 	_dmnt      mnt;
@@ -121,6 +120,7 @@ typedef struct _dlgpass
 	dc_pass *pass;
 	dc_pass *new_pass;
 	wchar_t *mnt_point;
+	int		mnt_ro;
 
 } dlgpass, *pdlgpass;
 

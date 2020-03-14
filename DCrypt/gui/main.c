@@ -287,7 +287,7 @@ int WINAPI wWinMain(
 	_log( L"%0.8X dc version", ver );
 #endif
 
-#ifndef _DEBUG // todo remove this
+//#ifndef _DEBUG // todo remove this
 	if ( ver < DC_DRIVER_VER )
 	{
 		if ( ( rlt = _drv_action(DA_UPDATE, ver) ) != NO_ERROR )
@@ -307,7 +307,7 @@ int WINAPI wWinMain(
 
 		return 0;
 	}
-#endif
+//#endif
 
 	dc_efi_init();
 

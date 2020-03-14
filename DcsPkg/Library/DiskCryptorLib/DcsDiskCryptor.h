@@ -16,7 +16,6 @@ https://opensource.org/licenses/GPL-3.0
 
 #include <Uefi.h>
 #include "include/boot/boot.h"
-#include "crypto/sha512_small.h"
 
 #define DC_APP_NAME "DiskCryptor"
 

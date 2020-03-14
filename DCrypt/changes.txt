@@ -1,4 +1,13 @@
-[01.02.2020] - 1.2.846.118.200
+
+[14.03.2020] - 1.2.1/848.118.201
+  [*] Wipe Mode disabled on SSD drivers (as on those its pointless and may damage the ssd)
+  [+] Added option to mount volumes in read only mode
+  [*] Fixed some EFI config values not getting properly loaded by the API library
+  [*] Switched to using "fast" crypto implementation for the x64 UEFI bootloader
+  [+] Added Hardware Crypto support to the x64 UEFI bootloader
+  [*] Fixed issues updating the driver on Windows 10
+
+[01.02.2020] - 1.2.0/847.118.200
   [*] Project moved to Visual Studio 2017, using win 7 sdk for compatybility
   [+] Added EFI bootloader
   [+] Added shim bootloader to achieve secure boot compatibility (https://habr.com/ru/post/446238/)

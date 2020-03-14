@@ -419,6 +419,9 @@ _password_dlg_proc(
 			_sub_class( GetDlgItem(hwnd, IDC_USE_KEYFILES), SUB_STATIC_PROC, HWND_NULL );
 			_set_check( hwnd, IDC_USE_KEYFILES, FALSE );
 
+			_sub_class(GetDlgItem(hwnd, IDC_CHECK_RO_SET), SUB_STATIC_PROC, HWND_NULL);
+			_set_check(hwnd, IDC_CHECK_RO_SET, FALSE);
+
 			{
 				HWND mnt_combo = GetDlgItem( hwnd, IDC_COMBO_MNPOINT );
 				HWND mnt_check = GetDlgItem( hwnd, IDC_CHECK_MNT_SET );
@@ -449,6 +452,11 @@ _password_dlg_proc(
 		break;
 		case WM_USER_CLICK : 
 		{
+			if ( (HWND)wparam == GetDlgItem(hwnd, IDC_CHECK_RO_SET) )
+			{
+				return 1L;
+			}
+
 			if ( (HWND)wparam == GetDlgItem(hwnd, IDC_CHECK_MNT_SET) )
 			{
 				EnableWindow(
@@ -536,6 +544,8 @@ _password_dlg_proc(
 				if (id == IDOK)
 				{
 					info->pass = _get_pass_keyfiles(hwnd, IDE_PASS, IDC_USE_KEYFILES, KEYLIST_CURRENT);
+
+					info->mnt_ro = _get_check(hwnd, IDC_CHECK_RO_SET);
 
 					if (IsWindowEnabled(GetDlgItem(hwnd, IDC_COMBO_MNPOINT)) && 
 							info->mnt_point) 

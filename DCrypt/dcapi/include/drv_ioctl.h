@@ -55,4 +55,6 @@ void dc_api dc_get_bsod();
 int dc_api dc_backup_header(wchar_t *device, dc_pass *password, void *out);
 int dc_api dc_restore_header(wchar_t *device, dc_pass *password, void *in);
 
+int dc_api dc_is_device_ssd(wchar_t *device);
+
 #endif

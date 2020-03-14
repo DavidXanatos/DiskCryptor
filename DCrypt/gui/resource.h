@@ -309,6 +309,8 @@
 #define IDC_COMBO_MNPOINT               1181
 #define IDC_CHECK_MNT_SET               1184
 #define IDC_COMBO_PRF                   1185
+#define IDC_CHECK_MNT_SET2              1185
+#define IDC_CHECK_RO_SET                1185
 #define IDC_BTN_CHANGE_CONF             1187
 #define IDC_BTN_UPDATE                  1188
 #define IDB_USE_KEYFILES                1189

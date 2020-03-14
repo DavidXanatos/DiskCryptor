@@ -30,8 +30,7 @@ https://opensource.org/licenses/Apache-2.0
 #define DCS_DIRECTORY L"DCS"
 
 #define DCS_CAPTION "Disk Crypto" //Disk Crypto graphy Services
-#define DCS_VERSION 200
-#define DCS_VERSION_STR "2.0"
+#define DCS_VERSION 201 // 2.00
 
 #define NO_BML
 

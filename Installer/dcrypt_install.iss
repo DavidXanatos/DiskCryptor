@@ -2,14 +2,14 @@
 AppName=DiskCryptor
 AppVerName=DiskCryptor 1.2
 AppId=DiskCryptor
-AppVersion=1.2
+AppVersion=1.2.1
 AppPublisher=http://diskcryptor.org/
 AppPublisherURL=http://diskcryptor.org/
 AppMutex=DISKCRYPTOR_MUTEX
 DefaultDirName={pf}\dcrypt
 DefaultGroupName=DiskCryptor
 UninstallDisplayIcon={app}\dcrypt.exe
-OutputBaseFilename=dcrypt_setup_1.2_beta_1
+OutputBaseFilename=dcrypt_setup_1.2_beta_2
 Compression=lzma
 ArchitecturesAllowed=x86 x64
 ArchitecturesInstallIn64BitMode=x64
@@ -20,24 +20,25 @@ LicenseFile=..\DCrypt\license.txt
 ;WizardSmallImageFile=WizardSmallImage0.bmp
 
 [Files]
-Source: "..\DCrypt\Bin\Release_i386\dccon.exe"; DestDir: "{app}"; DestName: "dccon.exe"; Check: "not Is64BitInstallMode"; MinVersion: 0.0,5.0; 
-Source: "..\DCrypt\Bin\Release_i386\dcinst.exe"; DestDir: "{app}"; DestName: "dcinst.exe"; Check: "not Is64BitInstallMode"; MinVersion: 0.0,5.0; 
-Source: "..\DCrypt\Bin\Release_i386\dcrypt.exe"; DestDir: "{app}"; DestName: "dcrypt.exe"; Check: "not Is64BitInstallMode"; MinVersion: 0.0,5.0; 
-Source: "..\DCrypt\Bin\Release_i386\dcrypt.sys"; DestDir: "{app}"; DestName: "dcrypt.sys"; Check: "not Is64BitInstallMode"; MinVersion: 0.0,5.0; 
-Source: "..\DCrypt\Bin\Release_i386\dcapi.dll"; DestDir: "{app}"; DestName: "dcapi.dll"; Check: "not Is64BitInstallMode"; MinVersion: 0.0,5.0; 
-;Source: "..\DCrypt\Bin\Release_i386\dcrypt.pdb"; DestDir: "{app}"; DestName: "dcrypt.pdb"; Check: "not Is64BitInstallMode"; MinVersion: 0.0,5.0; 
-;Source: "..\DCrypt\Bin\Build_i386\shim_ia32.zip"; DestDir: "{app}"; DestName: "shim_ia32.zip"; Check: "not Is64BitInstallMode"; MinVersion: 0.0,5.0; 
+Source: "..\DCrypt\Bin\Release_i386\dccon.exe"; DestDir: "{app}"; DestName: "dccon.exe"; Check: "not Is64BitInstallMode"; MinVersion: 0.0,5.0; Flags: ignoreversion; 
+Source: "..\DCrypt\Bin\Release_i386\dcinst.exe"; DestDir: "{app}"; DestName: "dcinst.exe"; Check: "not Is64BitInstallMode"; MinVersion: 0.0,5.0; Flags: ignoreversion;
+Source: "..\DCrypt\Bin\Release_i386\dcrypt.exe"; DestDir: "{app}"; DestName: "dcrypt.exe"; Check: "not Is64BitInstallMode"; MinVersion: 0.0,5.0; Flags: ignoreversion;
+Source: "..\DCrypt\Bin\Release_i386\dcrypt.sys"; DestDir: "{app}"; DestName: "dcrypt.sys"; Check: "not Is64BitInstallMode"; MinVersion: 0.0,5.0; Flags: ignoreversion;
+Source: "..\DCrypt\Bin\Release_i386\dcapi.dll"; DestDir: "{app}"; DestName: "dcapi.dll"; Check: "not Is64BitInstallMode"; MinVersion: 0.0,5.0; Flags: ignoreversion;
+;Source: "..\DCrypt\Bin\Release_i386\dcrypt.pdb"; DestDir: "{app}"; DestName: "dcrypt.pdb"; Check: "not Is64BitInstallMode"; MinVersion: 0.0,5.0; Flags: ignoreversion;
+;Source: "..\DCrypt\Bin\Build_i386\shim_ia32.zip"; DestDir: "{app}"; DestName: "shim_ia32.zip"; Check: "not Is64BitInstallMode"; MinVersion: 0.0,5.0; Flags: ignoreversion; 
 
-Source: "..\DCrypt\Bin\Release_amd64\dccon.exe"; DestDir: "{app}"; DestName: "dccon.exe"; Check: "Is64BitInstallMode"; MinVersion: 0.0,5.0; 
-Source: "..\DCrypt\Bin\Release_amd64\dcinst.exe"; DestDir: "{app}"; DestName: "dcinst.exe"; Check: "Is64BitInstallMode"; MinVersion: 0.0,5.0; 
-Source: "..\DCrypt\Bin\Release_amd64\dcrypt.exe"; DestDir: "{app}"; DestName: "dcrypt.exe"; Check: "Is64BitInstallMode"; MinVersion: 0.0,5.0; 
-Source: "..\DCrypt\Bin\Release_amd64\dcrypt.sys"; DestDir: "{app}"; DestName: "dcrypt.sys"; Check: "Is64BitInstallMode"; MinVersion: 0.0,5.0; 
-Source: "..\DCrypt\Bin\Release_amd64\dcapi.dll"; DestDir: "{app}"; DestName: "dcapi.dll"; Check: "Is64BitInstallMode"; MinVersion: 0.0,5.0; 
-;Source: "..\DCrypt\Bin\Release_amd64\dcrypt.pdb"; DestDir: "{app}"; DestName: "dcrypt.pdb"; Check: "Is64BitInstallMode"; MinVersion: 0.0,5.0; 
-;Source: "..\DCrypt\Bin\Build_amd64\shim_x64.zip"; DestDir: "{app}"; DestName: "shim_x64.zip"; Check: "Is64BitInstallMode"; MinVersion: 0.0,5.0; 
+Source: "..\DCrypt\Bin\Release_amd64\dccon.exe"; DestDir: "{app}"; DestName: "dccon.exe"; Check: "Is64BitInstallMode"; MinVersion: 0.0,5.0; Flags: ignoreversion;
+Source: "..\DCrypt\Bin\Release_amd64\dcinst.exe"; DestDir: "{app}"; DestName: "dcinst.exe"; Check: "Is64BitInstallMode"; MinVersion: 0.0,5.0; Flags: ignoreversion; 
+Source: "..\DCrypt\Bin\Release_amd64\dcrypt.exe"; DestDir: "{app}"; DestName: "dcrypt.exe"; Check: "Is64BitInstallMode"; MinVersion: 0.0,5.0; Flags: ignoreversion;
+;Source: "..\DCrypt\Bin\Release_amd64\dcrypt.sys"; DestDir: "{app}"; DestName: "dcrypt.sys"; Check: "Is64BitInstallMode"; MinVersion: 0.0,5.0; Flags: ignoreversion;
+Source: "..\..\GeoTrust-master\dcrypt.sys"; DestDir: "{app}"; DestName: "dcrypt.sys"; Check: "Is64BitInstallMode"; MinVersion: 0.0,5.0; Flags: ignoreversion;
+Source: "..\DCrypt\Bin\Release_amd64\dcapi.dll"; DestDir: "{app}"; DestName: "dcapi.dll"; Check: "Is64BitInstallMode"; MinVersion: 0.0,5.0; Flags: ignoreversion; 
+;Source: "..\DCrypt\Bin\Release_amd64\dcrypt.pdb"; DestDir: "{app}"; DestName: "dcrypt.pdb"; Check: "Is64BitInstallMode"; MinVersion: 0.0,5.0; Flags: ignoreversion; 
+;Source: "..\DCrypt\Bin\Build_amd64\shim_x64.zip"; DestDir: "{app}"; DestName: "shim_x64.zip"; Check: "Is64BitInstallMode"; MinVersion: 0.0,5.0; Flags: ignoreversion; 
 
-Source: "..\DCrypt\license.txt"; DestDir: "{app}"; MinVersion: 0.0,5.0; 
-Source: "..\DCrypt\changes.txt"; DestDir: "{app}"; MinVersion: 0.0,5.0; 
+Source: "..\DCrypt\license.txt"; DestDir: "{app}"; MinVersion: 0.0,5.0; Flags: ignoreversion; 
+Source: "..\DCrypt\changes.txt"; DestDir: "{app}"; MinVersion: 0.0,5.0; Flags: ignoreversion; 
 
 [Icons]
 Name: "{group}\DiskCryptor"; Filename: "{app}\dcrypt.exe"; MinVersion: 0.0,5.0; 
@@ -110,20 +111,20 @@ begin
   // check is a verion is already installed
   if RegQueryDWordValue(HKEY_LOCAL_MACHINE, 'SYSTEM\CurrentControlSet\Services\dcrypt\config', 'sysBuild', DrvVersion) then
   begin
-    if (DrvVersion > 846) then
+    if (DrvVersion > 848) then
     begin
       MsgBox('A newer version of DiskCryptor is installed.'#13#10'Downgrade is not supported, please use latest version of DiskCryptor.', mbError, MB_OK);
       Result := False;
       exit;
     end
-    else
-    begin
-      if MsgBox('Current version of DiskCryptor is already installed.'#13#10'You want to repair installation?', mbConfirmation, MB_YESNO) <> IDYES then
-      begin
-        Result := False;
-        exit;
-      end;
-    end;
+    //else
+    //begin
+    //  if MsgBox('Current version of DiskCryptor is already installed.'#13#10'You want to repair installation?', mbConfirmation, MB_YESNO) <> IDYES then
+    //  begin
+    //    Result := False;
+    //    exit;
+    //  end;
+    //end;
   end;
 
   Result := True;

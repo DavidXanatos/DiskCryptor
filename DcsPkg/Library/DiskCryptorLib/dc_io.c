@@ -2,7 +2,7 @@
 #include "include\boot\boot.h"
 #include "include\boot\bios.h"
 #include "include\boot\boot_hook.h"
-#include "crypto\xts_small.h"
+#include "include\boot\dc_header.h"
 #include "include\boot\hdd_io.h"
 
 static u16 intersect(u64 *i_st, u64 start1, u32 size1, u64 start2, u64 size2)

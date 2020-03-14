@@ -24,14 +24,6 @@ https://opensource.org/licenses/LGPL-3.0
 #include <Guid/Gpt.h>
 #include <Guid/GlobalVariable.h>
 
-#ifdef _M_X64
-#define ARCHdot L"x64."
-#define ARCHdotEFI L"x64.efi"
-#else
-#define ARCHdot L"IA32."
-#define ARCHdotEFI L"IA32.efi"
-#endif
-
 EFI_GUID          ImagePartGuid;
 EFI_GUID          *gEfiExecPartGuid = &ImagePartGuid;
 CHAR16            *gEfiExecCmdDefault = L"\\EFI\\Microsoft\\Boot\\Bootmgfw_ms.vc";

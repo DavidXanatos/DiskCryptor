@@ -180,7 +180,7 @@ void xts_decrypt(const unsigned char *in, unsigned char *out, unsigned long len,
 }
 #endif
 
-void xts_init(int hw_crypt)
+int xts_init(int hw_crypt)
 {
 	aes256_gentab();
 //#ifdef _M_IX86
@@ -189,4 +189,5 @@ void xts_init(int hw_crypt)
 //		aes256.decrypt = (encrypt_p) aes256_padlock_decrypt;
 //	}
 //#endif
+	return 0;
 }

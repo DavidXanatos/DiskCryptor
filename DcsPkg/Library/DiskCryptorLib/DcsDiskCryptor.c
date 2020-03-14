@@ -29,6 +29,11 @@ https://opensource.org/licenses/GPL-3.0
 #include "include/boot/dc_header.h"
 #include "include/boot/boot_hook.h"
 #include "include/boot/dc_io.h"
+#ifdef SMALL
+#include "crypto_small/sha512_small.h"
+#else
+#include "crypto_fast/sha512.h"
+#endif
 
 // X-TODO: support SECTOR_SIZE other than 512 byte
 
@@ -49,6 +54,8 @@ dc_pass gDCryptPassword; // entered password
 int gDCryptPwdCode = 1; // entry code
 int gDCryptAuthRetry = 100;
 UINT8 gDCryptFailOnTimeout = 0;
+
+int gDCryptHwCrypto = 1;
 
 UINT8 gDCryptBootMode = 0;
 CHAR8* gDCryptBootPartition = NULL;
@@ -544,7 +551,10 @@ DcsDiskCryptor(
 	zeroauto(&iodb, sizeof(iodb));
 
 	// init crypto 
-	xts_init(0/*conf.options & OP_HW_CRYPTO*/);
+	gDCryptHwCrypto = xts_init(gDCryptHwCrypto);
+	if (gConfigDebug && gDCryptHwCrypto != 0) {
+		ERR_PRINT(L"Using Hardware Crypt, Type %d\n", gDCryptHwCrypto);
+	}
 
 	// enum disks
 	ret = EnumDisks();
@@ -694,6 +704,9 @@ VOID DCAuthLoadConfig()
 	// Authentication Tries - new
 	gDCryptAuthRetry = ConfigReadInt("AuthorizeRetry", 100);
 
+// Other
+
+	gDCryptHwCrypto = ConfigReadInt("UseHardwareCrypto", 1);
 }
 
 VOID DCAskPwd(IN UINTN pwdType, OUT dc_pass* dcPwd) 
@@ -839,7 +852,11 @@ DCApplyKeyData(
 	u8         hash[SHA512_DIGEST_SIZE];
 
 	sha512_init(&sha);
+#ifdef SMALL
 	sha512_add(&sha, fileData, (unsigned long)fileSize);
+#else
+	sha512_hash(&sha, fileData, (unsigned long)fileSize);
+#endif
 	sha512_done(&sha, hash);
 
 	// mix the keyfile hash and password

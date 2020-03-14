@@ -411,7 +411,7 @@ DcsReMain(
 
 		item = DcsMenuAppend(item, L"Help", 'h', ActionHelp, NULL);
 		item = DcsMenuAppend(item, L"Exit", 'e', ActionExit, NULL);
-		OUT_PRINT(L"%V" _T(DCS_CAPTION) L" rescue disk %a%N\n", DCS_VERSION_STR);
+		OUT_PRINT(L"%V" _T(DCS_CAPTION) L" rescue disk %d.%02d%N\n", DCS_VERSION / 100, DCS_VERSION % 100);
 		gBS->SetWatchdogTimer(0, 0, 0, NULL);
 		do {
 			DcsMenuPrint(gMenu);

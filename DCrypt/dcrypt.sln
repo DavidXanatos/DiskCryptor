@@ -1,6 +1,8 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.705
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "crypto", "crypto", "{514F750A-9FD6-4E8B-8437-A8651F37744E}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "driver", "driver\driver.vcxproj", "{CA85D364-0863-4503-9E4D-0473C0668A4D}"
@@ -29,6 +31,11 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dcinst", "dcinst\dcinst.vcxproj", "{F2D948DB-191E-4907-BB7B-F31810083B0E}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dcrypt", "gui\gui.vcxproj", "{A38C04C7-B172-4897-8471-E3478903035E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E730DCDF-42BD-491B-82B4-1AC0407982BB}"
+	ProjectSection(SolutionItems) = preProject
+		changes.txt = changes.txt
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -115,5 +122,8 @@ Global
 		{89CD1458-7092-4E33-A916-16C264C4C29C} = {514F750A-9FD6-4E8B-8437-A8651F37744E}
 		{D16B5E41-9D42-4190-B699-CCAA58864856} = {89CD1458-7092-4E33-A916-16C264C4C29C}
 		{2CF11A71-6489-421F-A1E9-5DF1282EE632} = {89CD1458-7092-4E33-A916-16C264C4C29C}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {00EF8C04-1CCC-450B-8279-BDF58A79B14E}
 	EndGlobalSection
 EndGlobal
