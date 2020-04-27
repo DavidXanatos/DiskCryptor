@@ -1,0 +1,101 @@
+;;;
+;;; DiskCryptor
+;;;
+;;;
+;;; Copyright (c) 2020, DavidXanatos
+;;;
+
+[Version]
+signature   = "$Windows NT$"
+Class       = "Encryption"                              ;This is determined by the work this filter driver does
+ClassGuid   = {a0a701c0-a511-42ff-aa6c-06dc0395576f}    ;This value is determined by the Class
+Provider    = %ProviderString%
+DriverVer   = 14/03/2011,1.2.0.848
+;CatalogFile = dcrypt.cat
+
+
+[DestinationDirs]
+DefaultDestDir      = 12
+dcrypt.DriverFiles  = 12            ;%windir%\system32\drivers
+
+;;
+;; Default install sections
+;;
+
+[DefaultInstall]
+OptionDesc          = %ServiceDescription%
+CopyFiles           = dcrypt.DriverFiles
+AddReg              = dcrypt.AddReg
+
+[DefaultInstall.Services]
+AddService          = dcrypt,,dcrypt.Service
+
+;;
+;; Default uninstall sections
+;;
+
+[DefaultUninstall]
+DelFiles   = dcrypt.DriverFiles
+
+[DefaultUninstall.Services]
+DelService = dcrypt,0x200      ;Ensure service is stopped before deleting
+
+;
+; Services Section
+;
+
+[dcrypt.Service]
+DisplayName      = %ServiceDescription%
+Description      = %ServiceDescription%
+ServiceBinary    = %12%\dcrypt.sys        ;%windir%\system32\drivers\
+ServiceType      = 1                      ;SERVICE_KERNEL_DRIVER
+StartType        = 0                      ;SERVICE_BOOT_START
+ErrorControl     = 3                      ;SERVICE_ERROR_CRITICAL
+LoadOrderGroup   = "Filter"
+Dependencies     = "FltMgr"
+
+;
+; Copy Files
+;
+
+[dcrypt.DriverFiles]
+dcrypt.sys
+
+[SourceDisksFiles]
+dcrypt.sys = 1,,
+
+[SourceDisksNames]
+1 = %DiskId1%,,,
+
+;
+; Registry Entries
+;
+
+[dcrypt.AddReg]
+HKLM, SYSTEM\CurrentControlSet\Services\dcrypt\Instances, DefaultInstance, 0x00000000, dcrypt
+HKLM, SYSTEM\CurrentControlSet\Services\dcrypt\Instances\dcrypt, Altitude, 0x00000000, 87150
+HKLM, SYSTEM\CurrentControlSet\Services\dcrypt\Instances\dcrypt, Flags, 0x00010001, 0
+
+HKLM, SYSTEM\CurrentControlSet\Services\dcrypt\config, Flags, 0x00010001, 1408
+HKLM, SYSTEM\CurrentControlSet\Services\dcrypt\config, Hotkeys, 0x00000001, 00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00
+HKLM, SYSTEM\CurrentControlSet\Services\dcrypt\config, sysBuild, 0x00010001, 848
+
+HKLM, SYSTEM\CurrentControlSet\Control\Class\{71A27CDD-812A-11D0-BEC7-08002BE2092F}, LowerFilters, 0x00010008, dcrypt
+HKLM, SYSTEM\CurrentControlSet\Control\Class\{71A27CDD-812A-11D0-BEC7-08002BE2092F}, LowerFilters, 0x00010008, fvevol
+HKLM, SYSTEM\CurrentControlSet\Control\Class\{71A27CDD-812A-11D0-BEC7-08002BE2092F}, LowerFilters, 0x00010008, iorate
+HKLM, SYSTEM\CurrentControlSet\Control\Class\{71A27CDD-812A-11D0-BEC7-08002BE2092F}, LowerFilters, 0x00010008, rdyboost
+
+HKLM, SYSTEM\CurrentControlSet\Control\Class\{4D36E965-E325-11CE-BFC1-08002BE10318}, UpperFilters, 0x00010008, dcrypt
+
+HKLM, SYSTEM\CurrentControlSet\Control\CrashControl, DumpFilters, 0x00010008, dcrypt.sys
+HKLM, SYSTEM\CurrentControlSet\Control\CrashControl, DumpFilters, 0x00010008, dumpfve.sys
+
+;;
+;; String Section
+;;
+
+[Strings]
+ProviderString          = "DavidXanatos"
+ServiceDescription      = "DiskCryptor driver"
+DiskId1                 = "DiskCryptor Device Installation Disk"
+

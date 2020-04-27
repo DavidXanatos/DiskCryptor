@@ -22,6 +22,8 @@ int  dc_api dc_get_version();
 
 int dc_api dc_get_boot_device(wchar_t *device);
 
+int dc_api dc_is_boot_encrypted();
+
 int dc_api dc_add_password(dc_pass *password);
 int dc_api dc_mount_volume(wchar_t *device, dc_pass *password, int flags);
 int dc_api dc_start_encrypt(wchar_t *device, dc_pass *password, crypt_info *crypt);

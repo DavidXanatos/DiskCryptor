@@ -48,6 +48,13 @@ _tab_proc(
 	wchar_t tmpb[MAX_PATH];
 	int k;
 
+	/*if (id == IDE_RICH_BOOTMSG)
+	{
+		TCHAR temp_str[100];
+		wsprintf(temp_str, L"%d %d\r\n", message, code);
+		OutputDebugString(temp_str);
+	}*/
+
 	switch ( message )
 	{
 		case WM_NOTIFY:
@@ -205,6 +212,16 @@ _tab_proc(
 			if ( ctl_wnd == GetDlgItem(hwnd, IDC_BT_ENTER_PASS_MSG) )
 			{
 				EnableWindow(GetDlgItem(hwnd, IDE_RICH_BOOTMSG), _get_check(hwnd, IDC_BT_ENTER_PASS_MSG));
+				return 1L;
+			}
+			if (ctl_wnd == GetDlgItem(hwnd, IDC_BT_AUTH_MSG))
+			{
+				EnableWindow(GetDlgItem(hwnd, IDE_RICH_AUTH_MSG), _get_check(hwnd, IDC_BT_AUTH_MSG));
+				return 1L;
+			}
+			if (ctl_wnd == GetDlgItem(hwnd, IDC_BT_GOOD_PASS_MSG))
+			{
+				EnableWindow(GetDlgItem(hwnd, IDE_RICH_OKPASS_MSG), _get_check(hwnd, IDC_BT_GOOD_PASS_MSG));
 				return 1L;
 			}
 			if ( ctl_wnd == GetDlgItem(hwnd, IDC_BT_BAD_PASS_MSG) )
@@ -494,29 +511,48 @@ _tab_proc(
 				}
 				break;
 
+				case EN_UPDATE:
+				{
+					char s_msg[MAX_PATH];
+					char s_count[MAX_PATH];
+
+					GetWindowTextA((HWND)lparam, s_msg, sizeof(s_msg));
+
+					_snprintf(s_count, sizeof(s_count), "%zd / %d", strlen(s_msg), 120);
+
+					switch (id)
+					{
+						case IDE_RICH_BOOTMSG :
+						{
+							SetWindowTextA( GetDlgItem(hwnd, IDC_CNT_BOOTMSG), s_count );
+						}
+						break;
+
+						case IDE_RICH_AUTH_MSG:
+						{
+							SetWindowTextA(GetDlgItem(hwnd, IDC_CNT_AUTOMSG), s_count);
+						}
+						break;
+
+						case IDE_RICH_OKPASS_MSG:
+						{
+							SetWindowTextA(GetDlgItem(hwnd, IDC_CNT_GOODMSG), s_count);
+						}
+						break;
+
+						case IDE_RICH_ERRPASS_MSG:
+						{
+							SetWindowTextA(GetDlgItem(hwnd, IDC_CNT_ERRMSG), s_count);
+						}
+						break;
+					}
+				}
+				break;
+
 				case EN_CHANGE : 
 				{
 					switch (id)
 					{
-						case IDE_RICH_BOOTMSG : //#
-						{	
-							char s_msg[MAX_PATH];
-							char s_count[MAX_PATH];
-
-							GetWindowTextA( (HWND)lparam, s_msg, sizeof(s_msg) );
-
-							_snprintf( s_count, sizeof(s_count), "%zd / %d", strlen(s_msg), 0 );
-							SetWindowTextA( GetDlgItem(hwnd, IDC_CNT_BOOTMSG), s_count );
-					
-						}
-						break;
-
-						case IDE_RICH_ERRPASS_MSG :
-						{
-
-						}
-						break;
-
 						case IDE_ISO_SRC_PATH :
 						case IDE_ISO_DST_PATH :
 						{

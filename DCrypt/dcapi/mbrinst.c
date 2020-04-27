@@ -93,16 +93,16 @@ u64 dc_dsk_get_size(int dsk_num, int precision)
 }
 
 static
-ldr_config *dc_find_conf(char *data, u32 size)
+mbr_config *dc_find_conf(char *data, u32 size)
 {
-	ldr_config *cnf;
-	ldr_config *conf = NULL;
+	mbr_config *cnf;
+	mbr_config *conf = NULL;
 
-	for (; size > sizeof(ldr_config); size--, data++) 
+	for (; size > sizeof(mbr_config); size--, data++)
 	{
 		cnf = pv(data);
 
-		if ( (cnf->sign1 == 0x1434A669) && (cnf->sign2 == 0x7269DA46) ) {
+		if ( (cnf->sign1 == LDR_CFG_SIGN1) && (cnf->sign2 == LDR_CFG_SIGN2) ) {
 			conf = cnf;	break;
 		}
 	}
@@ -475,7 +475,7 @@ static int dc_set_mbr_i(int dsk_num, int begin, int small_boot)
 	u64         max_end;
 	u64         min_str;
 	u64         ldr_off;
-	ldr_config *conf;
+	mbr_config *conf;
 	pt_ent     *pt;
 	void       *data, *n_data;
 	int         size, i;
@@ -662,7 +662,7 @@ int dc_get_mbr_config(
 	  int dsk_num, wchar_t *file, ldr_config *conf
 	  )
 {
-	ldr_config *cnf;
+	mbr_config *cnf;
 	HANDLE      hfile;
 	void       *data;
 	int         size, resl;
@@ -734,7 +734,12 @@ int dc_get_mbr_config(
 		if ( (cnf = dc_find_conf(data, size)) == NULL ) {
 			resl = ST_BLDR_NO_CONF; break;
 		}
-		memcpy(conf, cnf, sizeof(ldr_config));		
+
+		memset(conf, 0, sizeof(ldr_config));
+		if (cnf->ldr_ver <= DC_BOOT_OLD)
+			memcpy(conf, cnf, sizeof(mbr_config));
+		else
+			memcpy(conf, cnf, sizeof(ldr_config));
 		resl = ST_OK;
 	} while (0);
 
@@ -751,9 +756,10 @@ int dc_set_mbr_config_i(
 	  )
 {
 	u8          old_mbr[512];
+	u32			version;
 	HANDLE      hfile;
 	int         size, resl;
-	ldr_config *cnf;	
+	mbr_config *cnf;
 	dc_mbr      mbr;
 	void       *data;	
 	u64         offs;
@@ -816,15 +822,21 @@ int dc_set_mbr_config_i(
 			resl = ST_BLDR_NO_CONF; break;
 		}
 
+		/* save current version */
+		version = cnf->ldr_ver;
 		/* save old mbr */
 		memcpy(old_mbr, cnf->save_mbr, sizeof(old_mbr));
 		/* copy new values to config */
-		memcpy(cnf, conf, sizeof(ldr_config));
+		if (version <= DC_BOOT_OLD)
+			memcpy(cnf, conf, sizeof(mbr_config));
+		else
+			memcpy(cnf, conf, sizeof(ldr_config));
+		/* restore current version */
+		cnf->ldr_ver = version;
 		/* restore old mbr */
 		memcpy(cnf->save_mbr, old_mbr, sizeof(old_mbr));
 		/* set unchangeable fields to default */
 		cnf->sign1 = LDR_CFG_SIGN1; cnf->sign2 = LDR_CFG_SIGN2;
-		cnf->ldr_ver = DC_BOOT_VER;
 		
 		if (file != NULL) 
 		{
@@ -946,7 +958,7 @@ static int dc_unset_mbr_i(int dsk_num)
 	dc_mbr      mbr;
 	dc_mbr      old_mbr;
 	int         size, resl;
-	ldr_config *conf;
+	mbr_config *cnf;
 	void       *data;
 	u64         offs;
 	dc_disk_p  *dp;
@@ -969,11 +981,11 @@ static int dc_unset_mbr_i(int dsk_num)
 		if ( (resl = dc_disk_read(dp, data, size, offs)) != ST_OK ) {				
 			break;
 		}
-		if ( (conf = dc_find_conf(data, size)) == NULL ) {				
+		if ( (cnf = dc_find_conf(data, size)) == NULL ) {				
 			resl = ST_BLDR_NO_CONF; break;
 		}
 		/* copy saved old MBR */
-		memcpy(&old_mbr, conf->save_mbr, sizeof(old_mbr));
+		memcpy(&old_mbr, cnf->save_mbr, sizeof(old_mbr));
 
 		/* copy new partition table to old MBR */
 		memcpy(old_mbr.data2, mbr.data2, sizeof(mbr.data2));

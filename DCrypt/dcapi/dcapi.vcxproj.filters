@@ -50,6 +50,9 @@
     <ClCompile Include="misc\xml.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="w10.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="dcres.rc">
@@ -100,6 +103,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="misc\xml.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\w10.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -138,9 +138,11 @@ VCAuthLoadConfig()
 	gAuthTcRqt = ConfigReadInt("TcRqt", 0);
 
 	gPasswordProgress = (UINT8)ConfigReadInt("AuthorizeProgress", 1); // print "*"
+
 	gPasswordVisible = (UINT8)ConfigReadInt("AuthorizeVisible", 0);   // show chars
 	gPasswordHideLetters = ConfigReadInt("PasswordHideLetters", 1);   // always show letters in touch points
 	gPasswordShowMark = ConfigReadInt("AuthorizeMarkTouch", 1);       // show touch points
+
 	gPasswordTimeout = (UINT8)ConfigReadInt("PasswordTimeout", 180);   // If no password for <seconds> => <ESC>
 
 	gDcsBootForce = ConfigReadInt("DcsBootForce", 1);                 // Ask password even if no USB marked found. 

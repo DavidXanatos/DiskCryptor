@@ -195,6 +195,7 @@
     <ClCompile Include="misc\xml.c" />
     <ClCompile Include="misc\zip.c" />
     <ClCompile Include="rand.c" />
+    <ClCompile Include="w10.c" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="dcres.rc" />
@@ -216,6 +217,7 @@
     <ClInclude Include="include\mbrinst.h" />
     <ClInclude Include="include\misc.h" />
     <ClInclude Include="include\rand.h" />
+    <ClInclude Include="include\w10.h" />
     <ClInclude Include="misc\dirent.h" />
     <ClInclude Include="misc\miniz.h" />
     <ClInclude Include="misc\xml.h" />

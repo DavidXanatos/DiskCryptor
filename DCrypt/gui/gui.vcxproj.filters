@@ -155,16 +155,36 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="cdrom.bmp" />
-    <None Include="cdrom_mask.bmp" />
-    <None Include="check.bmp" />
-    <None Include="check.mask.bmp" />
-    <None Include="check_mask.bmp" />
-    <None Include="disk.bmp" />
-    <None Include="disk_mask.bmp" />
-    <None Include="icon.ico.ico" />
-    <None Include="undisk.bmp" />
-    <None Include="undisk_mask.bmp" />
+    <None Include="cdrom.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="cdrom_mask.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="check.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="check.mask.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="check_mask.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="disk.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="disk_mask.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="icon.ico.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="undisk.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="undisk_mask.bmp">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="dcrypt.manifest">

@@ -4,6 +4,8 @@ call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\Too
 
 call "..\edksetup.bat"
 
+set PATH=%PATH%;C:\nasm
+
 echo ***********************************************
 echo *  
 echo *  dcs_bld.bat X64 VS2015

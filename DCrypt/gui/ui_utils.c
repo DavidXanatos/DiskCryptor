@@ -433,15 +433,21 @@ int _init_combo(
 	while ( wcslen(list[count].display) )
 	{
 		SendMessage( hwnd, (UINT)CB_ADDSTRING, 0, (LPARAM)list[count].display );
-		if ( !or )
+		if (!or )
 		{
-			if ( list[count].val == val )
+			if (list[count].val == val)
 			{
 				item = count;
 			}
-		} else {
-			if ( (bits != -1 ? _bitcount(list[count].val) == bits : TRUE) && 
-				 (val & list[count].val) )
+		} 
+		else if(bits == -1) {
+			if (val & list[count].val)
+			{
+				item = count;
+			}
+		} 
+		else {
+			if ((val & bits) == list[count].val)
 			{
 				item = count;
 			}

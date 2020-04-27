@@ -24,6 +24,7 @@
 
 #include "main.h"
 #include "autorun.h"
+#include "w10.h"
 
 #include "rand.h"
 #include "prc_keyfiles.h"
@@ -238,6 +239,7 @@ int WINAPI wWinMain(
 	{
 		return 0;
 	}
+
 	if ( _ui_init(hinst) == 0 )
 	{
 		__error_s( HWND_DESKTOP, L"Error GUI initialization", ST_OK );

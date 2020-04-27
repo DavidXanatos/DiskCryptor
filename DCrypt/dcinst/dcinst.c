@@ -24,6 +24,7 @@
 #include "drvinst.h"
 #include "mbrinst.h"
 #include "efiinst.h"
+#include "w10.h"
 
 /*
     -setup  - install or update driver (update bootloader when needed)
@@ -67,6 +68,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 			status = dc_install_driver();
 		}
 	}
+
 	if (_tcsicmp(lpCmdLine, _T("-unins")) == 0)
 	{
 		if (dc_is_driver_installed() == FALSE)
@@ -74,7 +76,13 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 			return ERROR_PRODUCT_UNINSTALLED;
 		}
 		status = dc_remove_driver();
+
+		if (is_w10_reflect_supported())
+		{
+			remove_w10_reflect_driver();
+		}
 	}
+
 	if (_tcsicmp(lpCmdLine, _T("-unldr")) == 0)
 	{
 		if (is_efi_boot) {
@@ -89,6 +97,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 			return 100000 + status; 
 		}
 	}
+
 	if (_tcsicmp(lpCmdLine, _T("-isboot")) == 0)
 	{
 		ldr_config conf;
@@ -108,34 +117,24 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 
 	if (_tcsicmp(lpCmdLine, _T("-isenc")) == 0)
 	{
-		vol_inf info;
-		DWORD   flags;
-		wchar_t boot_dev[MAX_PATH];
-		int     is_enc = 0;
+		int is_enc = dc_is_boot_encrypted();
 
-		if (dc_open_device() != ST_OK)
-		{
-			return 100000 + ST_ERROR;
-		}
-
-		if (dc_get_boot_device(boot_dev) != ST_OK) {
-			boot_dev[0] = 0;
-		}
-	
-		if (dc_first_volume(&info) == ST_OK)
-		{
-			do
-			{
-				flags = info.status.flags;
-
-				if ( ((flags & F_SYSTEM) || 
-					  (wcscmp(info.device, boot_dev) == 0)) && (flags & F_ENABLED) )
-				{
-					is_enc = 1;
-				}
-			} while (dc_next_volume(&info) == ST_OK);
-		}
 		status = is_enc != 0 ? ST_ENCRYPTED : NO_ERROR;
 	}
+
+	if (_tcsicmp(lpCmdLine, _T("-reflect")) == 0)
+	{
+		if (!is_w10_reflect_supported())
+		{
+			return ST_ERROR;
+		}
+		
+		status = ST_OK;
+
+		update_w10_reflect_driver();
+
+		dc_update_efi_boot(-1); // Note: this wil fail and do noehing if the bootloader is not installed on the default EFI partition
+	}
+
 	return status;
 }

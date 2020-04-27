@@ -156,38 +156,33 @@ int _init_boot_config(
 
 	wnd = _sub_class(
 		h_tab, SUB_NONE,
-		CreateDialog( __hinst, MAKEINTRESOURCE(DLG_BOOT_CONF_MAIN),    GetDlgItem(hwnd, IDC_BOOT_TAB), _tab_proc ),
-		CreateDialog( __hinst, MAKEINTRESOURCE(DLG_BOOT_CONF_LOGON),   GetDlgItem(hwnd, IDC_BOOT_TAB), _tab_proc ),
-		CreateDialog( __hinst, MAKEINTRESOURCE(DLG_BOOT_CONF_BADPASS), GetDlgItem(hwnd, IDC_BOOT_TAB), _tab_proc ),
-		CreateDialog( __hinst, MAKEINTRESOURCE(DLG_BOOT_CONF_OTHER),   GetDlgItem(hwnd, IDC_BOOT_TAB), _tab_proc ),
+		CreateDialog( __hinst, MAKEINTRESOURCE(DLG_BOOT_CONF_MAIN),     GetDlgItem(hwnd, IDC_BOOT_TAB), _tab_proc ),
+		CreateDialog( __hinst, MAKEINTRESOURCE(DLG_BOOT_CONF_LOGON),    GetDlgItem(hwnd, IDC_BOOT_TAB), _tab_proc ),
+		CreateDialog( __hinst, MAKEINTRESOURCE(DLG_BOOT_CONF_GOODPASS), GetDlgItem(hwnd, IDC_BOOT_TAB), _tab_proc ),
+		CreateDialog( __hinst, MAKEINTRESOURCE(DLG_BOOT_CONF_BADPASS),  GetDlgItem(hwnd, IDC_BOOT_TAB), _tab_proc ),
+		CreateDialog( __hinst, MAKEINTRESOURCE(DLG_BOOT_CONF_OTHER),    GetDlgItem(hwnd, IDC_BOOT_TAB), _tab_proc ),
 		HWND_NULL
 		);
 
 	d_tab->curr_tab = 1;
 	d_tab->active   = wnd->dlg[0];
 
-	__lists[HBOT_PART_LIST_BY_ID] = GetDlgItem( wnd->dlg[0], IDC_PART_LIST_BY_ID );
+	__lists[HBOT_PART_LIST_BY_ID] = GetDlgItem( wnd->dlg[2], IDC_PART_LIST_BY_ID );
 	///////////////////////////////////////////////////////////////
 	/////// MAIN PAGE /////////////////////////////////////////////
 	{
 	///////////////////////////////////////////////////////////////
+
+		_sub_class(GetDlgItem(wnd->dlg[0], IDC_BT_USE_OSK), SUB_STATIC_PROC, HWND_NULL);
+		_set_check(wnd->dlg[0], IDC_BT_USE_OSK, conf->logon_type & LDR_LT_PIC_PASS);
+
+		EnableWindow(
+			GetDlgItem(hwnd, IDC_BT_USE_OSK), isefi == 1 ? TRUE : FALSE
+			);
+
 		_init_combo(
 			GetDlgItem(wnd->dlg[0], IDC_COMBO_KBLAYOUT), kb_layouts, conf->kbd_layout, FALSE, -1
 			);
-
-		_init_combo(
-			GetDlgItem(wnd->dlg[0], IDC_COMBO_METHOD), 
-			conf->options & LDR_OP_EXTERNAL ? boot_type_ext : boot_type_all, conf->boot_type, FALSE, -1
-			);
-
-		_list_part_by_disk_id( 
-			__lists[HBOT_PART_LIST_BY_ID], conf->disk_id 
-			);
-
-		SendMessage(
-			wnd->dlg[0], WM_COMMAND, MAKELONG(IDC_COMBO_METHOD, CBN_SELCHANGE), (LPARAM)GetDlgItem(wnd->dlg[0], IDC_COMBO_METHOD)
-			);
-
 	}
 	///////////////////////////////////////////////////////////////
 	/////// AUTHENTICATION PAGE ///////////////////////////////////
@@ -196,18 +191,8 @@ int _init_boot_config(
 		HWND h_auth_combo = GetDlgItem( wnd->dlg[1], IDC_COMBO_AUTH_TYPE );
 		HWND h_msg = GetDlgItem( wnd->dlg[1], IDE_RICH_BOOTMSG );
 
-		int bits = 0;
-
-		if (conf->logon_type & LDR_LT_GET_PASS)
-		{
-			bits++;
-		}
-		if (conf->logon_type & LDR_LT_EMBED_KEY) 
-		{
-			bits++;
-		}
-
-		_init_combo( h_auth_combo, auth_type, conf->logon_type, TRUE, bits );
+		//_init_combo( h_auth_combo, auth_type, conf->logon_type, TRUE, LDR_LT_GET_PASS | LDR_LT_EMBED_KEY | LDR_LT_PIC_PASS);
+		_init_combo(h_auth_combo, auth_type, conf->logon_type, TRUE, LDR_LT_GET_PASS | LDR_LT_EMBED_KEY);
 
 		_sub_class( GetDlgItem(wnd->dlg[1], IDC_BT_ENTER_PASS_MSG), SUB_STATIC_PROC, HWND_NULL );
 		_set_check( wnd->dlg[1], IDC_BT_ENTER_PASS_MSG, conf->logon_type & LDR_LT_MESSAGE );
@@ -232,37 +217,79 @@ int _init_boot_config(
 
 	}
 	///////////////////////////////////////////////////////////////
+	/////// CORRECT PASSWORD PAGE /////////////////////////////////
+	{
+	///////////////////////////////////////////////////////////////
+
+		_sub_class(GetDlgItem(wnd->dlg[2], IDC_BT_GOOD_PASS_MSG), SUB_STATIC_PROC, HWND_NULL);
+		_set_check(wnd->dlg[2], IDC_BT_GOOD_PASS_MSG, (conf->options & LDR_OP_OK_MSG) != 0);
+
+		HWND ok_mes = GetDlgItem(wnd->dlg[2], IDE_RICH_OKPASS_MSG);
+
+		EnableWindow(GetDlgItem(wnd->dlg[2], IDE_RICH_OKPASS_MSG), conf->options & LDR_OP_OK_MSG);
+
+		SetWindowTextA(ok_mes, conf->aok_msg);
+		SendMessage(ok_mes, EM_EXLIMITTEXT, 0, sizeof(conf->aok_msg) - 1);
+
+		SendMessage(GetDlgItem(wnd->dlg[2], IDE_RICH_OKPASS_MSG), EM_SETBKGNDCOLOR, 0, _cl(COLOR_BTNFACE, LGHT_CLR));
+
+		_init_combo(
+			GetDlgItem(wnd->dlg[2], IDC_COMBO_METHOD),
+			conf->options & LDR_OP_EXTERNAL ? boot_type_ext : boot_type_all, conf->boot_type, FALSE, -1
+		);
+
+		_list_part_by_disk_id(
+			__lists[HBOT_PART_LIST_BY_ID], conf->disk_id
+		);
+
+		SendMessage(
+			wnd->dlg[2], WM_COMMAND, MAKELONG(IDC_COMBO_METHOD, CBN_SELCHANGE), (LPARAM)GetDlgItem(wnd->dlg[2], IDC_COMBO_METHOD)
+		);
+	}
+	///////////////////////////////////////////////////////////////
 	/////// INVALID PASSWORD PAGE /////////////////////////////////
 	{
 	///////////////////////////////////////////////////////////////
-		HWND err_mes = GetDlgItem( wnd->dlg[2], IDE_RICH_ERRPASS_MSG );
+		HWND err_mes = GetDlgItem( wnd->dlg[3], IDE_RICH_ERRPASS_MSG );
 
-		_sub_class( GetDlgItem(wnd->dlg[2], IDC_BT_BAD_PASS_MSG), SUB_STATIC_PROC, HWND_NULL );
-		_set_check( wnd->dlg[2], IDC_BT_BAD_PASS_MSG, conf->error_type & LDR_ET_MESSAGE );
+		_sub_class( GetDlgItem(wnd->dlg[3], IDC_BT_BAD_PASS_MSG), SUB_STATIC_PROC, HWND_NULL );
+		_set_check( wnd->dlg[3], IDC_BT_BAD_PASS_MSG, conf->error_type & LDR_ET_MESSAGE );
 
-		EnableWindow( GetDlgItem(wnd->dlg[2], IDE_RICH_ERRPASS_MSG), conf->error_type & LDR_ET_MESSAGE );
+		EnableWindow( GetDlgItem(wnd->dlg[3], IDE_RICH_ERRPASS_MSG), conf->error_type & LDR_ET_MESSAGE );
 
-		_sub_class( GetDlgItem(wnd->dlg[2], IDC_BT_ACTION_NOPASS), SUB_STATIC_PROC, HWND_NULL );
-		_set_check( wnd->dlg[2], IDC_BT_ACTION_NOPASS, conf->options & LDR_OP_NOPASS_ERROR );
+		_sub_class( GetDlgItem(wnd->dlg[3], IDC_BT_ACTION_NOPASS), SUB_STATIC_PROC, HWND_NULL );
+		_set_check( wnd->dlg[3], IDC_BT_ACTION_NOPASS, conf->options & LDR_OP_NOPASS_ERROR );
 
-		_init_combo( GetDlgItem(wnd->dlg[2], IDC_COMBO_BAD_PASS_ACT), bad_pass_act, conf->error_type, TRUE, -1 );
+		_init_combo( GetDlgItem(wnd->dlg[3], IDC_COMBO_BAD_PASS_ACT), bad_pass_act, conf->error_type, TRUE, -1 );
 
 		SetWindowTextA( err_mes, conf->err_msg );
 		SendMessage( err_mes, EM_EXLIMITTEXT, 0, sizeof(conf->err_msg) - 1 );
 
-		SendMessage( GetDlgItem(wnd->dlg[2], IDE_RICH_ERRPASS_MSG), EM_SETBKGNDCOLOR, 0, _cl(COLOR_BTNFACE, LGHT_CLR) );
+		SendMessage( GetDlgItem(wnd->dlg[3], IDE_RICH_ERRPASS_MSG), EM_SETBKGNDCOLOR, 0, _cl(COLOR_BTNFACE, LGHT_CLR) );
 	}
 	///////////////////////////////////////////////////////////////
 	/////// OTHER SETTINGS PAGE ///////////////////////////////////
 	{
 	///////////////////////////////////////////////////////////////
-		_sub_class( GetDlgItem(wnd->dlg[3], IDC_USE_HARD_CRYPTO), SUB_STATIC_PROC, HWND_NULL );
-		//EnableWindow(GetDlgItem(wnd->dlg[3], IDC_USE_HARD_CRYPTO), isefi == 1 ? FALSE : TRUE);
-		_set_check( wnd->dlg[3], IDC_USE_HARD_CRYPTO, (conf->options & LDR_OP_HW_CRYPTO) != 0 );
+		_sub_class( GetDlgItem(wnd->dlg[4], IDC_USE_HARD_CRYPTO), SUB_STATIC_PROC, HWND_NULL );
+		//EnableWindow(GetDlgItem(wnd->dlg[4], IDC_USE_HARD_CRYPTO), isefi == 1 ? FALSE : TRUE);
+		_set_check( wnd->dlg[4], IDC_USE_HARD_CRYPTO, (conf->options & LDR_OP_HW_CRYPTO) != 0 );
 
-		_sub_class( GetDlgItem(wnd->dlg[3], IDC_SET_VERBOSE), SUB_STATIC_PROC, HWND_NULL );
-		EnableWindow(GetDlgItem(wnd->dlg[3], IDC_SET_VERBOSE), isefi == 1 ? TRUE : FALSE); 
-		_set_check( wnd->dlg[3], IDC_SET_VERBOSE, (conf->logon_type & LDR_LT_DEBUG) != 0 );
+		_sub_class(GetDlgItem(wnd->dlg[4], IDC_BT_AUTH_MSG), SUB_STATIC_PROC, HWND_NULL);
+		_set_check(wnd->dlg[4], IDC_BT_AUTH_MSG, (conf->options & LDR_OP_AUTH_MSG) != 0);
+
+		HWND go_mes = GetDlgItem(wnd->dlg[4], IDE_RICH_AUTH_MSG);
+
+		EnableWindow(GetDlgItem(wnd->dlg[4], IDE_RICH_AUTH_MSG), conf->options & LDR_OP_OK_MSG);
+
+		SetWindowTextA(go_mes, conf->ago_msg);
+		SendMessage(go_mes, EM_EXLIMITTEXT, 0, sizeof(conf->ago_msg) - 1);
+
+		SendMessage(GetDlgItem(wnd->dlg[4], IDE_RICH_AUTH_MSG), EM_SETBKGNDCOLOR, 0, _cl(COLOR_BTNFACE, LGHT_CLR));
+
+		_sub_class( GetDlgItem(wnd->dlg[4], IDC_SET_VERBOSE), SUB_STATIC_PROC, HWND_NULL );
+		EnableWindow(GetDlgItem(wnd->dlg[4], IDC_SET_VERBOSE), isefi == 1 ? TRUE : FALSE); 
+		_set_check( wnd->dlg[4], IDC_SET_VERBOSE, (conf->options & LDR_OP_DEBUG) != 0 );
 	}
 
 	tab_item.pszText = L"Main";
@@ -271,11 +298,14 @@ int _init_boot_config(
 	tab_item.pszText = L"Authentication";
 	TabCtrl_InsertItem(h_tab, 1, &tab_item);
 
-	tab_item.pszText = L"Invalid password";
+	tab_item.pszText = L"Correct password";
 	TabCtrl_InsertItem(h_tab, 2, &tab_item);
 
-	tab_item.pszText = L"Other Settings";
+	tab_item.pszText = L"Invalid password";
 	TabCtrl_InsertItem(h_tab, 3, &tab_item);
+
+	tab_item.pszText = L"Other Settings";
+	TabCtrl_InsertItem(h_tab, 4, &tab_item);
 
 	{
 		NMHDR mhdr = { 0, 0, TCN_SELCHANGE };
@@ -312,25 +342,12 @@ int _save_boot_config(
 	/////// MAIN PAGE /////////////////////////////////////////////
 	{
 	///////////////////////////////////////////////////////////////
+
+		BOOL use_osk = _get_check(wnd->dlg[2], IDC_BT_USE_OSK);
+
+		set_flag(conf->logon_type, LDR_LT_PIC_PASS, use_osk);
+
 		conf->kbd_layout = _get_combo_val( GetDlgItem( wnd->dlg[0], IDC_COMBO_KBLAYOUT ), kb_layouts );
-		conf->boot_type  = _get_combo_val( GetDlgItem( wnd->dlg[0], IDC_COMBO_METHOD ), boot_type_all );
-
-		if ( conf->boot_type == LDR_BT_DISK_ID )
-		{
-			wchar_t text[MAX_PATH];
-
-			_get_item_text( 
-				__lists[HBOT_PART_LIST_BY_ID], ListView_GetSelectionMark(__lists[HBOT_PART_LIST_BY_ID]), 2, text, countof(text) 
-				);
-
-			if ( wcslen(text) && ListView_GetSelectedCount( __lists[HBOT_PART_LIST_BY_ID] ) )
-			{
-				conf->disk_id = wcstoul(text, L'\0', 16);
-			} else {
-				__msg_e( hwnd, L"You must select partition by id" );
-				return ST_ERROR;
-			}
-		}
 	}
 	///////////////////////////////////////////////////////////////
 	/////// AUTHENTICATION PAGE ///////////////////////////////////
@@ -345,7 +362,8 @@ int _save_boot_config(
 		BOOL show_text = _get_check( wnd->dlg[1], IDC_BT_ENTER_PASS_MSG );
 		BOOL embed_key = _get_combo_val( auth_combo, auth_type) & LDR_LT_EMBED_KEY;
 
-		conf->logon_type &= ~( LDR_LT_GET_PASS | LDR_LT_EMBED_KEY );
+		//conf->logon_type &= ~( LDR_LT_GET_PASS | LDR_LT_EMBED_KEY | LDR_LT_PIC_PASS);
+		conf->logon_type &= ~(LDR_LT_GET_PASS | LDR_LT_EMBED_KEY);
 		conf->logon_type |= _get_combo_val( auth_combo, auth_type );
 
 		if ( show_text )
@@ -389,13 +407,48 @@ int _save_boot_config(
 		}
 	}
 	///////////////////////////////////////////////////////////////
+	/////// CORRECT PASSWORD PAGE /////////////////////////////////
+	{
+	///////////////////////////////////////////////////////////////
+		BOOL show_good = _get_check(wnd->dlg[2], IDC_BT_GOOD_PASS_MSG);
+
+		set_flag(conf->options, LDR_OP_OK_MSG, show_good);
+
+		if (show_good)
+		{
+			GetWindowTextA(
+				GetDlgItem(wnd->dlg[2], IDE_RICH_OKPASS_MSG), conf->aok_msg, sizeof(conf->aok_msg)
+			);
+		}
+
+		conf->boot_type = _get_combo_val(GetDlgItem(wnd->dlg[2], IDC_COMBO_METHOD), boot_type_all);
+
+		if (conf->boot_type == LDR_BT_DISK_ID)
+		{
+			wchar_t text[MAX_PATH];
+
+			_get_item_text(
+				__lists[HBOT_PART_LIST_BY_ID], ListView_GetSelectionMark(__lists[HBOT_PART_LIST_BY_ID]), 2, text, countof(text)
+			);
+
+			if (wcslen(text) && ListView_GetSelectedCount(__lists[HBOT_PART_LIST_BY_ID]))
+			{
+				conf->disk_id = wcstoul(text, L'\0', 16);
+			}
+			else {
+				__msg_e(hwnd, L"You must select partition by id");
+				return ST_ERROR;
+			}
+		}
+	}
+	///////////////////////////////////////////////////////////////
 	/////// INVALID PASSWORD PAGE /////////////////////////////////
 	{
 	///////////////////////////////////////////////////////////////
-		BOOL show_err    = _get_check( wnd->dlg[2], IDC_BT_BAD_PASS_MSG );
-		BOOL act_no_pass = _get_check( wnd->dlg[2], IDC_BT_ACTION_NOPASS );
+		BOOL show_err    = _get_check( wnd->dlg[3], IDC_BT_BAD_PASS_MSG );
+		BOOL act_no_pass = _get_check( wnd->dlg[3], IDC_BT_ACTION_NOPASS );
 
-		conf->error_type = _get_combo_val( GetDlgItem(wnd->dlg[2], IDC_COMBO_BAD_PASS_ACT), bad_pass_act );
+		conf->error_type = _get_combo_val( GetDlgItem(wnd->dlg[3], IDC_COMBO_BAD_PASS_ACT), bad_pass_act );
 
 		set_flag( conf->error_type, LDR_ET_MESSAGE, show_err );
 		set_flag( conf->options, LDR_OP_NOPASS_ERROR, act_no_pass );
@@ -403,7 +456,7 @@ int _save_boot_config(
 		if ( show_err )
 		{
 			GetWindowTextA(
-				GetDlgItem( wnd->dlg[2], IDE_RICH_ERRPASS_MSG), conf->err_msg, sizeof(conf->err_msg) 
+				GetDlgItem( wnd->dlg[3], IDE_RICH_ERRPASS_MSG), conf->err_msg, sizeof(conf->err_msg) 
 				);
 		}						
 	}
@@ -412,11 +465,22 @@ int _save_boot_config(
 	{
 	///////////////////////////////////////////////////////////////
 		set_flag( 
-			conf->options, LDR_OP_HW_CRYPTO, _get_check(wnd->dlg[3], IDC_USE_HARD_CRYPTO) 
+			conf->options, LDR_OP_HW_CRYPTO, _get_check(wnd->dlg[4], IDC_USE_HARD_CRYPTO) 
 			);
 
+		BOOL show_good = _get_check(wnd->dlg[4], IDC_BT_AUTH_MSG);
+
+		set_flag(conf->options, LDR_OP_AUTH_MSG, show_good);
+
+		if (show_good)
+		{
+			GetWindowTextA(
+				GetDlgItem(wnd->dlg[4], IDE_RICH_AUTH_MSG), conf->ago_msg, sizeof(conf->ago_msg)
+			);
+		}
+
 		set_flag( 
-			conf->logon_type, LDR_LT_DEBUG, _get_check(wnd->dlg[3], IDC_SET_VERBOSE)
+			conf->options, LDR_OP_DEBUG, _get_check(wnd->dlg[4], IDC_SET_VERBOSE)
 			);
 	}
 

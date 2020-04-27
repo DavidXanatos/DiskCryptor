@@ -9,7 +9,7 @@ AppMutex=DISKCRYPTOR_MUTEX
 DefaultDirName={pf}\dcrypt
 DefaultGroupName=DiskCryptor
 UninstallDisplayIcon={app}\dcrypt.exe
-OutputBaseFilename=dcrypt_setup_1.2_beta_2
+OutputBaseFilename=dcrypt_setup_1.2_beta_3
 Compression=lzma
 ArchitecturesAllowed=x86 x64
 ArchitecturesInstallIn64BitMode=x64
@@ -23,7 +23,7 @@ LicenseFile=..\DCrypt\license.txt
 Source: "..\DCrypt\Bin\Release_i386\dccon.exe"; DestDir: "{app}"; DestName: "dccon.exe"; Check: "not Is64BitInstallMode"; MinVersion: 0.0,5.0; Flags: ignoreversion; 
 Source: "..\DCrypt\Bin\Release_i386\dcinst.exe"; DestDir: "{app}"; DestName: "dcinst.exe"; Check: "not Is64BitInstallMode"; MinVersion: 0.0,5.0; Flags: ignoreversion;
 Source: "..\DCrypt\Bin\Release_i386\dcrypt.exe"; DestDir: "{app}"; DestName: "dcrypt.exe"; Check: "not Is64BitInstallMode"; MinVersion: 0.0,5.0; Flags: ignoreversion;
-Source: "..\DCrypt\Bin\Release_i386\dcrypt.sys"; DestDir: "{app}"; DestName: "dcrypt.sys"; Check: "not Is64BitInstallMode"; MinVersion: 0.0,5.0; Flags: ignoreversion;
+Source: "..\DCrypt\Bin\Build_i386\dcrypt.sys"; DestDir: "{app}"; DestName: "dcrypt.sys"; Check: "not Is64BitInstallMode"; MinVersion: 0.0,5.0; Flags: ignoreversion;
 Source: "..\DCrypt\Bin\Release_i386\dcapi.dll"; DestDir: "{app}"; DestName: "dcapi.dll"; Check: "not Is64BitInstallMode"; MinVersion: 0.0,5.0; Flags: ignoreversion;
 ;Source: "..\DCrypt\Bin\Release_i386\dcrypt.pdb"; DestDir: "{app}"; DestName: "dcrypt.pdb"; Check: "not Is64BitInstallMode"; MinVersion: 0.0,5.0; Flags: ignoreversion;
 ;Source: "..\DCrypt\Bin\Build_i386\shim_ia32.zip"; DestDir: "{app}"; DestName: "shim_ia32.zip"; Check: "not Is64BitInstallMode"; MinVersion: 0.0,5.0; Flags: ignoreversion; 
@@ -31,14 +31,15 @@ Source: "..\DCrypt\Bin\Release_i386\dcapi.dll"; DestDir: "{app}"; DestName: "dca
 Source: "..\DCrypt\Bin\Release_amd64\dccon.exe"; DestDir: "{app}"; DestName: "dccon.exe"; Check: "Is64BitInstallMode"; MinVersion: 0.0,5.0; Flags: ignoreversion;
 Source: "..\DCrypt\Bin\Release_amd64\dcinst.exe"; DestDir: "{app}"; DestName: "dcinst.exe"; Check: "Is64BitInstallMode"; MinVersion: 0.0,5.0; Flags: ignoreversion; 
 Source: "..\DCrypt\Bin\Release_amd64\dcrypt.exe"; DestDir: "{app}"; DestName: "dcrypt.exe"; Check: "Is64BitInstallMode"; MinVersion: 0.0,5.0; Flags: ignoreversion;
-;Source: "..\DCrypt\Bin\Release_amd64\dcrypt.sys"; DestDir: "{app}"; DestName: "dcrypt.sys"; Check: "Is64BitInstallMode"; MinVersion: 0.0,5.0; Flags: ignoreversion;
-Source: "..\..\GeoTrust-master\dcrypt.sys"; DestDir: "{app}"; DestName: "dcrypt.sys"; Check: "Is64BitInstallMode"; MinVersion: 0.0,5.0; Flags: ignoreversion;
+Source: "..\DCrypt\Bin\Build_amd64\dcrypt.sys"; DestDir: "{app}"; DestName: "dcrypt.sys"; Check: "Is64BitInstallMode"; MinVersion: 0.0,5.0; Flags: ignoreversion;
 Source: "..\DCrypt\Bin\Release_amd64\dcapi.dll"; DestDir: "{app}"; DestName: "dcapi.dll"; Check: "Is64BitInstallMode"; MinVersion: 0.0,5.0; Flags: ignoreversion; 
 ;Source: "..\DCrypt\Bin\Release_amd64\dcrypt.pdb"; DestDir: "{app}"; DestName: "dcrypt.pdb"; Check: "Is64BitInstallMode"; MinVersion: 0.0,5.0; Flags: ignoreversion; 
 ;Source: "..\DCrypt\Bin\Build_amd64\shim_x64.zip"; DestDir: "{app}"; DestName: "shim_x64.zip"; Check: "Is64BitInstallMode"; MinVersion: 0.0,5.0; Flags: ignoreversion; 
 
 Source: "..\DCrypt\license.txt"; DestDir: "{app}"; MinVersion: 0.0,5.0; Flags: ignoreversion; 
 Source: "..\DCrypt\changes.txt"; DestDir: "{app}"; MinVersion: 0.0,5.0; Flags: ignoreversion; 
+Source: "..\DCrypt\PostOOBE.cmd"; DestDir: "{app}"; MinVersion: 0.0,5.0; Flags: ignoreversion; 
+Source: "..\DCrypt\dcrypt.inf"; DestDir: "{app}"; MinVersion: 0.0,5.0; Flags: ignoreversion; 
 
 [Icons]
 Name: "{group}\DiskCryptor"; Filename: "{app}\dcrypt.exe"; MinVersion: 0.0,5.0; 

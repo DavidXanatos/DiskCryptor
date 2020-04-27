@@ -1,3 +1,10 @@
+[27.04.2020] - 1.2.2/848.118.202
+  [+] Add compatibility with Windows 10 feature upgrade procedure using ReflectDrivers mechanism
+  [*] Improved UEFI loader CLI password entry
+  [*] Restructured bootloader config GUI
+  [+] Added additional EFI loader messages to the UI
+  [+] Added option to enable EFI picture password from UI
+  [+] Added remaining message charakters display
 
 [14.03.2020] - 1.2.1/848.118.201
   [*] Wipe Mode disabled on SSD drivers (as on those its pointless and may damage the ssd)

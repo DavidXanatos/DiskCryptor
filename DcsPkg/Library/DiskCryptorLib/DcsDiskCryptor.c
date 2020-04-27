@@ -317,9 +317,9 @@ PartitionTryDecrypt()
 	int              found = 0;
 	int              retry = gDCryptAuthRetry;
 
+	MEM_BURN(&gDCryptPassword, sizeof(gDCryptPassword)); // zero memory
 	do {
 		// password prompt
-		MEM_BURN(&gDCryptPassword, sizeof(gDCryptPassword)); // zero memory
 		DCAskPwd(AskPwdLogin, &gDCryptPassword);
 
 		if (gDCryptPwdCode == AskPwdRetCancel) {

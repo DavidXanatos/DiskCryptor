@@ -1031,7 +1031,7 @@ int dc_efi_config_write(const wchar_t* root, ldr_config *conf)
 			// Password request 1
 			// Embedded bootauth keyfile 2
 		WriteConfigInteger(configFile, configContent, "AutoLogin", (conf->logon_type & LDR_LT_GET_PASS) ? 0 : 1);
-		WriteConfigString(configFile, configContent, "AutoPassword", "");													// x-todo <<<<<<<<<<<<<<<
+		//WriteConfigString(configFile, configContent, "AutoPassword", "");
 		if ((conf->logon_type & LDR_LT_EMBED_KEY) == 0)
 			WriteConfigString(configFile, configContent, "KeyFilePath", ""); // empty string -> no key file
 		else 
@@ -1046,13 +1046,13 @@ int dc_efi_config_write(const wchar_t* root, ldr_config *conf)
 			if (resl != ST_OK) break;
 		}
 	
-		// Picture Password - new																							// x-todo <<<<<<<<>>>>>>>
-		WriteConfigInteger(configFile, configContent, "TouchInput", 0);
+		// Picture Password
+		WriteConfigInteger(configFile, configContent, "TouchInput", (conf->logon_type & LDR_LT_PIC_PASS) ? 1 : 0);
 		WriteConfigString(configFile, configContent, "PasswordPicture", "\\EFI\\DCS\\login.bmp"); // h1630 v1090
 		//WriteConfigString(configFile, configContent, "PictureChars", ); // leave default
 		//WriteConfigInteger(configFile, configContent, "AuthorizeVisible", 0);		// show chars
-		//WriteConfigInteger(configFile, configContent, "PasswordHideLetters", 0);	// always show letters in touch points
-		//WriteConfigInteger(configFile, configContent, "AuthorizeMarkTouch", 0);		// show touch points
+		//WriteConfigInteger(configFile, configContent, "PasswordHideLetters", 1);	// always show letters in touch points
+		//WriteConfigInteger(configFile, configContent, "AuthorizeMarkTouch", 1);	// show touch points
 
 		// Password Prompt Message
 		WriteConfigString(configFile, configContent, "PasswordMsg", (conf->logon_type & LDR_LT_MESSAGE) ? conf->eps_msg  : "");
@@ -1065,11 +1065,11 @@ int dc_efi_config_write(const wchar_t* root, ldr_config *conf)
 		//																 (conf->options & LDR_OP_EPS_TMO) // timeout enabled
 		//																 (conf->options & LDR_OP_TMO_STOP) // DCS always behaves this way
 		
-		// Trying password message - new
-		WriteConfigString(configFile, configContent, "AuthStartMsg", "");													// x-todo <<<<<<<<<<<<<<<
+		// Trying password message
+		WriteConfigString(configFile, configContent, "AuthStartMsg", (conf->options & LDR_OP_AUTH_MSG) ? conf->ago_msg : "");
 
-		// Success message - new
-		WriteConfigString(configFile, configContent, "AuthSuccessMsg", "");													// x-todo <<<<<<<<<<<<<<<
+		// Success message
+		WriteConfigString(configFile, configContent, "AuthSuccessMsg", (conf->options & LDR_OP_OK_MSG) ? conf->aok_msg : "");
 
 	// Invalid Password:
 		// use incorrect action if no password entered [ ]
@@ -1097,14 +1097,14 @@ int dc_efi_config_write(const wchar_t* root, ldr_config *conf)
 		else //if (conf->error_type & LDR_ET_RETRY)
 			WriteConfigString(configFile, configContent, "ActionFailed", "Exit");
 
-		// Authentication Tries - new
+		// Authentication Tries
 		WriteConfigInteger(configFile, configContent, "AuthorizeRetry", (conf->error_type & LDR_ET_RETRY) ? 100 : 0);
 
 	// Other
 
 		WriteConfigInteger(configFile, configContent, "UseHardwareCrypto", (conf->options & LDR_OP_HW_CRYPTO) ? 1 : 0);
 
-		WriteConfigInteger(configFile, configContent, "VerboseDebug", (conf->logon_type & LDR_LT_DEBUG) ? 1 : 0);
+		WriteConfigInteger(configFile, configContent, "VerboseDebug", (conf->options & LDR_OP_DEBUG) ? 1 : 0);
 
 	//
 
@@ -1193,14 +1193,13 @@ int dc_efi_config_read(const wchar_t* root, ldr_config *conf)
 		if (ReadConfigInteger(configContent, "AutoLogin", 0) == 0) {
 			conf->logon_type |= LDR_LT_GET_PASS;
 		}
-		ReadConfigString(configContent, "AutoPassword", "", buffer, sizeof(buffer)); 										// x-todo <<<<<<<<<<<<<<<
+		//ReadConfigString(configContent, "AutoPassword", "", buffer, sizeof(buffer));
+		ReadConfigString(configContent, "KeyFilePath", "", buffer, sizeof(buffer));
 		if (strlen(buffer) > 0) {
 			conf->logon_type |= LDR_LT_EMBED_KEY;
 
-			char* keyPath = ReadConfigString(configContent, "KeyFilePath", "", buffer, sizeof(buffer));
-
 			wchar_t fullPath[MAX_PATH];
-			swprintf_s(fullPath, MAX_PATH, L"%s%S", root, keyPath);
+			swprintf_s(fullPath, MAX_PATH, L"%s%S", root, buffer);
 
 			u8* keyfile;
 			u32 keysize;
@@ -1221,8 +1220,10 @@ int dc_efi_config_read(const wchar_t* root, ldr_config *conf)
 			if (resl != ST_OK) break;
 		}
 
-		// Picture Password - new																							// x-todo <<<<<<<<>>>>>>>
-		//WriteConfigInteger(configFile, configContent, "TouchInput", 0);
+		// Picture Password
+		if (ReadConfigInteger(configContent, "TouchInput", 0)) {
+			conf->logon_type |= LDR_LT_PIC_PASS;
+		}
 		//WriteConfigString(configFile, configContent, "PasswordPicture", "\\EFI\\DCS\\login.bmp"); // h1630 v1090
 		//WriteConfigString(configFile, configContent, "PictureChars", ); // leave default
 		//WriteConfigInteger(configFile, configContent, "AuthorizeVisible", 0);		// show chars
@@ -1248,11 +1249,19 @@ int dc_efi_config_read(const wchar_t* root, ldr_config *conf)
 			conf->options |= LDR_OP_TMO_STOP; // DCS always behaves this way
 		}
 
-		// Trying password message - new
-		ReadConfigString(configContent, "AuthStartMsg", "Authorizing...", buffer, sizeof(buffer)); 							// x-todo <<<<<<<<<<<<<<<
+		// Trying password message
+		ReadConfigString(configContent, "AuthStartMsg", "Authorizing...", buffer, sizeof(buffer));
+		if (strlen(buffer) > 0) {
+			strcpy(conf->ago_msg, buffer);
+			conf->options |= LDR_OP_AUTH_MSG;
+		}
 
-		// Success message - new
-		ReadConfigString(configContent, "AuthSuccessMsg", "Password correct", buffer, sizeof(buffer)); 						// x-todo <<<<<<<<<<<<<<<
+		// Success message
+		ReadConfigString(configContent, "AuthSuccessMsg", "Password correct", buffer, sizeof(buffer));
+		if (strlen(buffer) > 0) {
+			strcpy(conf->aok_msg, buffer);
+			conf->options |= LDR_OP_OK_MSG;
+		}
 
 	// Invalid Password:
 		// use incorrect action if no password entered [ ]
@@ -1284,7 +1293,7 @@ int dc_efi_config_read(const wchar_t* root, ldr_config *conf)
 		//else if(_strcmpi(buffer, "Exit") == 0)
 		//	conf->error_type |= LDR_ET_RETRY;
 
-		// Authentication Tries - new
+		// Authentication Tries
 		if (ReadConfigInteger(configContent, "AuthorizeRetry", 100)) {
 			conf->error_type |= LDR_ET_RETRY;
 		}
@@ -1296,7 +1305,7 @@ int dc_efi_config_read(const wchar_t* root, ldr_config *conf)
 		}
 
 		if (ReadConfigInteger(configContent, "VerboseDebug", 0)) {
-			conf->logon_type |= LDR_LT_DEBUG;
+			conf->options |= LDR_OP_DEBUG;
 		}
 		
 	//
@@ -1352,7 +1361,7 @@ ldr_version *dc_find_efi_ver(char *data, u32 size)
 	{
 		cnf = pv(data);
 
-		if ((cnf->sign1 == 0x1434A669) && (cnf->sign2 == 0x7269DA46)) {
+		if ( (cnf->sign1 == LDR_CFG_SIGN1) && (cnf->sign2 == LDR_CFG_SIGN2) ) {
 			conf = cnf;	break;
 		}
 	}
@@ -1393,7 +1402,12 @@ void dc_efi_config_init(ldr_config *conf)
 		"Password incorrect",
 		{ 0 }, /* original mbr */
 		0,     /* timeout */
-		{ 0 }  /* embedded key */
+		{ 0 },  /* embedded key */
+
+		"Authorizing...",
+		"Password correct",
+
+		{ 0 } /*reserved*/
 	};
 
 	memcpy(conf, &def_conf, sizeof(ldr_config));

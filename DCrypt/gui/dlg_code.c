@@ -133,9 +133,11 @@ _init_list kb_layouts[ ] =
 
 _init_list auth_type[ ] =
 {
-	{ LDR_LT_GET_PASS | LDR_LT_EMBED_KEY,	L"Password and bootauth keyfile"	},
-	{ LDR_LT_GET_PASS,					L"Password request"					},
-	{ LDR_LT_EMBED_KEY,					L"Embedded bootauth keyfile"		},
+	{ LDR_LT_GET_PASS,										L"Password request"						},
+	//{ LDR_LT_GET_PASS | LDR_LT_PIC_PASS,					L"Password request (on screen keyboard)"},
+	{ LDR_LT_GET_PASS | LDR_LT_EMBED_KEY,					L"Password and bootauth keyfile"		},
+	//{ LDR_LT_GET_PASS | LDR_LT_EMBED_KEY | LDR_LT_PIC_PASS,	L"Password and bootauth keyfile (osk)"	},
+	{ LDR_LT_EMBED_KEY,										L"Embedded bootauth keyfile only"		},
 	{ 0, STR_NULL }
 };
 
@@ -215,7 +217,7 @@ _init_list pass_status[ ] =
 	{ ST_PASS_NOT_CONFIRMED,	L" The password was not correctly confirmed"	},
 	{ ST_PASS_EMPTY_CONFIRM,	L" Confirm is empty"							},
 	{ ST_PASS_EMPTY_KEYLIST,	L" Keyfiles list is empty"						},
-	{ ST_PASS_CORRRECT,			L" Correct"										},
+	{ ST_PASS_CORRRECT,			L" Ready"										},
 	{ 0, STR_NULL }
 };
 

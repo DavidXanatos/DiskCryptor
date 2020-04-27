@@ -3,11 +3,14 @@
 
 #define LDR_MAX_MOUNT 8 // maximum mounted devices
 
-#define LDR_LT_GET_PASS  1 // entering password needed
-#define LDR_LT_EMBED_KEY 2 // use embedded key
-#define LDR_LT_MESSAGE   4 // display enter password message
-#define LDR_LT_DSP_PASS  8 // display '*'
-#define LDR_LT_DEBUG     16 // enable debug output
+#define LDR_LT_GET_PASS  1   // entering password needed
+#define LDR_LT_EMBED_KEY 2   // use embedded key
+#define LDR_LT_MESSAGE   4   // display enter password message
+#define LDR_LT_DSP_PASS  8   // display '*'
+#define LDR_LT_PIC_PASS  16  // picture password
+//#define LDR_LT_		 32
+//#define LDR_LT_		 64
+//#define LDR_LT_		 128
 
 #define LDR_ET_MESSAGE      1  // display error message
 #define LDR_ET_REBOOT       2  // reboot after 1 second
@@ -15,28 +18,61 @@
 #define LDR_ET_EXIT_TO_BIOS 8  // exit to bios
 #define LDR_ET_RETRY        16 // retry authentication again
 #define LDR_ET_MBR_BOOT     32 // load boot disk MBR
+//#define LDR_ET_		    64
+//#define LDR_ET_		    128
 
 #define LDR_BT_MBR_BOOT    1 // load boot disk MBR
 #define LDR_BT_MBR_FIRST   2 // load first disk MBR
 #define LDR_BT_ACTIVE      3 // boot from active partition on boot disk
 #define LDR_BT_AP_PASSWORD 4 // boot from first partition with appropriate password
 #define LDR_BT_DISK_ID     5 // find partition by disk_id
+//#define LDR_BT_MAX       255
 
 #define LDR_KB_QWERTY 0 // QWERTY keyboard layout
 #define LDR_KB_QWERTZ 1 // QWERTZ keyboard layout
 #define LDR_KB_AZERTY 2 // AZERTY keyboard layout
+//#define LDR_KB_MAX  255
 
-#define LDR_OP_EXTERNAL     0x01 // this option indicate external bootloader usage
-#define LDR_OP_EPS_TMO      0x02 // set time limit for password entering
-#define LDR_OP_TMO_STOP     0x04 // cancel timeout if any key pressed
-#define LDR_OP_NOPASS_ERROR 0x08 // use incorrect password action if no password entered
-#define LDR_OP_HW_CRYPTO    0x10 // use hardware cryptography when possible
-#define LDR_OP_SMALL_BOOT   0x20 // this is a small (aes only) bootloader
+#define LDR_OP_EXTERNAL     0x0001 // this option indicate external bootloader usage
+#define LDR_OP_EPS_TMO      0x0002 // set time limit for password entering
+#define LDR_OP_TMO_STOP     0x0004 // cancel timeout if any key pressed
+#define LDR_OP_NOPASS_ERROR 0x0008 // use incorrect password action if no password entered
+#define LDR_OP_HW_CRYPTO    0x0010 // use hardware cryptography when possible
+#define LDR_OP_SMALL_BOOT   0x0020 // this is a small (aes only) bootloader
+#define LDR_OP_DEBUG        0x0040 // enable debug output
+#define LDR_OP_AUTH_MSG     0x0080 // show autorizing message
+#define LDR_OP_OK_MSG       0x0100 // show password correct message
+//#define LDR_OP_           0x0200
+//#define LDR_OP_           0x0400
+//#define LDR_OP_           0x0800
+//#define LDR_OP_           0x1000
+//#define LDR_OP_           0x2000
+//#define LDR_OP_           0x4000
+//#define LDR_OP_           0x8000
 
 #pragma pack (push, 1)
 
 #define LDR_CFG_SIGN1 0x1434A669
 #define LDR_CFG_SIGN2 0x7269DA46
+
+#define DC_BOOT_OLD    118
+typedef struct _mbr_config {
+	unsigned long  sign1; // сигнатура для поиска загрузчика в памяти
+	unsigned long  sign2; // сигнатура для поиска загрузчика в памяти
+	unsigned long  ldr_ver;    // версия загрузчика
+	unsigned char  logon_type; // настройки авторизации (константы LDR_LT_x)
+	unsigned char  error_type; // настройки действия при ошибке авторизации (константы LDR_ET_x)
+	unsigned char  boot_type;  // настройки загрузки авторизация успешно завершена (константы LDR_BT_x)
+	unsigned long  disk_id; // ID раздела, используется при LDR_BT_DISK_ID
+	unsigned short options; // прочик настройки и флаги (константы LDR_OP_x)
+	unsigned char  kbd_layout; // раскладка клавиатуры загрузчика (константы LDR_KB_x)
+	char  eps_msg[128]; // текст сообщения запроса авторизации
+	char  err_msg[128]; // тест сообщения ошибки авторизации
+	unsigned char save_mbr[512]; // сохраненный оригинальный MBR
+	unsigned long timeout;  // таймаут авторизации (используется при включенном флаге LDR_OP_EPS_TMO)
+	unsigned char emb_key[64]; // встроенный в загрузчик ключ
+
+} mbr_config;
 
 typedef struct _ldr_config {
 	unsigned long sign1;         // signature to search for bootloader in memory
@@ -54,9 +90,13 @@ typedef struct _ldr_config {
 	unsigned long timeout;       // authorization timeout (used when the LDR_OP_EPS_TMO flag is on)
 	unsigned char emb_key[64];   // key in the bootloader
 
+	char ago_msg[128];           // message text of the authorization started
+	char aok_msg[128];           // message text of the authorization successfull
+
+	char reserved[2982];         // 4k total
 } ldr_config;
 
-
+//const t = sizeof(ldr_config)
 
 #define E820MAX	64 // number of entries in E820MAP
 

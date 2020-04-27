@@ -19,8 +19,11 @@ https://opensource.org/licenses/LGPL-3.0
 #include <Protocol/GraphicsOutput.h>
 
 #define SET_VAR_CHAR(asciiLine, wide, pos, value) \
-	if (wide) ((CHAR16*)asciiLine)[pos] = (CHAR16)value; \
-	else ((CHAR8*)asciiLine)[pos] = (CHAR8)value;
+	if (wide) ((CHAR16*)asciiLine)[pos] = (CHAR16)(value); \
+	else ((CHAR8*)asciiLine)[pos] = (CHAR8)(value);
+
+#define GET_VAR_CHAR(asciiLine, wide, pos) \
+	(wide ? ((CHAR16*)asciiLine)[pos] : ((CHAR8*)asciiLine)[pos])
 
 extern CHAR16*	gPasswordPictureFileName;
 

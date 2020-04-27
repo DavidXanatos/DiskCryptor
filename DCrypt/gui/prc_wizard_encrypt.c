@@ -23,6 +23,7 @@
 #include <windows.h>
 
 #include "main.h"
+#include "w10.h"
 #include "prc_wizard_encrypt.h"
 
 #include "prc_keyfiles.h"
@@ -214,6 +215,12 @@ void _run_wizard_action(
 					node->dlg.rlt = _set_boot_loader_efi( hwnd, -1, is_shim, 2); // add boot menu entry and repalce windows loader
 				else
 					node->dlg.rlt = _set_boot_loader_mbr( hwnd, -1, is_small );
+			}
+
+			// prepare reflect driver
+			if ( is_w10_reflect_supported() )
+			{
+				update_w10_reflect_driver();
 			}
 		}
 		if ( ( node->dlg.rlt == ST_OK ) && 

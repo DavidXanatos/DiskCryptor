@@ -173,6 +173,34 @@ int dc_get_boot_device(wchar_t* bootVolumePath)
 	}
 }*/
 
+int dc_is_boot_encrypted()
+{
+	vol_inf info;
+	DWORD   flags;
+	wchar_t boot_dev[MAX_PATH];
+	int     is_enc = 0;
+
+	if (dc_get_boot_device(boot_dev) != ST_OK) {
+		boot_dev[0] = 0;
+	}
+
+	if (dc_first_volume(&info) == ST_OK)
+	{
+		do
+		{
+			flags = info.status.flags;
+
+			if (((flags & F_SYSTEM) ||
+				(wcscmp(info.device, boot_dev) == 0)) && (flags & F_ENABLED))
+			{
+				is_enc = 1;
+			}
+		} while (dc_next_volume(&info) == ST_OK);
+	}
+
+	return is_enc;
+}
+
 int dc_first_volume(vol_inf *info)
 {
 	wchar_t name[MAX_PATH];
