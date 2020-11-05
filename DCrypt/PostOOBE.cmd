@@ -1,1 +1,1 @@
-%~dp0\dcinst.exe -reflect
+"%~dp0dcinst.exe" -reflect
