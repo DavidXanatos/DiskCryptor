@@ -382,7 +382,11 @@ PartitionTryDecrypt()
 
 			mount->flags    = header.flags;
 			mount->tmp_size = header.tmp_size / SECTOR_SIZE;
-			mount->stor_off = header.stor_off / SECTOR_SIZE;
+			if (header.flags & VF_STORAGE_FILE) {
+				mount->stor_off = header.stor_off / SECTOR_SIZE;
+			} else {
+				mount->stor_off = (mount->size - sizeof(dc_header)) / SECTOR_SIZE;
+			}
 			mount->disk_id  = header.disk_id;
 		
 			mount->d_key      = &iodb.p_key[iodb.n_key++];
