@@ -207,6 +207,7 @@
 	ror	%4D,  1
 %endmacro
 
+section text
 global twofish256_encrypt
 global twofish256_decrypt
 
