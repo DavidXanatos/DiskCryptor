@@ -48,6 +48,9 @@ DcsConfig.c
   BaseCryptLib
   DcsTpmLib
 
+[Guids]
+gEfiPartTypeUnusedGuid
+
 [Protocols]
 
 

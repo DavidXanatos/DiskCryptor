@@ -37,8 +37,8 @@ https://opensource.org/licenses/LGPL-3.0
 #include "DcsConfig.h"
 #include <Guid/EventGroup.h>
 
-EFI_DEVICE_PATH*  gDcsBoot;
-//UINTN             gDcsBootSize;
+static EFI_DEVICE_PATH*  gDcsBoot;
+//static UINTN             gDcsBootSize;
 
 #pragma pack(1)
 typedef struct _BOOT_PARAMS {
@@ -50,22 +50,22 @@ typedef struct _BOOT_PARAMS {
 } BOOT_PARAMS, *PBOOT_PARAMS;
 #pragma pack()
 
-UINT32                  gHeaderSaltCrc32 = 0;
-PBOOT_PARAMS            bootParams = NULL;
+static UINT32                  gHeaderSaltCrc32 = 0;
+static PBOOT_PARAMS            bootParams = NULL;
 // #define EFI_BOOTARGS_REGIONS_TEST ,0x9000000, 0xA000000
 #define EFI_BOOTARGS_REGIONS_TEST
-UINTN BootArgsRegions[] = { EFI_BOOTARGS_REGIONS_HIGH, EFI_BOOTARGS_REGIONS_LOW EFI_BOOTARGS_REGIONS_TEST };
+static UINTN BootArgsRegions[] = { EFI_BOOTARGS_REGIONS_HIGH, EFI_BOOTARGS_REGIONS_LOW EFI_BOOTARGS_REGIONS_TEST };
 
-CHAR8      Header[512];
-UINT32     BootDriveSignature = 0;
-EFI_GUID   BootDriveSignatureGpt;
+static CHAR8      Header[512];
+static UINT32     BootDriveSignature = 0;
+static EFI_GUID   BootDriveSignatureGpt;
 
-EFI_HANDLE              SecRegionHandle = NULL;
-UINT64                  SecRegionSector = 0;
-UINT8*                  SecRegionData = NULL;
-UINTN                   SecRegionSize = 0;
-UINTN                   SecRegionOffset = 0;
-PCRYPTO_INFO            SecRegionCryptInfo = NULL;
+static EFI_HANDLE              SecRegionHandle = NULL;
+static UINT64                  SecRegionSector = 0;
+static UINT8*                  SecRegionData = NULL;
+static UINTN                   SecRegionSize = 0;
+static UINTN                   SecRegionOffset = 0;
+static PCRYPTO_INFO            SecRegionCryptInfo = NULL;
 
 VOID
 CleanSensitiveDataVC(BOOLEAN panic)

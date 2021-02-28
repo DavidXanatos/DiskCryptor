@@ -24,6 +24,37 @@
 #  VALID_ARCHITECTURES           = IA32 X64
 #
 
+[Sources]
+  crypto_fast/aes_asm.h
+  crypto_fast/aes_key.h
+  crypto_fast/aes_padlock.h
+  crypto_fast/serpent.h
+  crypto_fast/sha512.h
+  crypto_fast/sha512_pkcs5_2.h
+  crypto_fast/twofish.h
+  crypto_fast/xts_aes_ni.h
+  crypto_fast/xts_fast.h
+  crypto_fast/xts_serpent_avx.h
+  crypto_fast/xts_serpent_sse2.h
+  crypto_small/aes_small.h
+  crypto_small/sha512_small.h
+  crypto_small/sha512_pkcs5_2_small.h
+  crypto_small/serpent_small.h
+  crypto_small/twofish_small.h
+  crypto_small/xts_small.h
+  DcsDiskCryptor.h
+  emmintrin.h
+  include/volume.h
+  include/boot/bios.h
+  include/boot/boot.h
+  include/boot/boot_hook.h
+  include/boot/dc_header.h
+  include/boot/dc_io.h
+  include/boot/e820.h
+  include/boot/hdd_io.h
+  include/boot/hdd.h
+  include/defines.h
+  intrin.h
 
 [Sources.common]
   DcsDiskCryptor.c
@@ -33,14 +64,16 @@
 # Note: we use the small code for legacy 32 bit implementation
 
 [Sources.X64]
-  crypto_fast/sha512.c
-  crypto_fast/sha512_pkcs5_2.c
-  crypto_fast/sha512_hmac.c
+# crypto_fast/sha512.c          # Conflict with Sha2.c in VeraCryptLib.inf
+# crypto_fast/sha512_pkcs5_2.c  # Conflict with Sha2.c in VeraCryptLib.inf
+# crypto_fast/sha512_hmac.c     # Conflict with Sha2.c in VeraCryptLib.inf
   crypto_fast/xts_fast.c
   crypto_fast/aes_key.c
   crypto_fast/twofish.c
   crypto_fast/serpent.c
   crypto_fast/xts_serpent_sse2.c
+  crypto_small/sha512_pkcs5_2_small.c
+  crypto_small/sha512_small.c
 
 [Sources.IA32]
   crypto_small/aes_small.c

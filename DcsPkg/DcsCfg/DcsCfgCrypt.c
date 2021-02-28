@@ -40,17 +40,17 @@ https://opensource.org/licenses/LGPL-3.0
 
 #include "DcsCfg.h"
 
-PCRYPTO_INFO gAuthCryptInfo = NULL;
-PCRYPTO_INFO gHeaderCryptInfo = NULL;
-CHAR8 Header[512];
-CHAR8 BackupHeader[512];
+static PCRYPTO_INFO gAuthCryptInfo = NULL;
+static PCRYPTO_INFO gHeaderCryptInfo = NULL;
+static CHAR8 Header[512];
+static CHAR8 BackupHeader[512];
 
-EFI_HANDLE              SecRegionHandle = NULL;
-UINT64                  SecRegionSector = 0;
-UINT8*                  SecRegionData = NULL;
-UINTN                   SecRegionSize = 0;
-UINTN                   SecRegionOffset = 0;
-PCRYPTO_INFO            SecRegionCryptInfo = NULL;
+static EFI_HANDLE              SecRegionHandle = NULL;
+static UINT64                  SecRegionSector = 0;
+static UINT8*                  SecRegionData = NULL;
+static UINTN                   SecRegionSize = 0;
+static UINTN                   SecRegionOffset = 0;
+static PCRYPTO_INFO            SecRegionCryptInfo = NULL;
 
 //////////////////////////////////////////////////////////////////////////
 // Crypt helpers

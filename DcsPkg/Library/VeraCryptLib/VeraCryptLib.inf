@@ -40,6 +40,7 @@ crypto\Aestab.h
 crypto\Aes_hw_cpu.nasm
 crypto\Aes_hw_cpu.h
 crypto\config.h
+crypto\misc.h
 crypto\Rmd160.c
 crypto\Rmd160.h
 crypto\Serpent.c
@@ -60,6 +61,8 @@ crypto\Camellia.c
 crypto\Camellia.h
 crypto\cpu.c
 crypto\cpu.h
+BootCommon.h
+BootDefs.h
 DcsVeraCrypt.c
 DcsVeraCryptImpl.c
 DcsVeraCrypt.h
@@ -87,6 +90,7 @@ LIB|Camellia_x64.obj|*
   UefiLib
   RngLib
   BaseCryptLib
+  DcsIntLib
 
 [Protocols]
 
