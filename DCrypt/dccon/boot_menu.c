@@ -571,7 +571,8 @@ int boot_menu(int argc, wchar_t *argv[])
 					}
 
 					is_gpt = (dc_is_gpt_disk(i) == 1);
-					mbr_ldr = (dc_get_mbr_config(i, NULL, &conf) == ST_OK);
+					//mbr_ldr = (dc_get_mbr_config(i, NULL, &conf) == ST_OK);
+					mbr_ldr = (dc_has_dc_mbr(i) == ST_OK);
 					efi_ldr = (dc_efi_config(i, 0, &conf) == ST_OK);
 
 					if (mbr_ldr && efi_ldr) {

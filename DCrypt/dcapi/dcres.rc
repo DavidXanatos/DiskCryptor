@@ -27,6 +27,7 @@ LANGUAGE LANG_ENGLISH, SUBLANG_DEFAULT
 // EXEFILE
 //
 
+IDR_BACK                EXEFILE                 "..\\boot\\bin\\mbr_back.bin"
 IDR_MBR                 EXEFILE                 "..\\boot\\bin\\mbr_boot.bin"
 IDR_DCLDR               EXEFILE                 "..\\boot\\bin\\dcldr"
 IDR_DCLDR_SMALL         EXEFILE                 "..\\boot\\bin\\dcldr_small"

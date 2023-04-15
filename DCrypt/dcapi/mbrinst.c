@@ -576,7 +576,7 @@ static int dc_set_mbr_i(int dsk_num, int begin, int small_boot)
 		memcpy(conf->save_mbr, &old_mbr, sizeof(old_mbr));
 
 		/* prepare new MBR */
-		memcpy(mbr.data2, old_mbr.data2, sizeof(mbr.data2));
+		memcpy(mbr.data, old_mbr.data, sizeof(mbr.data));
 
 		mbr.set.sector = ldr_off / SECTOR_SIZE;
 		mbr.set.numb   = n_size / SECTOR_SIZE;
@@ -629,6 +629,42 @@ int dc_set_mbr(int dsk_num, int begin, int small_boot)
 	} else {
 		resl = dc_set_mbr_i(dsk_num, begin, small_boot);
 	}
+	return resl;
+}
+
+int dc_has_dc_mbr(int dsk_num)
+{
+	dc_mbr      mbr;
+	int         resl;
+	dc_disk_p  *dp;
+
+	dp = NULL;
+	do
+	{
+		if ((dp = dc_disk_open(dsk_num, 0)) == NULL) {
+			resl = ST_ERROR; break;
+		}
+
+		if (IS_INVALID_SECTOR_SIZE(dp->bps) != 0) {
+			resl = ST_INV_SECT; break;
+		}
+
+		/* read disk MBR */
+		if ((resl = dc_disk_read(dp, &mbr, sizeof(mbr), 0)) != ST_OK) {
+			break;
+		}
+
+		if ((mbr.magic != 0xAA55) || (dc_fs_type(pv(&mbr)) != FS_UNK)) {
+			resl = ST_MBR_ERR; break;
+		}
+
+		if ((mbr.sign != NEW_SIGN) && (mbr.sign != OLD_SIGN)) {
+			resl = ST_NF_FILE; break;
+		}
+
+		resl = ST_OK;
+	} while (0);
+
 	return resl;
 }
 
@@ -962,6 +998,8 @@ static int dc_unset_mbr_i(int dsk_num)
 	void       *data;
 	u64         offs;
 	dc_disk_p  *dp;
+	int         backsz;
+	void       *back;
 
 	data = NULL; dp = NULL;
 	do
@@ -981,14 +1019,20 @@ static int dc_unset_mbr_i(int dsk_num)
 		if ( (resl = dc_disk_read(dp, data, size, offs)) != ST_OK ) {				
 			break;
 		}
-		if ( (cnf = dc_find_conf(data, size)) == NULL ) {				
+		if ( (cnf = dc_find_conf(data, size)) != NULL ) {
+			/* copy saved old MBR */
+			memcpy(&old_mbr, cnf->save_mbr, sizeof(old_mbr));
+		}
+		else if ((back = dc_extract_rsrc(&backsz, IDR_BACK)) != NULL) {
+			/* copy standard backup MBR */
+			memcpy(&old_mbr, back, sizeof(old_mbr));
+		}
+		else {
 			resl = ST_BLDR_NO_CONF; break;
 		}
-		/* copy saved old MBR */
-		memcpy(&old_mbr, cnf->save_mbr, sizeof(old_mbr));
 
 		/* copy new partition table to old MBR */
-		memcpy(old_mbr.data2, mbr.data2, sizeof(mbr.data2));
+		memcpy(old_mbr.data, mbr.data, sizeof(mbr.data));
 
 		/* zero bootloader sectors */
 		memset(&mbr, 0, sizeof(mbr));
