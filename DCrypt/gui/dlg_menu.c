@@ -1,7 +1,7 @@
 /*
     *
     * DiskCryptor - open source partition encryption tool
-	* Copyright (c) 2019-2020
+	* Copyright (c) 2019-2023
 	* DavidXanatos <info@diskcryptor.org>
 	* Copyright (c) 2007-2010
 	* ntldr <ntldr@diskcryptor.net> PGP key ID - 0xC48251EB4F8E4E6E
@@ -645,6 +645,30 @@ void _menu_encrypt(
 	}
 }
 
+void _menu_encrypt2(
+	_dnode *node
+)
+{
+	int rlt = ST_OK;
+	wchar_t path[MAX_PATH];
+
+	rlt = dc_get_pending_header_nt(node->mnt.info.device, path);
+	if ( rlt == ST_OK )
+	{
+		rlt = dc_start_encrypt2(node->mnt.info.device, path);
+	}
+
+	if ( rlt != ST_OK ) 
+	{
+		__error_s(
+			__dlg, L"Error start pending encrypt volume [%s]", rlt, node->mnt.info.status.mnt_point
+		);
+	} else {
+		_create_act_thread(node, ACT_ENCRYPT, ACT_RUNNING);		
+		_activate_page( );
+
+	}
+}
 
 void _menu_wizard(
 		_dnode *node

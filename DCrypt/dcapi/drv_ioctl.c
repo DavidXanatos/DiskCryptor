@@ -1,7 +1,7 @@
 ﻿/*
     *
     * DiskCryptor - open source partition encryption tool
-	* Copyright (c) 2019-2020 
+	* Copyright (c) 2019-2023
 	* DavidXanatos <info@diskcryptor.org>
 	* Copyright (c) 2008-2013
 	* ntldr <ntldr@diskcryptor.net> PGP key ID - 0xC48251EB4F8E4E6E
@@ -27,7 +27,6 @@
 #include "misc.h"
 #include "dcapi.h"
 #include <winternl.h>
-
 
 int dc_open_device()
 {
@@ -446,6 +445,40 @@ int dc_start_encrypt(wchar_t *device, dc_pass *password, crypt_info *crypt)
 
 		succs = DeviceIoControl(
 			TlsGetValue(g_tls_index), DC_CTL_ENCRYPT_START,
+			dctl, sizeof(dc_ioctl), dctl, sizeof(dc_ioctl), &bytes, NULL);
+
+		if (succs == 0) {
+			resl = ST_ERROR; break;
+		}
+
+		resl = dctl->status;
+	} while (0);
+
+	if (dctl != NULL) {
+		secure_free(dctl);
+	}
+
+	return resl;
+}
+
+int dc_api dc_start_encrypt2(wchar_t *device, wchar_t *path)
+{
+	dc_ioctl *dctl;
+	u32       bytes;
+	int       resl;
+	int       succs;
+
+	do
+	{
+		if ( (dctl = secure_alloc(sizeof(dc_ioctl))) == NULL ) {
+			resl = ST_NOMEM; break;
+		}
+
+		wcscpy(dctl->device, device);
+		wcscpy(dctl->path, path);
+
+		succs = DeviceIoControl(
+			TlsGetValue(g_tls_index), DC_CTL_ENCRYPT_START2,
 			dctl, sizeof(dc_ioctl), dctl, sizeof(dc_ioctl), &bytes, NULL);
 
 		if (succs == 0) {

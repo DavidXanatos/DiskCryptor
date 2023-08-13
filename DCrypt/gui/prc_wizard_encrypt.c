@@ -1,7 +1,7 @@
 /*
     *
     * DiskCryptor - open source partition encryption tool
-	* Copyright (c) 2019-2020
+	* Copyright (c) 2019-2023
 	* DavidXanatos <info@diskcryptor.org>
 	* Copyright (c) 2007-2010
 	* ntldr <ntldr@diskcryptor.net> PGP key ID - 0xC48251EB4F8E4E6E
@@ -242,7 +242,26 @@ void _run_wizard_action(
 
 				if ( pass != NULL )
 				{
-					node->dlg.rlt = dc_start_encrypt( node->mnt.info.device, pass, &crypt );
+					if ( sheets[WPAGE_ENC_STOP].show )
+					{
+						node->dlg.rlt = dc_prep_encrypt(node->mnt.info.device, pass, &crypt);
+
+						if (node->dlg.rlt == ST_OK)
+						{
+							if (__msg_q(HWND_DESKTOP,
+								L"The bootloader has been configured, after the reboot it should show you a password prompt.\n"
+								L"You can abort by pressing escape instead of entering a password.\n"
+								L"Do you want to restart your computer now?"))
+							{
+								_reboot();
+							}
+							node->dlg.rlt = ST_CANCEL; // not cancel after reboot it will be resumed
+						}
+					}
+					else
+					{
+						node->dlg.rlt = dc_start_encrypt(node->mnt.info.device, pass, &crypt);
+					}
 					secure_free(pass);
 				}
 			}
@@ -286,12 +305,17 @@ int _get_info_install_boot_page(
 	int boot_disk_1;
 	int boot_disk_2;
 
+	DC_FLAGS flags;
+
 	int rlt = ST_ERROR;
 
-	sheets[WPAGE_ENC_BOOT].show = FALSE;	
+	sheets[WPAGE_ENC_BOOT].show = FALSE;
+	sheets[WPAGE_ENC_STOP].show = FALSE;
 	if ( _is_boot_device(vol) )
 	{
 		sheets[WPAGE_ENC_BOOT].show = TRUE;
+		if(__is_efi_boot)
+			sheets[WPAGE_ENC_STOP].show = TRUE;
 	}
 
 	rlt = dc_get_drive_info( vol->w32_device, &drv );
@@ -305,9 +329,10 @@ int _get_info_install_boot_page(
 	{	
 		// check if bootloader is present and if so skip the bootloader instalation page
 		if ( dc_get_ldr_config( boot_disk_1, &conf ) == ST_OK )
-		{
 			sheets[WPAGE_ENC_BOOT].show = FALSE;
-		}
+		// check if bootloader is active and if so skip the stop page
+		if ( (dc_device_control(DC_CTL_GET_FLAGS, NULL, 0, &flags, sizeof(flags)) == NO_ERROR) && (flags.load_flags & DST_BOOTLOADER) )			
+			sheets[WPAGE_ENC_STOP].show = FALSE;
 	}
 	return rlt;
 
@@ -466,7 +491,8 @@ int _init_wizard_encrypt_pages(
 		_update_layout( node, -1, &kbd_layout );
 
 		_init_combo( GetDlgItem(hwnd, IDC_COMBO_KBLAYOUT), kb_layouts, kbd_layout, FALSE, -1 );
-		SetWindowText(GetDlgItem( hwnd, IDC_USE_KEYFILES), boot_device ? IDS_USE_KEYFILE : IDS_USE_KEYFILES );
+		SetWindowText( GetDlgItem( hwnd, IDC_USE_KEYFILES), boot_device ? IDS_USE_KEYFILE : IDS_USE_KEYFILES );
+		EnableWindow( GetDlgItem( hwnd, IDC_USE_KEYFILES), boot_device ? FALSE : TRUE );
 
 		_sub_class( GetDlgItem(hwnd, IDC_CHECK_SHOW), SUB_STATIC_PROC, HWND_NULL );
 		_set_check( hwnd, IDC_CHECK_SHOW, FALSE );
@@ -630,18 +656,19 @@ _wizard_encrypt_dlg_proc(
 	static _wz_sheets 
 	sheets[ ] = 
 	{
-		{ DLG_WIZ_ISO,      0, TRUE,	IDE_ISO_SRC_PATH,    0 },
-		{ DLG_WIZ_FORMAT,   0, TRUE,	IDC_COMBO_FS_LIST,   0 },
-		{ DLG_WIZ_CONF,     0, TRUE,	IDC_COMBO_ALGORT,    0 },
-		{ DLG_WIZ_LOADER,   0, TRUE,	IDC_COMBO_BOOT_INST, 0 },
-		{ DLG_WIZ_PASS,     0, TRUE,	IDE_PASS,            0 },
-		{ DLG_WIZ_PROGRESS, 0, TRUE,	-1,                  0 },
+		{ DLG_WIZ_ISO,      0, TRUE,	IDE_ISO_SRC_PATH,    0 },	// WPAGE_ENC_ISO
+		{ DLG_WIZ_FORMAT,   0, TRUE,	IDC_COMBO_FS_LIST,   0 },	// WPAGE_ENC_FRMT
+		{ DLG_WIZ_CONF,     0, TRUE,	IDC_COMBO_ALGORT,    0 },	// WPAGE_ENC_CONF
+		{ DLG_WIZ_LOADER,   0, TRUE,	IDC_COMBO_BOOT_INST, 0 },	// WPAGE_ENC_BOOT
+		{ DLG_WIZ_PASS,     0, TRUE,	IDE_PASS,            0 },	// WPAGE_ENC_PASS
+		{ DLG_WIZ_PROGRESS, 0, TRUE,	-1,                  0 },	// WPAGE_ENC_PROGRESS
+		{ DLG_WIZ_STOP,     0, TRUE,	-1,                  0 },	// WPAGE_ENC_STOP
 		{ -1, 0, TRUE }
 	};
 
 	static int enc_sheets[ ][WZR_MAX_STEPS] = 
 	{
-		{ 2,  3,  4, -1  }, // ACT_ENCRYPT
+		{ 2,  3,  4,  6  }, // ACT_ENCRYPT
 		{ 2,  4, -1, -1  }, // ACT_DECRYPT
 		{ 2, -1, -1, -1  }, // ACT_REENCRYPT
 		{ 1,  2,  4, -1  }, // ACT_FORMAT
@@ -753,7 +780,7 @@ _wizard_encrypt_dlg_proc(
 						_run_wizard_action(hwnd, pv(&sheets), node);
 					}
 				}
-				if ( node->dlg.act_type == ACT_REENCRYPT )
+				if ( node->dlg.act_type == ACT_REENCRYPT || (node->dlg.act_type == ACT_ENCRYPT && sheets[index].id == DLG_WIZ_STOP ))
 				{
 					EnableWindow(GetDlgItem(hwnd, IDOK), TRUE);
 				}

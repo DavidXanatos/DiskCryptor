@@ -89,14 +89,14 @@ typedef struct _ldr_config {
 	unsigned char save_mbr[512]; // saved original MBR
 	unsigned long timeout;       // authorization timeout (used when the LDR_OP_EPS_TMO flag is on)
 	unsigned char emb_key[64];   // key in the bootloader
-
 	char ago_msg[128];           // message text of the authorization started
 	char aok_msg[128];           // message text of the authorization successfull
 
 	char reserved[2982];         // 4k total
 } ldr_config;
 
-//const t = sizeof(ldr_config)
+//const t = sizeof(ldr_config);
+
 
 #define E820MAX	64 // number of entries in E820MAP
 
@@ -154,30 +154,54 @@ typedef struct _lba_p {
 
 } lba_p;
 
+#define BDB_SIGN1 0x01F53F55
+#define BDB_SIGN2 0x9E4361E4
+#define BDB_SIGN3 0x55454649
+
+#define BDB_BF_HDR_FOUND	1
+
 typedef struct _bd_data {	
 	unsigned long  sign1;
 	unsigned long  sign2;
 	unsigned long  bd_base;   // boot data block base
 	unsigned long  bd_size;   // boot data block size (including stack)
 	dc_pass        password;  // bootauth password
-	unsigned long  old_int15; // old int15 handler
-	unsigned long  old_int13; // old int13 handler
 	
-	// volatile data
-	unsigned long  ret_32; // return address for RM <-> PM jump
-	unsigned long  esp_16; // real mode stack
-	unsigned short ss_16;  // real mode ss
-	unsigned long  esp_32; // pmode stack
-	unsigned long  segoff; // real mode call seg/off
-	void   (*jump_rm)();   // real mode jump proc
-	void   (*call_rm)();   // real mode call proc
-	void   (*hook_ints)(); // hook interrupts proc
-	void    *int_cbk;      // protected mode callback
-	unsigned char  boot_dsk; // boot disk number
-	rm_ctx         rmc;      // real mode call context
-	unsigned short push_fl;  // flags pushed to stack
-	e820map        mem_map;  // new memory map
+	union {
+		char extra[0];
+
+		struct {
+			unsigned long  old_int15; // old int15 handler
+			unsigned long  old_int13; // old int13 handler
+
+			// volatile data
+			unsigned long  ret_32; // return address for RM <-> PM jump
+			unsigned long  esp_16; // real mode stack
+			unsigned short ss_16;  // real mode ss
+			unsigned long  esp_32; // pmode stack
+			unsigned long  segoff; // real mode call seg/off
+			void   (*jump_rm)();   // real mode jump proc
+			void   (*call_rm)();   // real mode call proc
+			void   (*hook_ints)(); // hook interrupts proc
+			void* int_cbk;      // protected mode callback
+			unsigned char  boot_dsk; // boot disk number
+			rm_ctx         rmc;      // real mode call context
+			unsigned short push_fl;  // flags pushed to stack
+			e820map        mem_map;  // new memory map
+		} legacy;
+
+		struct {
+			unsigned long  sign3; // old int15 handler
+			unsigned long  zero;  // old int13 handler
+
+			// uefi data
+			long flags;
+		} uefi;
+
+	} u;
 } bd_data;
+
+//const t = sizeof(bd_data); // 1657
 
 #pragma pack (pop)
 

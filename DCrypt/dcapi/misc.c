@@ -1,7 +1,7 @@
 ﻿/*
     *
     * DiskCryptor - open source partition encryption tool
-	* Copyright (c) 2019-2020 
+	* Copyright (c) 2019-2023 
 	* DavidXanatos <info@diskcryptor.org>
 	* Copyright (c) 2008-2011
 	* ntldr <ntldr@diskcryptor.net> PGP key ID - 0xC48251EB4F8E4E6E
@@ -641,6 +641,7 @@ wchar_t *dc_get_status_str(int resl)
 	case ST_INV_FORMAT: return L"disk has incompatible partition format";
 	case ST_NO_OPEN_DIR: return L"can not open directory";
 	case ST_DIR_NOT_EMPTY: return L"directory is not empty";
+	case ST_BL_NOT_PASSED: return L"bootloader check not passed";
 	default: return NULL;
 	}
 }

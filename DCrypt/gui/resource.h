@@ -86,6 +86,7 @@
 #define IDR_MAIN_ACCEL                  174
 #define DLG_CONF_EXTENDED               175
 #define DLG_CONF_EXTNDED                175
+#define DLG_WIZ_STOP					176
 #define IDC_DRIVER_VER                  206
 #define IDB_PREF_GENERAL                305
 #define IDB_PREF_HOTKEYS                306

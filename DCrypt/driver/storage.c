@@ -1,6 +1,8 @@
 /*
     *
     * DiskCryptor - open source partition encryption tool
+	* Copyright (c) 2019-2023
+	* DavidXanatos <info@diskcryptor.org>
     * Copyright (c) 2008-2010
     * ntldr <ntldr@diskcryptor.net> PGP key ID - 0xC48251EB4F8E4E6E
     *
@@ -119,7 +121,7 @@ static int dc_fill_dcsys(HANDLE h_file)
 	return NT_SUCCESS(status) != FALSE;
 }
 
-static void dc_delete_file(HANDLE h_file)
+void dc_delete_file(HANDLE h_file)
 {
 	FILE_BASIC_INFORMATION       binf = { {0}, {0}, {0}, {0}, FILE_ATTRIBUTE_NORMAL };
 	FILE_DISPOSITION_INFORMATION dinf = { TRUE };

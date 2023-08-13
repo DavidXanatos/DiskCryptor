@@ -24,6 +24,7 @@
 #include "prc_main.h"
 
 #include "dlg_drives_list.h"
+#include "drives_list.h"
 #include "dlg_menu.h"
 
 #include "hotkeys.h"

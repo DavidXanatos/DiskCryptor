@@ -7,6 +7,7 @@
 #define WPAGE_ENC_BOOT			3
 #define WPAGE_ENC_PASS			4
 #define WPAGE_ENC_PROGRESS		5
+#define WPAGE_ENC_STOP			6
 
 INT_PTR 
 CALLBACK

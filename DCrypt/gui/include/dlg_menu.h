@@ -20,6 +20,10 @@ void _menu_encrypt(
 		_dnode *node
 	);
 
+void _menu_encrypt2(
+		_dnode *node
+	);
+
 void _menu_reencrypt( 
 		_dnode *node 
 	);

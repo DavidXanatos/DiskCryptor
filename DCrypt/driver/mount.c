@@ -1,6 +1,8 @@
 /*
     *
     * DiskCryptor - open source partition encryption tool
+	* Copyright (c) 2019-2023
+	* DavidXanatos <info@diskcryptor.org>
     * Copyright (c) 2007-2008 
     * ntldr <ntldr@diskcryptor.net> PGP key ID - 0xC48251EB4F8E4E6E
     *
@@ -36,6 +38,7 @@
 #include "disk_info.h"
 #include "device_io.h"
 #include "header_io.h"
+#include "storage.h"
 
 typedef struct _dsk_pass {
 	struct _dsk_pass *next;
@@ -93,6 +96,8 @@ void dc_clean_pass_cache()
 	dsk_pass *d_pass;
 	dsk_pass *c_pass;
 	int       loirql;
+
+	DbgMsg("dc_clean_pass_cache\n");
 
 	if (loirql = (KeGetCurrentIrql() == PASSIVE_LEVEL)) {
 		KeEnterCriticalRegion();
@@ -599,4 +604,80 @@ void dc_init_mount()
 {
 	ExInitializeResourceLite(&p_resource);
 	f_pass = NULL;
+}
+
+int dc_get_pending_encrypt(wchar_t* path, dc_pass **pass, crypt_info *crypt)
+{
+	OBJECT_ATTRIBUTES obj_a;
+	UNICODE_STRING    u_name;	
+	IO_STATUS_BLOCK   iosb;
+	HANDLE            h_file;
+	xts_key			 *hdr_key;
+	dsk_pass		 *d_pass;	
+	int				  resl, succs;
+	dc_header		 *header = NULL;
+
+	RtlInitUnicodeString(&u_name, path);
+	InitializeObjectAttributes(&obj_a, &u_name, OBJ_KERNEL_HANDLE, NULL, NULL);
+
+	if (NT_SUCCESS(ZwCreateFile(&h_file, GENERIC_READ, &obj_a, &iosb, NULL, FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_SYSTEM | FILE_ATTRIBUTE_READONLY, 0, 
+		FILE_OPEN, FILE_SYNCHRONOUS_IO_NONALERT | FILE_NON_DIRECTORY_FILE | FILE_WRITE_THROUGH, NULL, 0)) == FALSE) {
+		return ST_NF_FILE;
+	}
+
+	do
+	{
+		if ( (header = mm_secure_alloc(sizeof(dc_header))) == NULL ) {
+			resl = ST_NOMEM; break;
+		}
+		if ( (hdr_key = mm_secure_alloc(sizeof(xts_key))) == NULL ) {
+			resl = ST_NOMEM; break;
+		}
+
+		if (!NT_SUCCESS(ZwReadFile(h_file, NULL, NULL, NULL, &iosb, header, sizeof(dc_header), NULL, NULL))) {
+			resl = ST_RW_ERR; break;
+		}
+		
+		KeEnterCriticalRegion();
+		ExAcquireResourceSharedLite(&p_resource, TRUE);
+
+		for (d_pass = f_pass; d_pass; d_pass = d_pass->next)
+		{
+			if (succs = cp_decrypt_header(hdr_key, header, &d_pass->pass)) {
+				break;
+			}
+		}
+
+		if (succs) {
+			if ( (*pass = mm_secure_alloc(sizeof(dc_pass))) == NULL ) {
+				resl = ST_NOMEM;
+			} else {
+				memcpy(*pass, &d_pass->pass, sizeof(dc_pass));
+				resl = ST_OK;
+			}
+		} else {
+			resl = ST_PASS_ERR;
+		}
+
+		ExReleaseResourceLite(&p_resource);
+		KeLeaveCriticalRegion();
+
+		if (resl != ST_OK) break;
+		
+		crypt->cipher_id = header->alg_1;
+		crypt->wp_mode = header->tmp_wp_mode;
+
+		dc_delete_file(h_file);
+
+	} while (0);
+
+	if (header != NULL) {
+		mm_secure_free(header);
+	}
+	if (hdr_key != NULL) {
+		mm_secure_free(hdr_key);
+	}
+	ZwClose(h_file);
+
+	return resl;
 }

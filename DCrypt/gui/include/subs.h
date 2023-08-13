@@ -11,6 +11,7 @@
 
 int __msg_i( HWND hwnd, wchar_t *format, ... );
 int __msg_q( HWND hwnd, wchar_t *format, ... );
+int __msg_q3( HWND hwnd, wchar_t *format, ... );
 
 #define __msg_e( hwnd, display ) ( \
 		MessageBox( hwnd, display, L"Error", MB_OK | MB_ICONERROR) \

@@ -1,9 +1,6 @@
 #ifndef _DLGDRIVESLIST_
 #define _DLGDRIVESLIST_
 
-int _list_volumes(
-		list_entry *volumes
-	);
 
 void _load_diskdrives(
 		HWND        hwnd,
