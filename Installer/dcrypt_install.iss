@@ -67,7 +67,7 @@ var
   DrvVersion: Cardinal;
 begin
 
-  MsgBox('This is a BETA release, use it at your own risk!'#13#10'This tool is provided on an "as is" basis, with no warranty of any kind, express or implied.', mbError, MB_OK);
+  SuppressibleMsgBox('This is a BETA release, use it at your own risk!'#13#10'This tool is provided on an "as is" basis, with no warranty of any kind, express or implied.', mbError, MB_OK);
 
   GetWindowsVersionEx(Version);
 
