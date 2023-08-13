@@ -2,9 +2,9 @@
 
 DiskCryptor is an open source encryption solution that offers encryption of all disk partitions, including system partitions. DiskCryptor's openness is in sharp contrast with other encryption software today, where most of the software with comparable functionality is completely proprietary, making it unacceptable to use for protection of confidential data.
 
-Originally DiskCryptor was developed as a replacement for DriveCrypt Plus Pack and PGP WDE by ntldr back at [diskcryptor.net](https://diskcryptor.net), however since development has stopped since 2014 we decided to continue the development on our own here. The new releases of DiskCryptor are meant as a replacement for BitLocker from Microsoft as **[BitLocker can NOT be considered secure](https://www.diskcryptor.org/why-not-bitlocker/)**.
+Originally DiskCryptor was developed as a replacement for DriveCrypt Plus Pack and PGP WDE by ntldr, however since development has stopped since 2014 we decided to continue the development on our own here. 
 
-We have updated DiskCryptor for use with windows 10, adding a UEFI/GPT bootloader as well as other minor fixes to improve windows 10 compatibility. We aim at further improving and maintaining windows 10 compatibility.
+We have updated DiskCryptor for use with windows 10 and 11, adding a UEFI/GPT bootloader as well as other minor fixes to improve windows 10 compatibility. We aim at further improving and maintaining windows 10 compatibility.
 
 This website, for now, mostly mirrors information from the old wiki, as we develop new features new content will be added to reflect the changes in the new builds.
 
