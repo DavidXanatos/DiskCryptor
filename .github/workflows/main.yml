@@ -29,12 +29,11 @@ jobs:
         with:
           name: DCrypt
           path: |
-            DCrypt/Bin/Release_amd64/*
-            DCrypt/Bin/Release_i386/*
-            !**/*.pdb
-            !**/*.ipdb
-            !**/*.exp
-            !**/*.ilk
-            !**/*.iobj
-            !**/*.lib
-            !**/*.cer
+            DCrypt/Bin/Release_amd64/*.exe
+            DCrypt/Bin/Release_amd64/*.dll
+            DCrypt/Bin/Release_amd64/*.sys
+            DCrypt/Bin/Release_amd64/*.pdb
+            DCrypt/Bin/Release_i386/*.exe
+            DCrypt/Bin/Release_i386/*.dll
+            DCrypt/Bin/Release_i386/*.sys
+            DCrypt/Bin/Release_i386/*.pdb
