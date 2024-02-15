@@ -29,8 +29,8 @@ jobs:
         with:
           name: DCrypt
           path: |
-            DCrypt/Bin/Release_amd64/
-            DCrypt/Bin/Release_i386/
+            DCrypt/Bin/Release_amd64/*
+            DCrypt/Bin/Release_i386/*
             !**/*.pdb
             !**/*.ipdb
             !**/*.exp
