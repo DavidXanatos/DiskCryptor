@@ -112,8 +112,8 @@
     <GenerateManifest>false</GenerateManifest>
     <TargetExt>.sys</TargetExt>
     <TargetName>dcrypt</TargetName>
-    <IncludePath>C:\WinDDK\7600.16385.1\inc\ddk;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\WinDDK\7600.16385.1\lib\win7\i386;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)\tools\ddk7.1\inc\ddk;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)\tools\ddk7\lib\win7\i386;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)Bin\$(Configuration)_amd64\</OutDir>
@@ -121,8 +121,8 @@
     <GenerateManifest>false</GenerateManifest>
     <TargetExt>.sys</TargetExt>
     <TargetName>dcrypt</TargetName>
-    <IncludePath>C:\WinDDK\7600.16385.1\inc\ddk;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\WinDDK\7600.16385.1\lib\win7\amd64;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)\tools\ddk7\inc\ddk;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)\tools\ddk7\lib\win7\amd64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
