@@ -112,7 +112,7 @@
     <GenerateManifest>false</GenerateManifest>
     <TargetExt>.sys</TargetExt>
     <TargetName>dcrypt</TargetName>
-    <IncludePath>$(SolutionDir)\tools\ddk7.1\inc\ddk;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\tools\ddk7\inc\ddk;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)\tools\ddk7\lib\win7\i386;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
