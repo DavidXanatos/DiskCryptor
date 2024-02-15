@@ -1,6 +1,8 @@
 /*
     *
     * DiskCryptor - open source partition encryption tool
+	* Copyright (c) 2019-2023
+	* DavidXanatos <info@diskcryptor.org>
     * Copyright (c) 2007-2013 
     * ntldr <ntldr@diskcryptor.net> PGP key ID - 0xC48251EB4F8E4E6E
     *
@@ -112,10 +114,22 @@ static int dc_ioctl_process(u32 code, dc_ioctl *data)
 		break;
 		case DC_CTL_ENCRYPT_START:
 			{
-				resl = dc_encrypt_start(data->device, &data->passw1, &data->crypt);
+				resl = dc_encrypt_start(data->device, &data->passw1, &data->crypt, FALSE);
 
 				if ( (resl == ST_OK) && (dc_conf_flags & CONF_CACHE_PASSWORD) ) {
 					dc_add_password(&data->passw1);
+				}
+			}
+		break;
+		case DC_CTL_ENCRYPT_START2:
+			{
+				dc_pass* pass = NULL;
+				crypt_info crypt;
+				resl = dc_get_pending_encrypt(data->path, &pass, &crypt);
+
+				if ( (resl == ST_OK) ) {
+					resl = dc_encrypt_start(data->device, pass, &crypt, TRUE);
+					mm_secure_free(pass);
 				}
 			}
 		break;
@@ -256,6 +270,7 @@ NTSTATUS dc_drv_control_irp(PDEVICE_OBJECT dev_obj, PIRP irp)
 			}
 			((PDC_FLAGS)irp->AssociatedIrp.SystemBuffer)->conf_flags = dc_conf_flags;
 			((PDC_FLAGS)irp->AssociatedIrp.SystemBuffer)->load_flags = dc_load_flags;
+			((PDC_FLAGS)irp->AssociatedIrp.SystemBuffer)->boot_flags = dc_boot_flags;
 			status = STATUS_SUCCESS;
 			length = sizeof(DC_FLAGS);
 		break;

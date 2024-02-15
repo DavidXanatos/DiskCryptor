@@ -3,7 +3,7 @@
 
 #include "defines.h"
 
-#define DC_VOLM_SIGN 0x50524344
+#define DC_VOLUME_SIGN 0x50524344
 
 // Header key derivation
 #define PKCS5_SALT_SIZE			64

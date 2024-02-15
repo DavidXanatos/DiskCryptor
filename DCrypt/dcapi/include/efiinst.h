@@ -36,4 +36,9 @@ int dc_api dc_efi_set_bme(wchar_t* description, int dsk_num);
 int dc_api dc_efi_del_bme();
 int dc_api dc_efi_is_bme_set(int dsk_num);
 
+int dc_api dc_prep_encrypt(const wchar_t *device, struct _dc_pass *password, struct _crypt_info *crypt);
+int dc_api dc_has_pending_header(const wchar_t* device);
+int dc_api dc_clear_pending_header(const wchar_t* device);
+int dc_api dc_get_pending_header_nt(const wchar_t* device, wchar_t* path);
+
 #endif

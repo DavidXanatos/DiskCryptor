@@ -1,7 +1,7 @@
 /*
     *
     * DiskCryptor - open source partition encryption tool
-	* Copyright (c) 2019-2020
+	* Copyright (c) 2019-2023
 	* DavidXanatos <info@diskcryptor.org>
 	* Copyright (c) 2008-2010 
 	* ntldr <ntldr@diskcryptor.net> PGP key ID - 0xC48251EB4F8E4E6E
@@ -53,7 +53,7 @@ static wchar_t   boot_dev[MAX_PATH];
 static void print_usage()
 {
 	wprintf(
-		L"DiskCryptor (c) <ntldr@diskcryptor.net> PGP key ID - 0xC48251EB4F8E4E6E\n"
+		L"DiskCryptor (c) <info@diskcryptor.org>\n"
 		L"\n"
 		L"Usage: dccon [key] [param]\n"
 		L"________________________________________________________________________________\n"
@@ -588,6 +588,8 @@ int dc_set_efi_boot_interactive(int d_num, int shim, int add_bme)
 	int        resl;
 	int        repalce_ms = 0;
 
+	if (shim == -1) shim = dc_efi_is_secureboot();
+
 	if (add_bme == -1) {
 		wprintf(L"Do you want to add a DCS loader boot menu entry (recommended). Y/N?\n");
 		add_bme = (tolower(_getch()) == 'y');
@@ -598,7 +600,7 @@ int dc_set_efi_boot_interactive(int d_num, int shim, int add_bme)
 		wprintf(L"Note: Some EFI implementations are not adhering to the standard and always start the windows bootloader.\n");
 
 		if (shim) {
-			wprintf(L"Shil loader is used, hence a workaround for this issue cannot be applied.\n");
+			wprintf(L"Shim loader is used, hence a workaround for this issue cannot be applied.\n");
 		}
 		else {
 			wprintf(L"Do you want to replace the windows bootloader file (BOOTMGFW.EFI) with a redirection to the DCS loader as a workaround? Y/N?\n");
@@ -1023,6 +1025,7 @@ int wmain(int argc, wchar_t *argv[])
 		{
 			dc_pass   *pass;			
 			crypt_info crypt;
+			DC_FLAGS   flags;
 
 			if ( (inf = find_device(argv[2])) == NULL ) {
 				resl = ST_NF_DEVICE; break;
@@ -1075,7 +1078,7 @@ int wmain(int argc, wchar_t *argv[])
 				if (dc_get_boot_disk(&dsk_1, &dsk_2) != ST_OK)
 				{
 					wprintf(
-						L"This partition needed for system booting and bootable HDD not found\n"
+						L"This partition is needed for system booting, bootable HDD not found\n"
 						L"You must be use external bootloader\n"
 						L"Continue operation (Y/N)?\n\n"
 						);
@@ -1086,7 +1089,7 @@ int wmain(int argc, wchar_t *argv[])
 				} else if (dc_get_mbr_config(dsk_1, NULL, &conf) != ST_OK)
 				{
 					wprintf(
-						L"This partition needed for system booting\n"
+						L"This partition is needed for system booting\n"
 						L"You must install bootloader to HDD, or use external bootloader\n\n"
 						L"1 - Install to HDD\n"
 						L"2 - I already have external bootloader\n"
@@ -1114,13 +1117,82 @@ int wmain(int argc, wchar_t *argv[])
 				resl = ST_OK; break;
 			}
 
-			resl = dc_start_encrypt(inf->device, pass, &crypt);
+			if ((inf->status.flags & F_SYSTEM) && !((dc_device_control(DC_CTL_GET_FLAGS, NULL, 0, &flags, sizeof(flags)) == NO_ERROR) && (flags.load_flags & DST_BOOTLOADER)))
+			{
+				resl = dc_prep_encrypt(inf->device, pass, &crypt);
 
-			secure_free(pass);
+				secure_free(pass);
 
-			if (resl == ST_OK ) {
-				resl = dc_encrypt_loop(inf, crypt.wp_mode);
+				if (resl == ST_OK) {
+					wprintf(
+						L"\n"
+						L"The bootloader has been configured, after the reboot it should show you a password prompt.\n"
+						L"You can abort by pressing escape instead of entering a password.\n"
+						L"\n"
+						L"Run \"dccon.exe -encrypt2\" after the reboot to start pending volume encryption.\n"
+						);
+				}
 			}
+			else
+			{
+				resl = dc_start_encrypt(inf->device, pass, &crypt);
+
+				secure_free(pass);
+
+				if (resl == ST_OK) {
+					resl = dc_encrypt_loop(inf, crypt.wp_mode);
+				}
+			}
+
+			break;
+		}
+
+		if ((argc >= 2) && (wcscmp(argv[1], L"-encrypt2") == 0))
+		{
+			DC_FLAGS flags;
+			if (dc_device_control(DC_CTL_GET_FLAGS, NULL, 0, &flags, sizeof(flags)) == NO_ERROR) {
+				if ((flags.boot_flags & BDB_BF_HDR_FOUND) == 0) {
+					resl = ST_BL_NOT_PASSED; break;
+				}
+			}
+
+			resl = ST_NF_FILE;
+
+			vol_inf  info;
+			if (dc_first_volume(&info) == ST_OK)
+			{
+				do
+				{
+					if ((info.status.flags & F_ENABLED) == 0)
+					{
+						if (dc_has_pending_header(info.device)) {
+							resl = ST_OK;
+							break;
+						}
+					}
+				} while (dc_next_volume(&info) == ST_OK);
+			}
+
+			if (resl != ST_OK) {
+				break;
+			}
+
+			wprintf(
+				L"\n"
+				L"Starting pending encryption operation for: %s\n", 
+				info.device
+			);
+
+			wchar_t path[MAX_PATH];
+			resl = dc_get_pending_header_nt(info.device, path);
+			if (resl == ST_OK) {
+				resl = dc_start_encrypt2(info.device, path);
+			}
+			
+			if (resl == ST_OK) {
+				resl = dc_encrypt_loop(&info, info.status.crypt.wp_mode);
+			}
+
 			break;
 		}
 
@@ -1164,7 +1236,7 @@ int wmain(int argc, wchar_t *argv[])
 
 			secure_free(pass);
 
-			if (resl == ST_OK ) {
+			if (resl == ST_OK) {
 				resl = dc_decrypt_loop(inf);
 			}
 			break;
@@ -1215,7 +1287,7 @@ int wmain(int argc, wchar_t *argv[])
 
 			secure_free(pass);
 
-			if (resl == ST_OK ) {
+			if (resl == ST_OK) {
 				resl = dc_encrypt_loop(inf, crypt.wp_mode);
 			}
 			break;

@@ -4,7 +4,7 @@
 typedef void (*s_callback)(void*,void*,int);
 
 int  dc_enable_sync_mode(dev_hook *hook);
-int  dc_encrypt_start(wchar_t *dev_name, dc_pass *password, crypt_info *crypt);
+int  dc_encrypt_start(wchar_t *dev_name, dc_pass *password, crypt_info *crypt, BOOLEAN confirmed);
 int  dc_decrypt_start(wchar_t *dev_name, dc_pass *password);
 int  dc_reencrypt_start(wchar_t *dev_name, dc_pass *password, crypt_info *crypt);
 int  dc_send_sync_packet(wchar_t *dev_name, u32 type, void *param);

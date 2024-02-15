@@ -2,6 +2,7 @@
 // Microsoft Visual C++ generated include file.
 // Used by main.rc
 //
+#define IDR_BACK						138
 #define IDR_MBR                         139
 #define IDR_DCLDR                       140
 #define IDR_DCLDR_SMALL                 141

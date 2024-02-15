@@ -1,6 +1,8 @@
 /*
     *
     * DiskCryptor - open source partition encryption tool
+	* Copyright (c) 2019-2023
+	* DavidXanatos <info@diskcryptor.org>
     * Copyright (c) 2007-2010
     * ntldr <ntldr@diskcryptor.net> PGP key ID - 0xC48251EB4F8E4E6E
     *
@@ -623,7 +625,7 @@ void dc_sync_all_encs()
 	}
 }
 
-int dc_encrypt_start(wchar_t *dev_name, dc_pass *password, crypt_info *crypt)
+int dc_encrypt_start(wchar_t *dev_name, dc_pass *password, crypt_info *crypt, BOOLEAN confirmed)
 {
 	dc_header *header;
 	dev_hook  *hook;
@@ -646,12 +648,17 @@ int dc_encrypt_start(wchar_t *dev_name, dc_pass *password, crypt_info *crypt)
 			resl = ST_ERROR; break;
 		}
 
+		/* safety check */
+		if (!confirmed && (hook->flags & F_SYSTEM) && (dc_load_flags & DST_UEFI_BOOT) && !(dc_load_flags & DST_BOOTLOADER)) {
+			resl = ST_BL_NOT_PASSED; break;
+		}
+
 		/* verify encryption info */
 		if ( (crypt->cipher_id >= CF_CIPHERS_NUM) || (crypt->wp_mode >= WP_NUM) ) {
 			resl = ST_ERROR; break;
 		}
 
-		// get device params
+		/* get device params */
 		if ( !NT_SUCCESS(dc_fill_device_info(hook)) ) {
 			resl = ST_IO_ERROR; break;
 		}

@@ -22,6 +22,8 @@ NTSTATUS dc_probe_mount(dev_hook *hook, PIRP irp);
 
 void dc_init_mount();
 
+int dc_get_pending_encrypt(wchar_t* path, dc_pass **pass, crypt_info *crypt);
+
 #define MAX_MNT_PROBES 32
 
 #endif

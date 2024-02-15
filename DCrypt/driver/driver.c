@@ -1,6 +1,8 @@
 /*
     *
     * DiskCryptor - open source partition encryption tool
+	* Copyright (c) 2019-2023
+	* DavidXanatos <info@diskcryptor.org>
     * Copyright (c) 2007-2014
     * ntldr <ntldr@diskcryptor.net> PGP key ID - 0xC48251EB4F8E4E6E
     *
@@ -40,6 +42,7 @@
 #include "misc_mem.h"
 #include "minifilter.h"
 #include "crypto_functions.h"
+#include "bootloader.h"
 
 /* function types declaration */
 DRIVER_INITIALIZE DriverEntry;
@@ -50,6 +53,7 @@ PDEVICE_OBJECT dc_device;
 volatile long  dc_io_count;
 ULONG          dc_conf_flags; // config flags readed from registry
 ULONG          dc_load_flags; // other flags setted by driver during initialization
+ULONG          dc_boot_flags; // flags passed from the bootloader
 ULONG          dc_boot_kbs;   // bootloader base memory size in kbs
 ULONG          dc_cpu_count;  // CPU's count
 
@@ -127,7 +131,7 @@ static void dc_automount_thread(void *param)
 	dc_mount_all(NULL, 0);
 
 	/* clean cached passwords */
-	if ( (dc_conf_flags & CONF_CACHE_PASSWORD) == 0 ) {
+	if ( (dc_conf_flags & CONF_CACHE_PASSWORD) == 0 && (dc_boot_flags & BDB_BF_HDR_FOUND) == 0 ) {
 		dc_clean_pass_cache();
 	}
 	PsTerminateSystemThread(STATUS_SUCCESS);
@@ -135,12 +139,14 @@ static void dc_automount_thread(void *param)
 
 static void dc_reinit_routine(PDRIVER_OBJECT drv_obj, void *context, u32 count)
 {
+	DbgMsg("dc_reinit_routine\n");
+
 	/* initialize minifilter */
 	mf_init(drv_obj);
 
 	if (dc_conf_flags & CONF_AUTOMOUNT_BOOT) {
 		start_system_thread(dc_automount_thread, NULL, NULL);
-	} else {
+	} else if ( (dc_boot_flags & BDB_BF_HDR_FOUND) == 0 ) {
 		dc_clean_pass_cache();
 	}
 }

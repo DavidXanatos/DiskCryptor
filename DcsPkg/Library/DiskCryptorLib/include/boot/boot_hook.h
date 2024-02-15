@@ -3,12 +3,6 @@
 
 #include "hdd.h"
 
-typedef void (*set_ctx_proc)(u16 ax, rm_ctx *ctx);
-typedef int  (*bios_call_proc)(int num, rm_ctx *ctx);
-
-void set_ctx(u16 ax, rm_ctx *ctx);
-int  bios_call(int num, rm_ctx *ctx);
-
 typedef struct _boot_key {
 	u8 key[PKCS_DERIVE_MAX]; /* RAW key data    */
 	u8 alg;                  /* cipher id       */

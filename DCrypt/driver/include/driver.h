@@ -35,6 +35,7 @@
 #define DC_BACKUP_HEADER     CTL_CODE(FILE_DEVICE_UNKNOWN, 29, METHOD_BUFFERED, FILE_ANY_ACCESS)
 #define DC_RESTORE_HEADER    CTL_CODE(FILE_DEVICE_UNKNOWN, 30, METHOD_BUFFERED, FILE_ANY_ACCESS)
 #define DC_GET_DUMP_HELPERS  CTL_CODE(FILE_DEVICE_UNKNOWN, 31, METHOD_NEITHER, FILE_ANY_ACCESS)
+#define DC_CTL_ENCRYPT_START2 CTL_CODE(FILE_DEVICE_UNKNOWN, 32, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
 #define FSCTL_LOCK_VOLUME               CTL_CODE(FILE_DEVICE_FILE_SYSTEM,  6, METHOD_BUFFERED, FILE_ANY_ACCESS)
 #define FSCTL_UNLOCK_VOLUME             CTL_CODE(FILE_DEVICE_FILE_SYSTEM,  7, METHOD_BUFFERED, FILE_ANY_ACCESS)
@@ -65,7 +66,7 @@ typedef struct _dc_ioctl {
 	int        status;  /* operation status code           */
 	int        n_mount; /* number of mounted devices       */
 	crypt_info crypt;
-
+	wchar_t    path[MAX_PATH];
 } dc_ioctl;
 
 typedef struct {
@@ -111,6 +112,7 @@ typedef struct _dc_bench_info {
 typedef struct {
 	ULONG conf_flags;
 	ULONG load_flags;
+	ULONG boot_flags;
 
 } DC_FLAGS, *PDC_FLAGS;
 
@@ -143,6 +145,7 @@ typedef struct {
  extern volatile long   dc_io_count;
  extern ULONG           dc_conf_flags;
  extern ULONG           dc_load_flags;
+ extern ULONG           dc_boot_flags;
  extern ULONG           dc_boot_kbs;
  extern ULONG           dc_cpu_count;
 #endif

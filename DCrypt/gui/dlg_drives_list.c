@@ -273,7 +273,8 @@ void _list_devices(
 				if ( _is_removable_media(drv->root.dsk_num) )
 				{
 					is_gpt = (dc_is_gpt_disk(drv->root.dsk_num) == 1);
-					mbr_ldr = (dc_get_mbr_config(drv->root.dsk_num, NULL, &conf) == ST_OK);
+					//mbr_ldr = (dc_get_mbr_config(drv->root.dsk_num, NULL, &conf) == ST_OK);
+					mbr_ldr = (dc_has_dc_mbr(drv->root.dsk_num) == ST_OK);
 					efi_ldr = (dc_efi_config(drv->root.dsk_num, 0, &conf) == ST_OK);
 
 					_set_device_item(
@@ -295,7 +296,8 @@ void _list_devices(
 				if (! _is_removable_media(k) )
 				{
 					is_gpt = (dc_is_gpt_disk(k) == 1);
-					mbr_ldr = (dc_get_mbr_config(k, NULL, &conf) == ST_OK);
+					//mbr_ldr = (dc_get_mbr_config(k, NULL, &conf) == ST_OK);
+					mbr_ldr = (dc_has_dc_mbr(k) == ST_OK);
 					efi_ldr = (dc_efi_config(k, 0, &conf) == ST_OK);
 
 					_set_device_item(

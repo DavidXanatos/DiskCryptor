@@ -26,6 +26,7 @@ int dc_api dc_set_boot(wchar_t *root, int format, int small_boot);
 int dc_api dc_make_iso(wchar_t *file, int small_boot);
 int dc_api dc_make_pxe(wchar_t *file, int small_boot);
 int dc_api dc_set_mbr(int dsk_num, int begin, int small_boot);
+int dc_api dc_has_dc_mbr(int dsk_num);
 int dc_api dc_unset_mbr(int dsk_num);
 int dc_api dc_update_boot(int dsk_num);
 
@@ -47,16 +48,22 @@ u64 dc_api dc_dsk_get_size(int dsk_num, int precision);
 #pragma pack (push, 1)
 
 typedef struct _dc_mbr {
-	u8    jump[2];
-	u32   sign;
-	lba_p set;
-	u8    data1[410];
+	union
+	{
+		u8    code[440];
+		struct {
+			u8     jump[2];	// 2
+			u32    sign;	// 4
+			lba_p  set;		// 16
+		};
+	};
 	union 
 	{
-		u8  data2[78];
+		u8  data[70];
 		struct {
-			u8     pad[14];
-			pt_ent pt[4];
+			u32    dsk_sig;	// 4
+			u16    zero;	// 2
+			pt_ent pt[4];	// 4*16
 		};
 	};	
 	u16   magic;

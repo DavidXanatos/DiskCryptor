@@ -1,3 +1,11 @@
+[12.08.2023] - 1.3.0/849.118.204
+  [+] Added safe system volume encryption (botoloader is tested before anythign gets encrypted)
+
+[15.05.2023] - 1.2.3/848.118.203
+  [*] Fixed issue with Core Isolation on windows 10/11
+  [*] Improved MBR handling
+  [+] Added ability to recover MBR when it was damaged by a partitioning or backup/recovery tool
+
 [27.04.2020] - 1.2.2/848.118.202
   [+] Add compatibility with Windows 10 feature upgrade procedure using ReflectDrivers mechanism
   [*] Improved UEFI loader CLI password entry

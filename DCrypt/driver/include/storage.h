@@ -4,4 +4,6 @@
 int  dc_create_storage(dev_hook *hook, u64 *storage);
 void dc_delete_storage(dev_hook *hook);
 
+void dc_delete_file(HANDLE h_file);
+
 #endif

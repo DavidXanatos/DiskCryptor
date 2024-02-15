@@ -1,12 +1,12 @@
 # DiskCryptor
 
-DiskCryptor is an open encryption solution that offers encryption of all disk partitions, including the system partition. The fact of openess goes in sharp contrast with the current situation, where most of the software with comparable functionality is completely proprietary, which makes it unacceptable to use for protection of confidential data.
+DiskCryptor is an open source encryption solution that offers encryption of all disk partitions, including system partitions. DiskCryptor's openness is in sharp contrast with other encryption software today, where most of the software with comparable functionality is completely proprietary, making it unacceptable to use for protection of confidential data.
 
-Originally DiskCryptor was developed as a replacement for DriveCrypt Plus Pack and PGP WDE by ntldr back at [diskcryptor.net](https://diskcryptor.net), however since there was no more development since 2014 we decided to continue the development on our own here. The new releases of  DiskCryptor are ment as a replacement for BitLocker from Microsoft as **[BitLocker can NOT be considered secure](https://www.diskcryptor.org/why-not-bitlocker/)**.
+Originally DiskCryptor was developed as a replacement for DriveCrypt Plus Pack and PGP WDE by ntldr, however since development has stopped since 2014 we decided to continue the development on our own here. 
 
-We have updated DiskCryptor for use with windows 10, adding a UEFI/GPT bootloader as well as other minor fixes to improve windows 10 compatybility. We aim at further improving and maintaining windows 10 compatybility.
+We have updated DiskCryptor for use with windows 10 and 11, adding a UEFI/GPT bootloader as well as other minor fixes to improve compatibility. We aim at further improving and maintaining compatibility with modern windows versions.
 
-This website, for now, mostly mirrors informations from the old wiki, as we develop new features new content will be added to reflect the changes in the new builds.
+This website, for now, mostly mirrors information from the old wiki, as we develop new features new content will be added to reflect the changes in the new builds.
 
 
 ## Program Features
@@ -44,7 +44,7 @@ This website, for now, mostly mirrors informations from the old wiki, as we deve
 <li>Full support for encryption of external USB storage devices.</li>
 <li>Automatic mounting of disk partitions and external storage devices.</li>
 </ul></li>
-<li>Support for hotkeys and optional command-line interface (CLI).</li>
+<li>Support for hot keys and optional command-line interface (CLI).</li>
 <li><strong>Open license</strong> <a href="https://en.wikipedia.org/wiki/GNU_General_Public_License">GNU GPLv3</a>.</li>
 </ul></td>
 </tr>

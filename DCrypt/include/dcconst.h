@@ -20,6 +20,8 @@
 #define F_NO_REDIRECT   0x4000 // redirection area is not used
 #define F_SSD           0x8000 // this is SSD disk
 
+#define F_PENDING	0x00010000 // this device has a pending header
+
 #define F_CLEAR_ON_UNMOUNT ( \
 	F_ENABLED | F_SYNC | F_REENCRYPT | F_FORMATTING | F_PROTECT_DCSYS | F_NO_REDIRECT )
 
@@ -93,6 +95,7 @@
 #define ST_INV_FORMAT     56 /* disk has incompatible partition format */
 #define ST_NO_OPEN_DIR    57 /* can not open directory */
 #define ST_DIR_NOT_EMPTY  58 /* directory is not empty */
+#define ST_BL_NOT_PASSED  59 /* bootloader check not passed */
 
 /* data wipe modes */
 #define WP_NONE    0 /* no data wipe                           */
@@ -130,6 +133,7 @@
 
 #define DST_BOOTLOADER  0x10 // system started via DC bootloader
 #define DST_SMALL_MEM   0x20 // BIOS base memory too small for DC bootloader
+#define DST_UEFI_BOOT   0x40 // booted in UEFI mode
 
 /* bootloader */
 #define DC_BOOTHOOK_SIZE 30 /* bootloader resident memory needed */

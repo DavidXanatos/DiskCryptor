@@ -1,7 +1,7 @@
 /*
     *
     * DiskCryptor - open source partition encryption tool
-	* Copyright (c) 2019-2020
+	* Copyright (c) 2019-2023
 	* DavidXanatos <info@diskcryptor.org>
 	* Copyright (c) 2007-2010
 	* ntldr <ntldr@diskcryptor.net> PGP key ID - 0xC48251EB4F8E4E6E
@@ -31,6 +31,7 @@
 
 #include "dlg_menu.h"
 #include "dlg_drives_list.h"
+#include "drives_list.h"
 
 #if (_MSC_VER >= 1300) && _M_IX86
 	extern long _ftol(double);
@@ -506,17 +507,23 @@ void _is_breaking_action( )
 	int count = 0;
 	int k, flag;
 
-	BOOL resume;
+	int action;
 
 	wchar_t s_vol[MAX_PATH] = { 0 };
 
-	for ( k = 0; k < 4; k++ )
+	BOOLEAN pending_headers = FALSE;
+	DC_FLAGS flags;
+	if (dc_device_control(DC_CTL_GET_FLAGS, NULL, 0, &flags, sizeof(flags)) == NO_ERROR) {
+		pending_headers = (flags.boot_flags & BDB_BF_HDR_FOUND);
+	}
+
+	for ( k = 0; k < 6; k++ )
 	{
-		if (k % 2 == 0)
+		if (k % 2 == 0) // 0, 2, 4
 		{
-			memset(s_vol, 0, countof(s_vol)); // WTF?
+			memset(s_vol, 0, sizeof(s_vol));
 			count = 0;
-			resume = FALSE;
+			action = 0;
 		}
 
 		for ( node = __drives.flink;
@@ -532,17 +539,29 @@ void _is_breaking_action( )
 					)
 			{
 				_dnode *mnt = contain_record(sub, _dnode, list);
+
 				switch (k)
 				{
 					case 0:
 					case 1:  flag = F_FORMATTING; break;
 					case 2:
 					case 3:  flag = F_SYNC; break;
+					case 4:
+					case 5:  flag = F_PENDING; break;
 					default: flag = -1; break;
 				}
+
+				// get auxyliary data
+				// Note: these may be reset during msg box so we need to re get them each time
+				if (flag == F_PENDING && pending_headers && (mnt->mnt.info.status.flags & F_ENABLED) == 0)  
+				{
+					if (dc_has_pending_header(mnt->mnt.info.device))
+						mnt->mnt.info.status.flags |= F_PENDING;
+				}
+
 				if (mnt->mnt.info.status.flags & flag)
 				{
-					if (k % 2 == 0)
+					if (k % 2 == 0) // 0, 2, 4
 					{
 						if (s_vol[0] != L'\0') wcscat(s_vol, L", ");
 						wcscat(s_vol, mnt->mnt.info.status.mnt_point);
@@ -550,28 +569,51 @@ void _is_breaking_action( )
 						count++;
 
 					} else {
-						if (resume)
+						if (action == 1)
 						{
 							if (k == 1) _menu_format(mnt);
 							if (k == 3) _menu_encrypt(mnt);
+							if (k == 5) _menu_encrypt2(mnt);
+						}
+						else if (action == -1)
+						{
+							if (k == 5) dc_clear_pending_header(mnt->mnt.info.device);
 						}
 					}
 				}
 			}
 		}
-		if ((k % 2 == 0) && count > 0)
+
+		if ((k % 2 == 0) && count > 0) // 0, 2, 4
 		{
-			if (__msg_q(
-					__dlg,
-					L"%s was suspended for volume%s %s.\n\n"
-					L"Continue %s?", 
-					k != 0 ? L"Encrypting/decrypting" : L"Formatting",
-					count > 1 ? L"s" : STR_NULL, 
-					s_vol,
-					k != 0 ? L"encrypting" : L"formatting")
-					) 
+			switch (k)
 			{
-				resume = TRUE;
+			case 0:
+				action = __msg_q(
+					__dlg,
+					L"Formatting was suspended for volume%s %s.\n\n"
+					L"Continue formating?",
+					count > 1 ? L"s" : STR_NULL,
+					s_vol);
+				break;
+			case 2:
+				action = __msg_q(
+					__dlg,
+					L"Encrypting/decrypting was suspended for volume%s %s.\n\n"
+					L"Continue encrypting/decrypting?",
+					count > 1 ? L"s" : STR_NULL,
+					s_vol);
+				break;
+			case 4:
+				action = __msg_q3(
+					__dlg,
+					L"There %s volume encryption operation%s pending for volume%s %s.\n\n"
+					L"Start encrypting?",
+					count > 1 ? L"are" : L"is a",
+					count > 1 ? L"s" : STR_NULL,
+					count > 1 ? L"s" : STR_NULL,
+					s_vol);
+				break;
 			}
 		}
 	}

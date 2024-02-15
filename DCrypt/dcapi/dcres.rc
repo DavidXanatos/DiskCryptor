@@ -27,6 +27,7 @@ LANGUAGE LANG_ENGLISH, SUBLANG_DEFAULT
 // EXEFILE
 //
 
+IDR_BACK                EXEFILE                 "..\\boot\\bin\\mbr_back.bin"
 IDR_MBR                 EXEFILE                 "..\\boot\\bin\\mbr_boot.bin"
 IDR_DCLDR               EXEFILE                 "..\\boot\\bin\\dcldr"
 IDR_DCLDR_SMALL         EXEFILE                 "..\\boot\\bin\\dcldr_small"
@@ -79,7 +80,7 @@ BEGIN
         BEGIN
             VALUE "FileDescription", "DiskCryptor api"
             VALUE "FileVersion", DC_FILE_VER
-            VALUE "LegalCopyright", "Copyright (c) 2007-2020"
+            VALUE "LegalCopyright", "Copyright (c) 2007-2023"
             VALUE "OriginalFilename", "dcapi.dll"
             VALUE "ProductName", "DiskCryptor"
             VALUE "ProductVersion", DC_PRODUCT_VER

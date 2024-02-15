@@ -51,7 +51,8 @@ int gDiskCount = 0;
 io_db iodb; // IO/Key Storage
 
 dc_pass gDCryptPassword; // entered password
-int gDCryptPwdCode = 1; // entry code
+UINT32 gDCryptFlags = 0;
+int gDCryptPwdCode = AskPwdRetLogin; // entry code
 int gDCryptAuthRetry = 100;
 UINT8 gDCryptFailOnTimeout = 0;
 
@@ -146,6 +147,8 @@ EFI_STATUS SetBootDataBlock()
 	// setup boot data block signature
 	bootDataBlock->sign1 = BDB_SIGN1;
 	bootDataBlock->sign2 = BDB_SIGN2;
+	bootDataBlock->sign3 = BDB_SIGN3;
+	bootDataBlock->zero = 0;
 
 	// memory region gets already set by PrepareBootDataBlock
 
@@ -153,11 +156,8 @@ EFI_STATUS SetBootDataBlock()
 	bootDataBlock->password.size = gDCryptPassword.size; // in bytes
 	CopyMem(bootDataBlock->password.pass, gDCryptPassword.pass, bootDataBlock->password.size);
 
-	// set original realmode interrupt values to be restored, does nothing when old_int13 is 0
-	//bootDataBlock->old_int13 = 0;
-	//bootDataBlock->old_int15 = 0;
-
-	// Note: all other bdb values are ignored by the windows driver
+	// set additional data
+	bootDataBlock->flags = gDCryptFlags;
 
 	return EFI_SUCCESS;
 }
@@ -305,7 +305,7 @@ GetDiskByNumber(int number)
 }
 
 EFI_STATUS
-PartitionTryDecrypt()
+HeaderTryDecrypt(int* vol_found, int* hdr_found)
 {
 	EFI_STATUS       ret = EFI_SUCCESS;
 	UINTN            i;
@@ -314,7 +314,6 @@ PartitionTryDecrypt()
 	EFI_DEVICE_PATH* disk_path;
 	DCRYPT_DISKIO*   dc_disk;
 	int              disk_num;
-	int              found = 0;
 	int              retry = gDCryptAuthRetry;
 
 	MEM_BURN(&gDCryptPassword, sizeof(gDCryptPassword)); // zero memory
@@ -357,7 +356,7 @@ PartitionTryDecrypt()
 			if (dc_decrypt_header(&header, &gDCryptPassword) == 0) {
 				continue;
 			}
-			found++;
+			(*vol_found)++;
 
 			if (gConfigDebug) {
 				OUT_PRINT(L"Found Encrypted Partition ");
@@ -382,7 +381,11 @@ PartitionTryDecrypt()
 
 			mount->flags    = header.flags;
 			mount->tmp_size = header.tmp_size / SECTOR_SIZE;
-			mount->stor_off = header.stor_off / SECTOR_SIZE;
+			if (header.flags & VF_STORAGE_FILE) {
+				mount->stor_off = header.stor_off / SECTOR_SIZE;
+			} else {
+				mount->stor_off = (mount->size - sizeof(dc_header)) / SECTOR_SIZE;
+			}
 			mount->disk_id  = header.disk_id;
 		
 			mount->d_key      = &iodb.p_key[iodb.n_key++];
@@ -400,10 +403,81 @@ PartitionTryDecrypt()
 			iodb.n_mount++;
 		}
 
+		if (!*vol_found)
+		{
+			//OUT_PRINT(L"enum my root\n");
+
+			EFI_FILE* root;
+			ret = FileOpenRoot(gFileRootHandle, &root);
+			if (EFI_ERROR(ret)) { ERR_PRINT(L"FileOpenRoot %r\n", ret); }
+			else
+			{
+				EFI_FILE* dir;
+				ret = root->Open(root, &dir, L"EFI\\" DCS_DIRECTORY, EFI_FILE_READ_ONLY, 0);
+				if (EFI_ERROR(ret)) { ERR_PRINT(L"root->Open %r\n", ret); }
+				else
+				{
+					EFI_FILE_INFO* DirInfo;
+					UINTN          BufferSize;
+					UINTN          DirBufferSize;
+
+					DirBufferSize = sizeof(EFI_FILE_INFO) + 1024;
+					DirInfo = MEM_ALLOC(DirBufferSize);
+
+					for (; !EFI_ERROR(ret);) {
+						BufferSize = DirBufferSize;
+						ret = dir->Read(dir, &BufferSize, DirInfo);
+
+						if (EFI_ERROR(ret) || (BufferSize == 0))
+							break; // done
+
+						if ((DirInfo->Attribute & EFI_FILE_DIRECTORY) != 0)
+							continue; // skip directories
+
+						if (StrnCmp(DirInfo->FileName, L"TestHeader_", 11) != 0)
+							continue; // not what we were looking for
+
+						EFI_FILE* file;
+						ret = dir->Open(dir, &file, DirInfo->FileName, EFI_FILE_MODE_READ, 0);
+						if (EFI_ERROR(ret)) { ERR_PRINT(L"dir->Open %r\n", ret); }
+						else
+						{
+							UINTN fileSize = sizeof(header);
+							ret = file->Read(file, &fileSize, &header);
+							if (EFI_ERROR(ret)) { ERR_PRINT(L"file->read %r\n", ret); }
+							else
+							{
+								if (fileSize != sizeof(header)) {
+									ERR_PRINT(L"test header for: %s is to small %d\n", &DirInfo->FileName[11], fileSize);
+								}
+
+								else if (dc_decrypt_header(&header, &gDCryptPassword) == 0) {
+									ERR_PRINT(L"wrong password for test header for: %s\n", &DirInfo->FileName[11]);
+								}
+
+								else {
+									(*hdr_found)++;
+									if (gConfigDebug) {
+										OUT_PRINT(L"successfully decrypted test header for: %s\n", &DirInfo->FileName[11]);
+									}
+								}
+							}
+							file->Close(file);
+						}
+					}
+
+					MEM_FREE(DirInfo);
+
+					dir->Close(dir);
+				}
+				root->Close(root);
+			}
+		}
+
 		// clear data
 		MEM_BURN(&header,  sizeof(dc_header));
 
-		if (found > 0 || gDCryptPwdCode == AskPwdForcePass) {
+		if (*vol_found > 0 || *hdr_found > 0 || gDCryptPwdCode == AskPwdForcePass) {
 			OUT_PRINT(L"%a\n", gDCryptSuccessMsg);
 			return EFI_SUCCESS;
 		}
@@ -536,6 +610,8 @@ DcsDiskCryptor(
 	IN EFI_SYSTEM_TABLE *SystemTable)
 {
 	EFI_STATUS ret = EFI_SUCCESS;
+	int vol_found = 0;
+	int hdr_found = 0;
 
 	if (gConfigDebug) {
 		OUT_PRINT(L"DiskCryptor UEFI bootloader version: %d.%02d\n", ver.ldr_ver / 100, ver.ldr_ver % 100);
@@ -570,14 +646,17 @@ DcsDiskCryptor(
 		return ret;
 	}
 
-	// prompt for password nd try decrypt partitions
-	ret = PartitionTryDecrypt();
+	// prompt for password and try decrypt partitions
+	ret = HeaderTryDecrypt(&vol_found, &hdr_found);
 	// Reset Console buffer
 	gST->ConIn->Reset(gST->ConIn, FALSE);
 
 	if (EFI_ERROR(ret)) {
 		return ret; // returning error will trigger clearence of sensitive data
 	}
+
+	if (hdr_found > 0)
+		gDCryptFlags |= BDB_BF_HDR_FOUND;
 
 	// set boot data values
 	ret = SetBootDataBlock();
@@ -588,6 +667,9 @@ DcsDiskCryptor(
 
 	// after have set up iodb and gDCryptPassword we dont longer need the password, so clear it from memory
 	MEM_BURN(&gDCryptPassword, sizeof(gDCryptPassword));
+
+	if (vol_found == 0 && hdr_found > 0)
+		return EFI_DCS_USER_CANCELED;
 
 	// Install hooks
 	ret = MountDisks(ImageHandle, SystemTable);
@@ -838,7 +920,11 @@ DCApplyKeyFile(
 		return ret;
 	}
 
-	return DCApplyKeyData(password, fileData, fileSize);
+	ret = DCApplyKeyData(password, fileData, fileSize);
+
+	MEM_FREE(fileData);
+
+	return ret;
 }
 
 EFI_STATUS

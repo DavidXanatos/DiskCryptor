@@ -25,7 +25,7 @@ int dc_decrypt_header(dc_header *header, dc_pass *password)
 		xts_decrypt(pv(header), pv(&hcopy), sizeof(dc_header), 0, &hdr_key);
 
 		/* Magic 'DCRP' */
-		if (hcopy.sign != DC_VOLM_SIGN) {
+		if (hcopy.sign != DC_VOLUME_SIGN) {
 			continue;
 		}
 		/* copy decrypted part to output */

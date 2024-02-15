@@ -1,7 +1,7 @@
 ﻿/*
     *
     * DiskCryptor - open source partition encryption tool
-	* Copyright (c) 2019-2020 
+	* Copyright (c) 2019-2023
 	* DavidXanatos <info@diskcryptor.org>
     *
 
@@ -103,6 +103,7 @@ static const wchar_t* dcs_boot_file = L"DcsBoot.efi";
 
 static const wchar_t* dcs_conf_file = L"\\EFI\\DCS\\DcsProp";
 static const wchar_t* dcs_info_file = L"\\EFI\\DCS\\PlatformInfo";
+static const wchar_t* dcs_test_file = L"\\EFI\\DCS\\TestHeader";
 
 // shim for secure boot
 #ifdef _M_IX86
@@ -1758,4 +1759,153 @@ int dc_efi_find_bme(int dsk_num, UINT16 statrtOrderNum, wchar_t* type)
 int dc_efi_is_bme_set(int dsk_num)
 {
 	return dc_efi_find_bme(dsk_num, LDR_DCS_ID, NULL) == ST_OK;
+}
+
+#include "crc32.h"
+#include "sha512_pkcs5_2.h"
+#include "xts_fast.h"
+#include "drvinst.h"
+
+int dc_get_dcs_root(wchar_t* root)
+{
+	int      resl;
+	vol_inf  info;
+
+	// first try boot partition
+	resl = dc_efi_get_sys_part(-1, root);
+	if (resl == ST_OK) {
+		if (dc_is_dcs_on_partition(root))
+			return ST_OK;
+	}
+
+	// if not found try looking on other media
+	if (dc_first_volume(&info) == ST_OK)
+	{
+		do
+		{
+			swprintf_s(root, MAX_PATH, L"\\\\?%s", &info.device[7]);
+			if (dc_is_dcs_on_partition(root))
+				return ST_OK;
+		} while (dc_next_volume(&info) == ST_OK);
+	}
+	
+	return ST_BLDR_NOTINST;
+}
+
+int dc_prep_encrypt(const wchar_t* device, dc_pass* password, crypt_info* crypt)
+{
+	int      resl;
+	wchar_t  root[MAX_PATH] = { 0 };
+	wchar_t  path[MAX_PATH] = { 0 };
+
+	if ((resl = dc_get_dcs_root(root)) == ST_OK)
+	{
+		swprintf_s(path, MAX_PATH, L"%s%s_%s", root, dcs_test_file, &device[8]);
+
+		dc_conf_data  conf;
+		if (dc_load_config(&conf) == NO_ERROR) {
+			xts_init(conf.conf_flags & CONF_HW_CRYPTO);
+		} else {
+			xts_init(0);
+		}
+
+		xts_key*      header_key = NULL;
+		xts_key*      volume_key = NULL;
+		dc_header*    header = NULL;
+		UCHAR         salt[PKCS5_SALT_SIZE], *dk = NULL;
+
+		// allocate required memory
+		if ( (header_key = (xts_key*)secure_alloc(sizeof(xts_key))) == NULL ||
+			(volume_key = (xts_key*)secure_alloc(sizeof(xts_key))) == NULL ||
+			(dk = (PUCHAR)secure_alloc(DISKKEY_SIZE)) == NULL ||
+			(header = (dc_header*)secure_alloc(sizeof(dc_header))) == NULL )
+		{
+			resl = ERROR_NOT_ENOUGH_MEMORY;
+			goto cleanup;
+		}
+
+		// create the volume header
+		memset((BYTE*)header, 0, sizeof(dc_header));
+
+		if ( (resl = dc_device_control(DC_CTL_GET_RAND, NULL, 0, salt, PKCS5_SALT_SIZE)) != NO_ERROR ) goto cleanup;
+		if ( (resl = dc_device_control(DC_CTL_GET_RAND, NULL, 0, &header->disk_id, sizeof(header->disk_id))) != NO_ERROR ) goto cleanup;
+		if ( (resl = dc_device_control(DC_CTL_GET_RAND, NULL, 0, header->key_1, sizeof(header->key_1))) != NO_ERROR ) goto cleanup;
+
+		header->sign     = DC_VOLUME_SIGN;
+		header->version  = DC_HDR_VERSION;
+		header->flags    = VF_NO_REDIR;
+		header->alg_1    = crypt->cipher_id;
+		header->tmp_wp_mode = crypt->wp_mode;
+		header->data_off = sizeof(dc_header);
+		header->hdr_crc  = crc32((const unsigned char*)&header->version, DC_CRC_AREA_SIZE);
+
+		// derive the header key
+		sha512_pkcs5_2(1000, password->pass, password->size, salt, PKCS5_SALT_SIZE, dk, PKCS_DERIVE_MAX);
+
+		// initialize encryption keys
+		xts_set_key(header->key_1, crypt->cipher_id, volume_key);
+		xts_set_key(dk, crypt->cipher_id, header_key);
+
+		// encrypt the volume header
+		xts_encrypt((const unsigned char*)header, (unsigned char*)header, sizeof(dc_header), 0, header_key);
+
+		// save salt
+		memcpy(header->salt, salt, PKCS5_SALT_SIZE);
+
+		// write volume header to output file
+		resl = save_file(path, header, sizeof(dc_header));
+
+	cleanup:
+		if (header != NULL) secure_free(header);
+		if (dk != NULL) secure_free(dk);
+		if (volume_key != NULL) secure_free(volume_key);
+		if (header_key != NULL) secure_free(header_key);
+	}
+
+	return resl;
+}
+
+int dc_has_pending_header(const wchar_t* device)
+{
+	wchar_t  root[MAX_PATH] = { 0 };
+	wchar_t  path[MAX_PATH];
+
+	if (dc_get_dcs_root(root) == ST_OK)
+	{
+		swprintf_s(path, MAX_PATH, L"%s_%s", dcs_test_file, &device[8]);
+
+		return dc_efi_file_exists(root, path);
+	}
+
+	return 0;
+}
+
+int dc_clear_pending_header(const wchar_t* device)
+{
+	int      resl;
+	wchar_t  root[MAX_PATH] = { 0 };
+	wchar_t  path[MAX_PATH];
+
+	if ((resl = dc_get_dcs_root(root)) == ST_OK)
+	{
+		swprintf_s(path, MAX_PATH, L"%s_%s", dcs_test_file, &device[8]);
+
+		resl = dc_delete_efi_file(root, path);
+	}
+
+	return resl;
+}
+
+int dc_api dc_get_pending_header_nt(const wchar_t* device, wchar_t* path)
+{
+	wchar_t  root[MAX_PATH] = { 0 };
+
+	if (dc_get_dcs_root(root) == ST_OK)
+	{
+		swprintf_s(path, MAX_PATH, L"\\Device\\%s%s_%s", &root[4], dcs_test_file, &device[8]);
+
+		return ST_OK;
+	}
+
+	return ST_NF_FILE;
 }
