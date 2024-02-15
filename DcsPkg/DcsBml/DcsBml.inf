@@ -58,13 +58,9 @@
   gEfiComponentNameProtocolGuid
 
 [BuildOptions.IA32]
-RELEASE_VS2010x86_IA32_CC_FLAGS    =  /arch:IA32 /FAcs
-DEBUG_VS2010x86_IA32_CC_FLAGS    = /arch:IA32 /FAcs
-NOOPT_VS2010x86_IA32_CC_FLAGS    = /arch:IA32  /FAcs
-
-RELEASE_VS2015x86_IA32_CC_FLAGS    =  /arch:IA32 /FAcs
-DEBUG_VS2015x86_IA32_CC_FLAGS    = /arch:IA32 /FAcs
-NOOPT_VS2015x86_IA32_CC_FLAGS    = /arch:IA32  /FAcs
+MSFT:RELEASE_*_IA32_CC_FLAGS  =  /arch:IA32 /FAcs
+MSFT:DEBUG_*_IA32_CC_FLAGS    = /arch:IA32 /FAcs
+MSFT:NOOPT_*_IA32_CC_FLAGS    = /arch:IA32  /FAcs
 
 [FeaturePcd]
 

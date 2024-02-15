@@ -1,46 +1,65 @@
 @echo off
-pushd "%~dp0"
 
-if not defined PYTHONHOME (
-   echo PYTHONHOME not found!
-   goto :end
+if not defined WORKSPACE  set WORKSPACE=%cd%
+if not defined DCS_EXPORT set DCS_EXPORT=%WORKSPACE%\Export
+if not defined DCS_ARCH   set DCS_ARCH=X64
+if not defined DCS_TYPE   set DCS_TYPE=DEBUG
+
+if not defined DCS_TOOLCHAIN (
+  if exist "C:\Program Files (x86)\Microsoft Visual Studio\2019" (
+    set DCS_TOOLCHAIN=VS2019
+    goto done_dcs_toolchain
+  )
+  if exist "C:\Program Files (x86)\Microsoft Visual Studio\2017" (
+    set DCS_TOOLCHAIN=VS2017
+    goto done_dcs_toolchain
+  )
+  if exist "C:\Program Files (x86)\Microsoft Visual Studio\2015" (
+    set DCS_TOOLCHAIN=VS2015x86
+    goto done_dcs_toolchain
+  )
+  echo Error: DCS_TOOLCHAIN not set
+  goto :end
 )
+:done_dcs_toolchain
 
-if defined VS100COMNTOOLS (
-   call "%VS100COMNTOOLS%\vsvars32.bat"
-   goto :initialize
-) else (
-   echo MSVS2010 not found!
-   goto :end
+if not defined NASM_PREFIX (
+  if exist "C:\nasm" (
+    set NASM_PREFIX=C:\nasm\
+    goto :done_nasm_prefix
+  )
+  echo Error: NASM_PREFIX not set
+  goto :end
 )
+:done_nasm_prefix
 
-:initialize
-
-if not defined NASM_PREFIX set NASM_PREFIX=c:\Tools\nasm\
-if not defined EDK_PREFIX set EDK_PREFIX=c:\Tools\edk2
-
-call :updatepath "%PYTHONHOME%"
-call :updatepath "%NASM_PREFIX%"
-
-if not defined EDK_TOOLS_BIN (
-   pushd "%EDK_PREFIX%"
-   call edksetup.bat
-   popd
+if not defined EDK_PREFIX (
+  if exist "%cd%\edksetup.bat" (
+    set EDK_PREFIX=%cd%
+    goto :done_edk_prefix
+  )
+  if exist "%cd%\edk2\edksetup.bat" (
+    set EDK_PREFIX=%cd%\edk2\..
+    goto :done_edk_prefix
+  )
+  if exist "%cd%\..\edksetup.bat" (
+    set EDK_PREFIX=%cd%\..
+    goto :done_edk_prefix
+  )
+  if exist "%%~dp0..\edksetup.bat" (
+    set EDK_PREFIX=%~dp0..
+    goto :done_edk_prefix
+  )
+  if exist "%~dp0..\..\edk2\edksetup.bat" (
+    set EDK_PREFIX=%~dp0..\..\edk2
+    goto :done_edk_prefix
+  )
+  echo Error: EDK_PREFIX not set
+  goto :end
 )
+:done_edk_prefix
 
-goto :end
-
-:updatepath
-set appendpath=%~1
-for %%A in ("%path:;=";"%") do (
-   if /I "%~1"=="%%~A" (
-      echo %1 in path found
-      set appendpath=
-   )
-rem   echo %%~A
-)
-if defined appendpath set path=%path%;%appendpath%
-goto :eof
+set PACKAGES_PATH=%~dp0..;%EDK_PREFIX%
+call %EDK_PREFIX%\edksetup.bat %DCS_TOOLCHAIN%
 
 :end
-popd

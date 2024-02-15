@@ -225,6 +225,7 @@ align 16
 %define enc_key 0
 %define dec_key 4*15*4
 
+section .text
 global xts_aes_ni_encrypt
 global xts_aes_ni_decrypt
 

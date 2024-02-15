@@ -715,7 +715,7 @@ end_prologue
 		mov     [rsp+2*8], rbp  ; output pointer in [rsp]
 		mov     [rsp+3*8], r12  ; context in r8
 %endif
-    lea     tptr,[enc_tab wrt rip]
+    lea     tptr,[rel enc_tab]
     sub     kptr, fofs
 
     mov     eax, [rdi+0*4]
@@ -820,7 +820,7 @@ end_prologue
 		mov     [rsp+3*8], r12  ; context in r8
 %endif
     add     kptr, 4*KS_LENGTH
-    lea     tptr,[dec_tab wrt rip]
+    lea     tptr,[rel dec_tab]
     sub     kptr, rofs
 
     mov     eax, [rdi+0*4]
@@ -882,5 +882,3 @@ end_prologue
 %endif
 
 %endif
-
-    end

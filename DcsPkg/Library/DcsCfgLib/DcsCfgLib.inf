@@ -48,47 +48,18 @@ DcsConfig.c
   BaseCryptLib
   DcsTpmLib
 
+[Guids]
+gEfiPartTypeUnusedGuid
+
 [Protocols]
 
 
 [BuildOptions.IA32]
-DEBUG_VS2010x86_IA32_CC_FLAGS      == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /FIAutoGen.h /EHs-c- /GR- /GF /Gy /Zi /Gm /FAcs /D_UEFI
-RELEASE_VS2010x86_IA32_CC_FLAGS    == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /FIAutoGen.h /EHs-c- /GR- /GF /FAcs /D_UEFI
-NOOPT_VS2010x86_IA32_CC_FLAGS      == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /FIAutoGen.h /EHs-c- /GR- /GF /Gy /Zi /Gm /Od /FAcs /D_UEFI
-
-DEBUG_VS2015x86_IA32_CC_FLAGS      == /arch:IA32 /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /FIAutoGen.h /EHs-c- /GR- /GF /Gy /Zi /Gm /FAcs /D_UEFI
-RELEASE_VS2015x86_IA32_CC_FLAGS    == /arch:IA32 /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /FIAutoGen.h /EHs-c- /GR- /GF /FAcs /D_UEFI
-NOOPT_VS2015x86_IA32_CC_FLAGS      == /arch:IA32 /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /FIAutoGen.h /EHs-c- /GR- /GF /Gy /Zi /Gm /Od /FAcs /D_UEFI
-
-RELEASE_VS2010x86_IA32_NASM_FLAGS    = -Xvc --prefix _ -d_UEFI=1
-DEBUG_VS2010x86_IA32_NASM_FLAGS      = -Xvc --prefix _ -d_UEFI=1
-NOOPT_VS2010x86_IA32_NASM_FLAGS      = -Xvc --prefix _ -d_UEFI=1
-
-RELEASE_VS2015x86_IA32_NASM_FLAGS    = -Xvc --prefix _ -d_UEFI=1
-DEBUG_VS2015x86_IA32_NASM_FLAGS      = -Xvc --prefix _ -d_UEFI=1
-NOOPT_VS2015x86_IA32_NASM_FLAGS      = -Xvc --prefix _ -d_UEFI=1
+MSFT:DEBUG_*_IA32_CC_FLAGS    == /arch:IA32 /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /FIAutoGen.h /EHs-c- /GR- /GF /Gy /Zi /Gm /FAcs /D_UEFI
+MSFT:RELEASE_*_IA32_CC_FLAGS  == /arch:IA32 /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /FIAutoGen.h /EHs-c- /GR- /GF /FAcs /D_UEFI
+MSFT:NOOPT_*_IA32_CC_FLAGS    == /arch:IA32 /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /FIAutoGen.h /EHs-c- /GR- /GF /Gy /Zi /Gm /Od /FAcs /D_UEFI
 
 [BuildOptions.X64]
-DEBUG_VS2010x86_X64_CC_FLAGS     == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /Zi /Gm /D_UEFI
-RELEASE_VS2010x86_X64_CC_FLAGS     == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /D_UEFI
-NOOPT_VS2010x86_X64_CC_FLAGS       == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /Zi /Gm /Od /D_UEFI
-
-DEBUG_VS2015x86_X64_CC_FLAGS     == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /Zi /Gm /D_UEFI
-RELEASE_VS2015x86_X64_CC_FLAGS     == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /D_UEFI
-NOOPT_VS2015x86_X64_CC_FLAGS       == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /Zi /Gm /Od /D_UEFI
-
-DEBUG_VS2017_X64_CC_FLAGS     == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /Zi /Gm /D_UEFI
-RELEASE_VS2017_X64_CC_FLAGS     == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /D_UEFI
-NOOPT_VS2017_X64_CC_FLAGS       == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /Zi /Gm /Od /D_UEFI
-
-RELEASE_VS2010x86_X64_NASM_FLAGS    = -Xvc -d_UEFI=1
-DEBUG_VS2010x86_X64_NASM_FLAGS      = -Xvc -d_UEFI=1
-NOOPT_VS2010x86_X64_NASM_FLAGS      = -Xvc -d_UEFI=1
-
-RELEASE_VS2015x86_X64_NASM_FLAGS    = -Xvc -d_UEFI=1
-DEBUG_VS2015x86_X64_NASM_FLAGS      = -Xvc -d_UEFI=1
-NOOPT_VS2015x86_X64_NASM_FLAGS      = -Xvc -d_UEFI=1
-
-RELEASE_VS2017_X64_NASM_FLAGS    = -Xvc -d_UEFI=1
-DEBUG_VS2017_X64_NASM_FLAGS      = -Xvc -d_UEFI=1
-NOOPT_VS2017_X64_NASM_FLAGS      = -Xvc -d_UEFI=1
+MSFT:DEBUG_*_X64_CC_FLAGS     == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /Zi /Gm /D_UEFI
+MSFT:RELEASE_*_X64_CC_FLAGS   == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /D_UEFI
+MSFT:NOOPT_*_X64_CC_FLAGS     == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /Zi /Gm /Od /D_UEFI

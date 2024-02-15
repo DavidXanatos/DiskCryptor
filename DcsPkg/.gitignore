@@ -28,6 +28,8 @@
 *.out
 *.app
 
+Build
+Export
 Library/VeraCryptLib/BootCommon.h
 Library/VeraCryptLib/BootDefs.h
 Library/VeraCryptLib/common/

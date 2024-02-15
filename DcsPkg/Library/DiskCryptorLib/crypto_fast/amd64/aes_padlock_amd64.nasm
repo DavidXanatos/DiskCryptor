@@ -30,6 +30,7 @@ enc_cwd dd (NEH_ENC_LOAD | NEH_KEY256), 0, 0
 align 16
 dec_cwd dd (NEH_DEC_LOAD | NEH_KEY256), 0, 0
 
+section .text
 global aes256_padlock_available
 global aes256_padlock_encrypt
 global aes256_padlock_decrypt

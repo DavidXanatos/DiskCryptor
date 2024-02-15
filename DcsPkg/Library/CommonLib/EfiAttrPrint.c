@@ -17,8 +17,8 @@ https://opensource.org/licenses/LGPL-3.0
 #include <Library/PrintLib.h>
 #include <Library/DebugLib.h>
 #include <Protocol/SimpleTextOut.h>
-#include <Protocol/EFiShell.h>
-#include <Protocol/EfiShellParameters.h>
+#include <Protocol/Shell.h>
+#include <Protocol/ShellParameters.h>
 
 //////////////////////////////////////////////////////////////////////////
 // Custom print based on shell print (copied here to avoid runtime limitation)

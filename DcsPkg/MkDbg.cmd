@@ -1,18 +1,17 @@
 @echo off
-call dcs_bld.bat X64 VS2015
-
-if ERRORLEVEL 1 goto :exit
-
-set DCS=DCS
-mkdir %1\EFI\%DCS%\
+call "%~dp0setenv.bat"
+call "%~dp0dcs_bld.bat" X64 || goto :exit
+call "%~dp0dcs_bld.bat" IA32 || goto :exit
 
 if ["%1"]==[""] goto :exit
+set DCS=DCS
+mkdir %1\EFI\%DCS%\
 echo Copying Files to USB %1 ...
-copy %~dp0\..\Build\DcsPkg\DEBUG_VS2015x86\X64\DcsBoot.efi %1\EFI\%DCS%\DcsBoot.efi /y
-copy %~dp0\..\Build\DcsPkg\DEBUG_VS2015x86\X64\DcsInt.efi %1\EFI\%DCS%\DcsInt.dcs /y
-copy %~dp0\..\Build\DcsPkg\DEBUG_VS2015x86\X64\DcsInfo.efi %1\EFI\%DCS%\DcsInfo.dcs /y
-copy %~dp0\..\Build\DcsPkg\DEBUG_VS2015x86\X64\DcsCfg.efi %1\EFI\%DCS%\DcsCfg.dcs /y
-rem copy %~dp0\..\Build\DcsPkg\DEBUG_VS2015x86\X64\DcsRe.efi %1\EFI\Boot\bootx64.efi /y
-rem copy %~dp0\..\Build\DcsPkg\RELEASE_VS2015x86\X64\LegacySpeaker.efi %1\EFI\%DCS%\LegacySpeaker.dcs /y
+copy /y %DCS_EXPORT%\DcsBoot.efi       %1\EFI\%DCS%\DcsBoot.efi
+copy /y %DCS_EXPORT%\DcsInt.dcs        %1\EFI\%DCS%\DcsInt.dcs
+copy /y %DCS_EXPORT%\DcsInfo.dcs       %1\EFI\%DCS%\DcsInfo.dcs
+copy /y %DCS_EXPORT%\DcsCfg.dcs        %1\EFI\%DCS%\DcsCfg.dcs
+rem copy /y %DCS_OUTPUT%\DcsRe.efi         %1\EFI\Boot\bootx64.efi
+rem copy /y %DCS_OUTPUT%\LegacySpeaker.dcs %1\EFI\%DCS%\LegacySpeaker.dcs
 
 :exit
