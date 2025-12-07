@@ -2,30 +2,42 @@ name: CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, main ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, main ]
+  workflow_dispatch:  # Allows manual triggering from GitHub UI
 
 jobs:
   build:
-
-    runs-on: windows-2019
+    runs-on: windows-2022
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - name: Setup msbuild
-        uses: microsoft/setup-msbuild@v1
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Setup Windows Driver Kit
+        run: |
+          # Windows 2022 runner has WDK installed, just need to set paths
+          $wdkPath = "C:\Program Files (x86)\Windows Kits\10"
+          if (Test-Path $wdkPath) {
+            Write-Host "WDK found at: $wdkPath"
+            # List available WDK versions
+            Get-ChildItem "$wdkPath\Include" | ForEach-Object { Write-Host "WDK Version: $($_.Name)" }
+          } else {
+            Write-Host "WDK not found at expected path"
+          }
 
       - name: Build DCrypt x86
-        run: msbuild /t:build DCrypt\dcrypt.sln /p:Configuration="Release" /p:Platform=Win32
+        run: msbuild /t:build DCrypt\dcrypt.sln /p:Configuration="Release" /p:Platform=Win32 /m
 
       - name: Build DCrypt x64
-        run: msbuild /t:build DCrypt\dcrypt.sln /p:Configuration="Release" /p:Platform=x64
+        run: msbuild /t:build DCrypt\dcrypt.sln /p:Configuration="Release" /p:Platform=x64 /m
 
-      - name: Upload DCrypt
-        uses: actions/upload-artifact@v2
+      - name: Upload DCrypt Binaries
+        uses: actions/upload-artifact@v4
         with:
           name: DCrypt
           path: |
@@ -37,3 +49,26 @@ jobs:
             DCrypt/Bin/Release_i386/*.dll
             DCrypt/Bin/Release_i386/*.sys
             DCrypt/Bin/Release_i386/*.pdb
+          if-no-files-found: warn
+
+  build-boot:
+    runs-on: windows-2022
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build Boot Loader
+        run: msbuild /t:build DCrypt\boot\boot.sln /p:Configuration="Release" /p:Platform=Win32 /m
+        continue-on-error: true
+
+      - name: Upload Boot Binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: Boot
+          path: |
+            DCrypt/boot/bin/*.bin
+          if-no-files-found: warn
