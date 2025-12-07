@@ -14,7 +14,7 @@ devenv dcrypt.sln /Build "Release|x64"
 @echo ERROR: VS100COMNTOOLS variable is not set. 
 @goto end
 :error_build_fail
-@echo ERROR: Can not build solution. 
+@echo ERROR: Cannot build solution. 
 @goto end
 
 :end

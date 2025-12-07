@@ -35,7 +35,7 @@
     <!-- config key="PictureChars">MN/[aQ-eyPr}GT: |V^UqiI_gbdA9YwZ%f8t6S@D\"7uXl\\30R#+zH*,W4J?= BLFv]hx~E;$ .o'sp1`(>C)O{!5j2nmkcK</config -->
 
     <!-- AutoLogin 0/1 
-    Posibility to avoid password prompt
+    Possibility to avoid password prompt
     AutoPassword is  password by default
     Use it with PlatformLocked or TPMLocked enabled to lock password to the computer.
     -->
@@ -61,13 +61,13 @@ Hash:</config-->
     <config key="Hash">0</config>
     <config key="HashRqt">0</config>
 
-    <!-- PlatformLocked 0/1 (it is controled by <F7>)
+    <!-- PlatformLocked 0/1 (it is controlled by <F7>)
     Password is mixed with data from SMBIOS and USB serial structures
     to avoid authorization on another computer
     -->
     <config key="PlatformLocked">0</config>
 
-    <!-- TPMLocked 0/1 (it is controled by <F8>)
+    <!-- TPMLocked 0/1 (it is controlled by <F8>)
     Password is mixed with data from TPM
     data is in TPM NVRAM and the data is locked to PCRs selected (use configuration <F2> and "c" "t")
     BIOS modification or any other boot module blocks authorization with TPMLocked=1
@@ -80,8 +80,8 @@ Hash:</config-->
     
     <!-- Random generator to generate salt to change password <F2> function key
     2 RDRAND
-    3 PRNDGEN but state hast to be saved on external USB
-    5 TPM 1.2 if pressent
+    3 PRNDGEN but state has to be saved on external USB
+    5 TPM 1.2 if present
     -->
     <config key="Random">2</config>
 
@@ -99,12 +99,12 @@ Hash:</config-->
     <config key="SecRegionInfoDelay">0</config>
 
     <!-- Ask password even no USB with SecRegions found 
-    ForcePasswordMsg, ForcePasswordType,ForcePasswordProgress keys can overide default values
+    ForcePasswordMsg, ForcePasswordType,ForcePasswordProgress keys can override default values
     -->
     <config key="DcsBootForce">1</config>
 
     <!-- 
-    to find OS partition GUID if ESP and OS uses diffrent disks
+    to find OS partition GUID if ESP and OS uses different disks
     -->
     <!-- config key="PartitionGuidOS">XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX</config-->
 
@@ -170,7 +170,7 @@ Hash:</config-->
     -->
     <config key="BeepDevice">-1</config>
     
-    <!-- Beep paramters -->
+    <!-- Beep parameters -->
     <config key="BeepNumber">1</config>
     <config key="BeepDuration">100</config>
     <config key="BeepInterval">0</config>

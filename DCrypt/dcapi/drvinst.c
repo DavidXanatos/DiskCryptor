@@ -204,7 +204,7 @@ static DWORD save_dcrypt_driver_file()
 	
 	if ( (status = make_driver_path(temp_path, _countof(temp_path), _T("dcrypt_old.sys"))) != NO_ERROR ) return status;
 
-	// Note: we can not overwrite a driver in use we need to rename it and remove it upon reboot
+	// Note: we cannot overwrite a driver in use we need to rename it and remove it upon reboot
 
 	// rename old driver if present
 	if (_waccess(dest_path, 0) != -1) {
@@ -313,7 +313,7 @@ DWORD dc_install_driver()
 	// add Altitude
 	if ( (status = add_altitude_info()) != NO_ERROR ) goto cleanup;
 
-	// add Volume and CDROM filters
+	// add Volume and CD-ROM filters
 	if ( (status = add_to_reg_multi_sz(g_volume_filter_key, _T("LowerFilters"), g_dcrypt_service_name)) != NO_ERROR ) goto cleanup;
 	if ( (status = add_to_reg_multi_sz(g_cdrom_filter_key, _T("UpperFilters"), g_dcrypt_service_name)) != NO_ERROR ) goto cleanup;
 
@@ -337,14 +337,14 @@ DWORD dc_remove_driver()
 	TCHAR path[MAX_PATH];
 	DWORD status = NO_ERROR, ret;
 
-	// remove Volume AND CDROM filters
+	// remove Volume AND CD-ROM filters
 	if ( (ret = remove_from_reg_multi_sz(g_cdrom_filter_key, _T("UpperFilters"), g_dcrypt_service_name)) != NO_ERROR ) status = ret;
 	if ( (ret = remove_from_reg_multi_sz(g_volume_filter_key, _T("LowerFilters"), g_dcrypt_service_name)) != NO_ERROR ) status = ret;
 
 #pragma warning( disable : 4996 )
 	if (LOBYTE(LOWORD(GetVersion())) >= 6) {
 #pragma warning( default : 4996 )
-		// remove crashdump filtes (Vista+)
+		// remove crashdump filters (Vista+)
 		if ( (ret = remove_from_reg_multi_sz(g_crash_filter_key, _T("DumpFilters"), g_maindriver_filename)) != NO_ERROR ) status = ret;
 	}
 
@@ -402,7 +402,7 @@ DWORD dc_update_driver()
 	}
 	if (config.build < 366)
 	{
-		// add CDROM filter
+		// add CD-ROM filter
 		if ( (status = add_to_reg_multi_sz(g_cdrom_filter_key, _T("UpperFilters"), g_dcrypt_service_name)) != NO_ERROR ) goto cleanup;
 		// set new default flags
 		config.conf_flags |= CONF_HW_CRYPTO | CONF_AUTOMOUNT_BOOT;

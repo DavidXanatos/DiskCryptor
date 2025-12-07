@@ -341,7 +341,7 @@ _tab_proc(
 				{
 					wchar_t s_file[MAX_PATH] = { 0 };
 
-					if ( _open_file_dialog(hwnd, s_file, countof(s_file), L"Open iso-file to encrypt") ) 
+					if ( _open_file_dialog(hwnd, s_file, countof(s_file), L"Open ISO file to encrypt") ) 
 					{
 						SetWindowText(GetDlgItem(hwnd, IDE_ISO_SRC_PATH), s_file);
 					}
@@ -360,7 +360,7 @@ _tab_proc(
 					s_name = _extract_name(s_src_file);
 					wcsncat(s_dst_file, (s_name != NULL) ? s_name : L"iso", countof(s_dst_file) - wcslen(s_src_file));
 
-					if ( _save_file_dialog(hwnd, s_dst_file, countof(s_dst_file), L"Save encrypted iso-file to...") ) 
+					if ( _save_file_dialog(hwnd, s_dst_file, countof(s_dst_file), L"Save encrypted ISO file to...") ) 
 					{						
 						SetWindowText(GetDlgItem(hwnd, IDE_ISO_DST_PATH), s_dst_file);
 					}

@@ -380,7 +380,7 @@ retry_auth:;
 					  boot_from_sector(mount->hdd_n, mount->begin, n_mount);
 				  }
 			  }
-			  die("disk_id equal partition not found\n");
+			  die("partition with equal disk_id not found\n");
 		  }
 		break;
 	}

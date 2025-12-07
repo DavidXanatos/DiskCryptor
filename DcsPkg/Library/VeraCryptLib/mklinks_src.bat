@@ -119,7 +119,7 @@ set select_path_result=
 set /p select_path_result=[%select_path_default:~1,-1%] %select_path_msg%
 if ["%select_path_result%"]==[""] set select_path_result=%select_path_default:~1,-1%
 if exist %select_path_result% goto :eof
-echo can not find %select_path_result%
+echo cannot find %select_path_result%
 goto :select_path_retry
 
 :end

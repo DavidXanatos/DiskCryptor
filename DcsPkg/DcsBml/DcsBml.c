@@ -39,7 +39,7 @@ EFI_EVENT             mBmlVirtualAddrChangeEvent;
 EFI_SET_VARIABLE      orgSetVariable = NULL;
 
 EFI_STATUS
-BmlSetVaribale(
+BmlSetVariable(
 	IN  CHAR16                       *VariableName,
 	IN  EFI_GUID                     *VendorGuid,
 	IN  UINT32                       Attributes,
@@ -61,7 +61,7 @@ BmlSetVaribale(
 }
 
 /**
-Fixup internal data so that EFI can be call in virtual mode.
+Fixup internal data so that EFI can be called in virtual mode.
 Call the passed in Child Notify event and convert any pointers in
 lib to virtual mode.
 
@@ -134,7 +134,7 @@ BootMenuLock(
         if (orgSetVariable == NULL) {
             BootMenuLocked = TRUE;
             orgSetVariable = gST->RuntimeServices->SetVariable;
-            gST->RuntimeServices->SetVariable = BmlSetVaribale;
+            gST->RuntimeServices->SetVariable = BmlSetVariable;
         }
     }
     return EFI_SUCCESS;

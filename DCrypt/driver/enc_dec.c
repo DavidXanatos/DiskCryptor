@@ -211,7 +211,7 @@ static void dc_save_enc_state(dev_hook *hook, int finish)
 			hook->tmp_header.flags |= VF_REENCRYPT;
 		} 
 	}
-	// update header checksumm
+	// update header checksum
 	hook->tmp_header.hdr_crc = crc32((const unsigned char*)&hook->tmp_header.version, DC_CRC_AREA_SIZE);
 
 	// write new header to disk (retry 10 times on error)

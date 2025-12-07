@@ -81,7 +81,7 @@ static void print_usage()
 		L"    -p  [password]        Get password from command line\n"
 		L"    -kf [keyfiles path]   Use keyfiles\n"
 		L" -unmount [dev] [param]          Unmount encrypted device\n"
-		L"    -f                    Force unmount with close all opened files\n"
+		L"    -f                    Force unmount and close all opened files\n"
 		L"    -dp                   Delete volume mount point\n"
 		L" -unmountall                     Force unmount all devices\n"
 		L"________________________________________________________________________________\n"
@@ -154,7 +154,7 @@ static void print_usage()
 		L"    -rembme                      Remove DCS entry from EFI boot menu\n"
 		L"    -makerec [root par] [opt]    Setup EFI recovery DCS to bootable partition\n"
 		L"       -shim              Force adding shim loader for secure boot\n"
-		L"       -noshim            Dont add shim loader for secure boot, even when needed\n"
+		L"       -noshim            Don't add shim loader for secure boot, even when needed\n"
 		);
 }
 
@@ -586,7 +586,7 @@ int dc_set_boot_interactive(int d_num, int small_boot)
 int dc_set_efi_boot_interactive(int d_num, int shim, int add_bme)
 {
 	int        resl;
-	int        repalce_ms = 0;
+	int        replace_ms = 0;
 
 	if (shim == -1) shim = dc_efi_is_secureboot();
 
@@ -604,13 +604,13 @@ int dc_set_efi_boot_interactive(int d_num, int shim, int add_bme)
 		}
 		else {
 			wprintf(L"Do you want to replace the windows bootloader file (BOOTMGFW.EFI) with a redirection to the DCS loader as a workaround? Y/N?\n");
-			repalce_ms = (tolower(_getch()) == 'y');
+			replace_ms = (tolower(_getch()) == 'y');
 		}
 	}
 
 	wprintf(L"Installing EFI Disk Cryptography Services (DCS) bootloader...\n");
 
-	resl = dc_set_efi_boot(d_num, shim, repalce_ms);
+	resl = dc_set_efi_boot(d_num, shim, replace_ms);
 
 	if (resl == ST_OK && add_bme == 1) {
 		resl = dc_efi_set_bme(L"DiskCrypto (DCS) loader", d_num);
@@ -733,7 +733,7 @@ int wmain(int argc, wchar_t *argv[])
 		}
 #endif
 		if (is_admin() != ST_OK) {
-			wprintf(L"Administrator privilegies required\n");
+			wprintf(L"Administrator privileges required\n");
 			resl = ST_NO_ADMIN; break;
 		}
 
@@ -973,7 +973,7 @@ int wmain(int argc, wchar_t *argv[])
 			{
 				wprintf(
 					L"This volume contains opened files.\n"
-					L"Would you like to force a unmount on this volume? (Y/N)\n");
+					L"Would you like to force an unmount on this volume? (Y/N)\n");
 
 				if (tolower(_getch()) == 'y') {
 					resl = dc_unmount_volume(inf->device, flags | MF_FORCE);
@@ -1222,8 +1222,8 @@ int wmain(int argc, wchar_t *argv[])
 			if ( (inf->status.flags & F_SYSTEM) && 
 				 (dc_device_control(DC_CTL_GET_FLAGS, NULL, 0, &flags, sizeof(flags)) == NO_ERROR) && (flags.conf_flags & CONF_BLOCK_UNENC_HDDS) )
 			{
-				wprintf(L"This device can not be decrypted because "
-					    L"'Deny access to unencrypted HDD's' option enabled.\n");
+				wprintf(L"This device cannot be decrypted because "
+					    L"'Deny access to unencrypted HDDs' option is enabled.\n");
 				resl = ST_OK; break;
 			}
 			pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, 0);
@@ -1551,8 +1551,8 @@ int wmain(int argc, wchar_t *argv[])
 					L"5 - On/Off disable TRIM on encrypted SSD disks (%s)\n"
 					L"--------------------------------------------------\n"
 					L"6 - On/Off Deny access to unencrypted removable devices (%s)\n"
-					L"7 - On/Off Deny access to unencrypted HDD's (%s)\n"
-					L"8 - On/Off Deny access to unencrypted CDROM (%s)\n"
+					L"7 - On/Off Deny access to unencrypted HDDs (%s)\n"
+					L"8 - On/Off Deny access to unencrypted CD-ROM (%s)\n"
 					L"--------------------------------------------------\n"
 					L"9 - Save changes and exit\n\n",				
 					on_off(dc_conf.conf_flags & CONF_CACHE_PASSWORD),

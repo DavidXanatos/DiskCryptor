@@ -199,7 +199,7 @@ int dc_efi_get_sys_part(int dsk_num, wchar_t* path)
 
 		if (dli->PartitionStyle == 1) // GPT
 		{
-			// find EFI system pattition by type GUID
+			// find EFI system partition by type GUID
 			for (DWORD i = 0; i < dli->PartitionCount; i++)
 			{
 				PPARTITION_INFORMATION_EX part = &dli->PartitionEntry[i];
@@ -348,7 +348,7 @@ int dc_copy_zip_to_efi_file(const wchar_t *root, struct zip_t *zip, const wchar_
 	sprintf_s(fileName, MAX_PATH, "%S\\%S", root, target);
 
 	if (_access(fileName, 0) != -1) { // file already exists
-		if (!DeleteFileA(fileName)) { // and cant be deleted
+		if (!DeleteFileA(fileName)) { // and cannot be deleted
 			return ST_RW_ERR;
 		}
 	}
@@ -404,7 +404,7 @@ int dc_copy_efi_shim(const wchar_t *root)
 
 		resl = dc_copy_zip_to_efi_files(root, zip, shim_files, _countof(shim_files));
 
-		// create a baclup copy of the shim loader we can relaibly reference when creating a dedicated boot menu entry
+		// create a backup copy of the shim loader we can reliably reference when creating a dedicated boot menu entry
 		if (resl == ST_OK) {
 			resl = dc_copy_efi_file(root, efi_boot_file, shim_boot_aux);
 		}
@@ -446,7 +446,7 @@ int dc_copy_efi_dcs(const wchar_t *root, int recovery, int shim)
 		resl = dc_copy_zip_to_efi_files(root, zip, dcs_files, _countof(dcs_files));
 		if (resl != ST_OK) break;
 
-		if (dc_efi_file_exists(root, efi_boot_file)) { // if there is a original boot file
+		if (dc_efi_file_exists(root, efi_boot_file)) { // if there is an original boot file
 			if (!dc_efi_file_exists(root, efi_boot_bak)) { // and there is no boot file backup already
 				dc_copy_efi_file(root, efi_boot_file, efi_boot_bak); // backup the boot file
 			}
@@ -518,7 +518,7 @@ int dc_copy_efi_dcs(const wchar_t *root, int recovery, int shim)
 		resl = dc_copy_res_to_efi_files(root, dcs_files, _countof(dcs_files));
 		if (resl != ST_OK) break;
 
-		if (dc_efi_file_exists(root, efi_boot_file)) { // if there is a original boot file
+		if (dc_efi_file_exists(root, efi_boot_file)) { // if there is an original boot file
 			if (!dc_efi_file_exists(root, efi_boot_bak)) { // and there is no boot file backup already
 				dc_copy_efi_file(root, efi_boot_file, efi_boot_bak); // backup the boot file
 			}
@@ -606,7 +606,7 @@ int dc_mk_efi_rec(const wchar_t *root, int format, int shim)
 		}
 		else
 		{
-			CloseHandle(hdisk); // close befoer formating
+			CloseHandle(hdisk); // close before formatting
 			hdisk = NULL;
 
 			if ((resl = dc_format_fs((wchar_t*)root, L"FAT32")) != ST_OK) {
@@ -642,7 +642,7 @@ int dc_replace_msft_boot(const wchar_t *root)
 		if (resl != ST_OK) break;
 
 		is_dcs_file = dc_buffer_contains_wide_string(data, size, L"\\DcsInt.dcs");
-		// does the file look like a msft boot manager, or was it already repalced?
+		// does the file look like a msft boot manager, or was it already replaced?
 		is_msft_file = dc_buffer_contains_string(data, size, "bootmgfw.pdb");
 
 		// rename msft boot manager file
@@ -650,7 +650,7 @@ int dc_replace_msft_boot(const wchar_t *root)
 			resl = dc_ren_efi_file(root, msft_boot_file, msft_boot_aux);
 			if (resl != ST_OK) break;
 		}
-		// fail if the renamed boot file does nto exist
+		// fail if the renamed boot file does not exist
 		else if (!dc_efi_file_exists(root, msft_boot_aux)) {
 			resl = ST_NF_FILE; break;
 		}
@@ -683,7 +683,7 @@ int dc_restore_msft_boot(const wchar_t *root)
 
 		if (is_dcs_file)
 		{
-			// fail if the renamed boot file does nto exist
+			// fail if the renamed boot file does not exist
 			if (!dc_efi_file_exists(root, msft_boot_aux)) {
 				resl = ST_NF_FILE; break;
 			}
@@ -815,7 +815,7 @@ int dc_unset_efi_boot(int dsk_num)
 		// restore original boot file
 		dc_ren_efi_file(root, efi_boot_bak, efi_boot_file);
 
-		// remove //EFI//Boot and // EFI if thay are empty
+		// remove //EFI//Boot and //EFI if they are empty
 		dc_delete_efi_dir(root, L"\\EFI", 0, 1);
 
 	} while (0);
@@ -1027,7 +1027,7 @@ int dc_efi_config_write(const wchar_t* root, ldr_config *conf)
 		WriteConfigString(configFile, configContent, "BootPartition", disk_guid); // boot partition guid without brackets*/
 
 	// Authentication:
-		// Authenticaltion Method
+		// Authentication Method
 			// Password and bootauth keyfile 3
 			// Password request 1
 			// Embedded bootauth keyfile 2
@@ -1058,7 +1058,7 @@ int dc_efi_config_write(const wchar_t* root, ldr_config *conf)
 		// Password Prompt Message
 		WriteConfigString(configFile, configContent, "PasswordMsg", (conf->logon_type & LDR_LT_MESSAGE) ? conf->eps_msg  : "");
 
-		// Display Entered Password * or hide completly
+		// Display Entered Password * or hide completely
 		WriteConfigInteger(configFile, configContent, "AuthorizeProgress", (conf->logon_type & LDR_LT_DSP_PASS) ? 1 : 0);
 
 		// Authentication TimeOut
@@ -1136,7 +1136,7 @@ int dc_efi_config_write(const wchar_t* root, ldr_config *conf)
 		free(configContent);
 	}
 
-	// only commite the file when all changed were writen successfully
+	// only commit the file when all changes were written successfully
 	if (resl == ST_OK) { 
 		DeleteFile(fileName);
 		if (!MoveFile(tempName, fileName)) {
@@ -1187,7 +1187,7 @@ int dc_efi_config_read(const wchar_t* root, ldr_config *conf)
 		if (resl != ST_OK) break;*/
 
 		// Authentication:
-			// Authenticaltion Method
+			// Authentication Method
 				// Password and bootauth keyfile 3
 				// Password request 1
 				// Embedded bootauth keyfile 2
@@ -1238,7 +1238,7 @@ int dc_efi_config_read(const wchar_t* root, ldr_config *conf)
 			conf->logon_type |= LDR_LT_MESSAGE;
 		}
 
-		// Display Entered Password * or hide completly
+		// Display Entered Password * or hide completely
 		if (ReadConfigInteger(configContent, "AuthorizeProgress", 0)) {
 			conf->logon_type |= LDR_LT_DSP_PASS;
 		}
@@ -1698,7 +1698,7 @@ int dc_efi_set_bme_ex(wchar_t* description, int dsk_num, int setBootEntry, int f
 
 		shim = dc_is_shim_on_partition(root);
 
-		if (shim) { // if shim is installed point the boot entry to the backup file as the original may get overwriten by windows updates
+		if (shim) { // if shim is installed point the boot entry to the backup file as the original may get overwritten by windows updates
 			wsprintf(execPath, L"%s", shim_boot_aux);
 		}
 		else { // else point the boot entry to "\\EFI\\DCS\\DcsBoot.efi"

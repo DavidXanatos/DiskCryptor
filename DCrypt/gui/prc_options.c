@@ -255,7 +255,7 @@ _options_dlg_proc(
 					if ( check )
 					{
 						if ( _hotkeys[3] && !__config.hotkeys[3] ) {
-							if (! __msg_w( hwnd, L"Set Hotkey for call BSOD?" ) )
+							if (! __msg_w( hwnd, L"Set Hotkey to call BSOD?" ) )
 							{
 								_hotkeys[3] = 0;
 							}

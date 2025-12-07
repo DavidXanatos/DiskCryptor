@@ -51,11 +51,11 @@ DRIVER_DISPATCH   dc_dispatch_irp;
 
 PDEVICE_OBJECT dc_device;
 volatile long  dc_io_count;
-ULONG          dc_conf_flags; // config flags readed from registry
-ULONG          dc_load_flags; // other flags setted by driver during initialization
+ULONG          dc_conf_flags; // config flags read from registry
+ULONG          dc_load_flags; // other flags set by driver during initialization
 ULONG          dc_boot_flags; // flags passed from the bootloader
 ULONG          dc_boot_kbs;   // bootloader base memory size in kbs
-ULONG          dc_cpu_count;  // CPU's count
+ULONG          dc_cpu_count;  // CPU count
 
 typedef NTSTATUS (*dc_dispatch)(dev_hook *hook, PIRP irp);
 
@@ -130,7 +130,7 @@ static void dc_automount_thread(void *param)
 	/* complete automounting */
 	dc_mount_all(NULL, 0);
 
-	/* clean cached passwords */
+	/* clear cached passwords */
 	if ( (dc_conf_flags & CONF_CACHE_PASSWORD) == 0 && (dc_boot_flags & BDB_BF_HDR_FOUND) == 0 ) {
 		dc_clean_pass_cache();
 	}
@@ -321,7 +321,7 @@ NTSTATUS
 	// all initialized OK
 	status = STATUS_SUCCESS;
 	
-	// register reinit routine for complete automounting and clear cached passwords	
+	// register reinit routine for complete automounting and to clear cached passwords	
 	IoRegisterDriverReinitialization(DriverObject, dc_reinit_routine, NULL);
 	
 	// secondary reseed PRNG after all operations

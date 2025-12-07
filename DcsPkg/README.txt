@@ -7,7 +7,7 @@ Modules:
 DcsBoot.efi - Starter
 DcsRe.efi  - Recovery tool (decrypt etc)
 DcsCfg.dcs - configuration from EFI shell
-DcsBml.dcs - Boot menu lock runtime driver to prvent Windows modification of boot order
+DcsBml.dcs - Boot menu lock runtime driver to prevent Windows modification of boot order
 DcsInt.dcs - PreBoot authorization 
 DcsInfo.dcs - PlatformInfo generation
 LegacySpeaker.dcs - driver for ordinary speaker (beep)

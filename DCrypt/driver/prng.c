@@ -187,9 +187,9 @@ int cp_rand_bytes(u8 *buf, int len)
 	int        fail;
 
 	if (reseed_cnt < 256) {
-		DbgMsg("RNG not have sufficient entropy (%d reseeds), collect it now\n", reseed_cnt);
+		DbgMsg("RNG does not have sufficient entropy (%d reseeds), collect it now\n", reseed_cnt);
 	}
-	/* in RNG not have sufficient entropy, then collect it now */
+	/* if RNG does not have sufficient entropy, then collect it now */
 	while (reseed_cnt < 256) {
 		dc_delay(1); /* wait 1 millisecond */
 		cp_rand_reseed();
@@ -246,7 +246,7 @@ int cp_rand_bytes(u8 *buf, int len)
 		buf += c_len; len -= c_len;
 	} while ( (len != 0) && (fail == 0) );
 
-	/* mix pool after get data to prevent "could boot" attacks to generated keys */
+	/* mix pool after getting data to prevent "cold boot" attacks to generated keys */
 	cp_rand_pool_mix();
 
 	/* Prevent leaks */

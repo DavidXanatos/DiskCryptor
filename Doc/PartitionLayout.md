@@ -2,7 +2,7 @@
 
 There are two types of encrypted partitions which slightly differ in their layout.
 
-The beginning of the physical partition (sector 0) always contains the DiskCryptor header (`dc_header`, 2048 byte). The type of partion is defined by the flag `VF_STORAGE_FILE` (0x04) in the `dc_header.flags` field.
+The beginning of the physical partition (sector 0) always contains the DiskCryptor header (`dc_header`, 2048 byte). The type of partition is defined by the flag `VF_STORAGE_FILE` (0x04) in the `dc_header.flags` field.
 
 | dc_header.flags   | dc_header.stor_off | Type                       |
 |:----------------- |:------------------ |:-------------------------- |
@@ -14,7 +14,7 @@ The beginning of the physical partition (sector 0) always contains the DiskCrypt
 
 Partitions which were created via the DiskCryptor "Encrypt" command, including the Windows OS partition.
 
-The size of the decrypted partion is exactly the same as the underlying physical partition. The first 2048 bytes of the physical partition are replaced by the `dc_header`. The original content of the first 2048 bytes is stored in a hidden file named `$dcsys$`.
+The size of the decrypted partition is exactly the same as the underlying physical partition. The first 2048 bytes of the physical partition are replaced by the `dc_header`. The original content of the first 2048 bytes is stored in a hidden file named `$dcsys$`.
 
 The DC driver creates `$dcsys$` when the user encrypts the hard disk. It stores the physical address of the file in `dc_header.stor_off`. Whenever the file system driver accesses the first 2048 bytes, the DC driver redirects the I/O command to `stor_off`.
 

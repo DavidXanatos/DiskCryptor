@@ -1,5 +1,5 @@
 [12.08.2023] - 1.3.0/849.118.204
-  [+] Added safe system volume encryption (botoloader is tested before anythign gets encrypted)
+  [+] Added safe system volume encryption (bootloader is tested before anything gets encrypted)
 
 [15.05.2023] - 1.2.3/848.118.203
   [*] Fixed issue with Core Isolation on windows 10/11
@@ -12,7 +12,7 @@
   [*] Restructured bootloader config GUI
   [+] Added additional EFI loader messages to the UI
   [+] Added option to enable EFI picture password from UI
-  [+] Added remaining message charakters display
+  [+] Added remaining message characters display
 
 [14.03.2020] - 1.2.1/848.118.201
   [*] Wipe Mode disabled on SSD drivers (as on those its pointless and may damage the ssd)
@@ -23,15 +23,15 @@
   [*] Fixed issues updating the driver on Windows 10
 
 [01.02.2020] - 1.2.0/847.118.200
-  [*] Project moved to Visual Studio 2017, using win 7 sdk for compatybility
+  [*] Project moved to Visual Studio 2017, using Win 7 SDK for compatibility
   [+] Added EFI bootloader
   [+] Added shim bootloader to achieve secure boot compatibility (https://habr.com/ru/post/446238/)
-  [+] Added bootloader instalation routine for GPT partitions
-  [+] Integrated EFI bootloader instalation in the CLI
+  [+] Added bootloader installation routine for GPT partitions
+  [+] Integrated EFI bootloader installation in the CLI
   [*] Enabled GUI high DPI awareness
   [*] Fixed boot partitions not being properly detected
-  [+] Added disk type display to bootloader instalation dialog
-  [+] Integrated EFI bootloader instalation in the GUI
+  [+] Added disk type display to bootloader installation dialog
+  [+] Integrated EFI bootloader installation in the GUI
   [+] Error messages now provide an error string instead of a cryptic error code
   [*] Fixed driver uninstall not being able to delete dcrypt.sys
   
@@ -82,7 +82,7 @@
   + Added Vista-PE plugin.
   + Improved volume formatting speed.  
   + Improved bootloader PXE compatibility.  
-  + New optimization for AES and XTS mode, more perfomance now!
+  + New optimization for AES and XTS mode, more performance now!
   + Greatly improved performance of AES for VIA processors.
   + Fixed displaying program icon in the "Add or Remove Programs".
   + Fixed incompatibility with Parallels Workstation BIOS.
@@ -110,7 +110,7 @@
   + More stable benchmark results.
   + Added automatically delete mount points added when mounting.
   + Added support for disks with large sector size.
-  + Added correct signature of drivers and other executeable files (special thanks to ReactOS Foundation).
+  + Added correct signature of drivers and other executable files (special thanks to ReactOS Foundation).
   + Small bugfixes.  
 
 [19.01.2009] - 0.6a
@@ -132,7 +132,7 @@
   + Added keyfiles support.
   + Password length limit increased to 128 symbols.
   + Resolved many boot-encryption issues.
-  + Added hibernation support in partial-encrypted state.
+  + Added hibernation support in partially-encrypted state.
   + Many hardware compatibility fixes.
 
 
@@ -165,11 +165,11 @@
   + Added limited QWERTZ and AZERTY keyboard layouts support when pre-boot authentication.
   + Added power safe encryption, encryption stopping and reverting.
   + Added password prompt when decryption and changing password.
-  + Added "advanced io queue" options. This option enable multi CPU i/o requests splitting (increase perfomance to 50-400%) 
+  + Added "advanced io queue" options. This option enables multi-CPU I/O requests splitting (increases performance by 50-400%) 
   + Added optional authentication timeout to pre-boot authentication.
   + Added 'retry authentication' option to pre-boot authentication.
   + Added disk speed testing tool
-  + Added embedded volume header backup. Backup header encrypted with different salt and needed for resiliency.
+  + Added embedded volume header backup. Backup header encrypted with different salt and needed for resilience.
   + Added skipping bad sectors when encryption.
   + Added password strength meter.
   + Small bug fixes.
@@ -181,7 +181,7 @@
   + Security improvement: When changing a password made erase volume header by Gutmann method to prevent restore previous password by magnetic microscopy 
   + Security improvement: added avoiding LRW weakness http://grouper.ieee.org/groups/1619/email/msg00923.html
   + Security improvement: added automatically erasing keys in memory when shutdown, reboot or hibernate to prevent "cold boot" attacks.
-  + Added dynamical (LDM) disks support.
+  + Added dynamic (LDM) disks support.
   + New bootloader architecture
   + Added plugin for BartPE.
   + Improved support for encryption devices with non-standard MaximumTransferLength.

@@ -148,7 +148,7 @@ ChangePassword(
 	int                     vcres;
 	BOOL                    modified = FALSE;
 
-	res = RndPreapare();
+	res = RndPrepare();
 	if (EFI_ERROR(res)) {
 		ERR_PRINT(L"Rnd: %r\n", res);
 		return res;
@@ -625,7 +625,7 @@ RangeCrypt(
 						if (remains > 0)
 						{
 							/* 1.19 bug appears only when size not multiple of 50 MB */																
-							if (AskConfirm("\r\nSystem already decrypted but partition can't be recognized.\r\nDid you use 1.19 Rescue Disk previously to decrypt OS?", 1)) {
+							if (AskConfirm("\r\nSystem already decrypted but partition cannot be recognized.\r\nDid you use 1.19 Rescue Disk previously to decrypt OS?", 1)) {
 								OUT_PRINT(L"\r\nTrying to recover data corrupted by 1.19 Rescue Disk bug.");
 
 								pos = start + remains - CRYPT_BUF_SECTORS;
@@ -755,7 +755,7 @@ VolumeEncrypt(
 	// Verify header
 	io = EfiGetBlockIO(hDisk);
 	if (!io) {
-		ERR_PRINT(L"can not get block IO\n");
+		ERR_PRINT(L"cannot get block IO\n");
 		return EFI_INVALID_PARAMETER;
 	}
 
@@ -773,7 +773,7 @@ VolumeEncrypt(
 	// Encrypt range
 	vcres = AskConfirm("Encrypt?", 1);
 	if (!vcres) {
-		ERR_PRINT(L"Encryption stoped\n");
+		ERR_PRINT(L"Encryption stopped\n");
 		return EFI_INVALID_PARAMETER;
 	}
 
@@ -800,7 +800,7 @@ VolumeDecrypt(
 
 	io = EfiGetBlockIO(gBIOHandles[index]);
 	if (!io) {
-		ERR_PRINT(L"can not get block IO\n");
+		ERR_PRINT(L"cannot get block IO\n");
 		return EFI_INVALID_PARAMETER;
 	}
 
@@ -821,7 +821,7 @@ VolumeDecrypt(
 	}
 
 	if (!AskConfirm("Decrypt?", 1)) {
-		ERR_PRINT(L"Decryption stoped\n");
+		ERR_PRINT(L"Decryption stopped\n");
 		res = EFI_INVALID_PARAMETER;
 		goto error;
 	}
@@ -906,7 +906,7 @@ OSDecrypt()
 
 	if (doDecrypt) {
 		if (!AskConfirm("Decrypt?", 1)) {
-			ERR_PRINT(L"Decryption stoped\n");
+			ERR_PRINT(L"Decryption stopped\n");
 			return EFI_INVALID_PARAMETER;
 		}
 		res = RangeCrypt(gBIOHandles[disk], 
@@ -1092,7 +1092,7 @@ BlockRangeWipe(
 		return EFI_NOT_FOUND;
 	}
 
-	res = RndPreapare();
+	res = RndPrepare();
 	if (EFI_ERROR(res)) {
 		ERR_PRINT(L"Rnd: %r\n", res);
 		return res;
@@ -1104,7 +1104,7 @@ BlockRangeWipe(
 	if (AskConfirm(", Wipe data?", 1) == 0) return EFI_NOT_READY;
 	buf = MEM_ALLOC(CRYPT_BUF_SECTORS << 9);
 	if (!buf) {
-		ERR_PRINT(L"can not get buffer\n");
+		ERR_PRINT(L"cannot get buffer\n");
 		return EFI_INVALID_PARAMETER;
 	}
 	remains = end -start + 1;

@@ -45,7 +45,7 @@ InitConfig(CHAR16* configFileName)
 
 	res = FileLoad(NULL, gConfigFileName, &gConfigBuffer, &gConfigBufferSize);
 	if (EFI_ERROR(res)) {
-		ERR_PRINT(L"Failed to load config file r%\n", res);
+		ERR_PRINT(L"Failed to load config file %r\n", res);
 		return FALSE;
 	}
 

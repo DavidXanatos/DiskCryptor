@@ -4,7 +4,7 @@
 #include "dcapi.h"
 #include "drv_ioctl.h"
 
-#define HOT_MAX 4 /* maximun mumber of hotkeys */
+#define HOT_MAX 4 /* maximum number of hotkeys */
 
 typedef struct dc_conf_data {
 	DWORD build;

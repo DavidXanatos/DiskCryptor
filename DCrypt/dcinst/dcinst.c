@@ -133,7 +133,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 
 		update_w10_reflect_driver();
 
-		dc_update_efi_boot(-1); // Note: this wil fail and do noehing if the bootloader is not installed on the default EFI partition
+		dc_update_efi_boot(-1); // Note: this will fail and do nothing if the bootloader is not installed on the default EFI partition
 	}
 
 	return status;

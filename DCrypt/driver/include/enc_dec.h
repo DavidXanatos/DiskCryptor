@@ -20,8 +20,8 @@ typedef struct _sync_packet {
 
 } sync_packet;
 
-#define S_OP_ENC_BLOCK  0 // encrypt the next few hundred secotrs
-#define S_OP_DEC_BLOCK  1 // decrypt the next few hundred secotrs
+#define S_OP_ENC_BLOCK  0 // encrypt the next few hundred sectors
+#define S_OP_DEC_BLOCK  1 // decrypt the next few hundred sectors
 #define S_OP_SYNC       2 // update and save header to disk
 #define S_OP_FINALIZE   3
 

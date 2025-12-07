@@ -79,7 +79,7 @@ begin
     exit;
   end;
 
-  // its windows xp (5.1) but service pack is to old
+  // its windows xp (5.1) but service pack is too old
   if (Version.Major = 5) and (Version.Minor = 1) and (Version.Build < 2) then
   begin
     SuppressibleMsgBox('When running on Windows XP, Service Pack 2 is required.', mbError, MB_OK, MB_OK);
@@ -87,7 +87,7 @@ begin
     exit;
   end;
 
-  // its windows server (5.2) but service pack is to old
+  // its windows server (5.2) but service pack is too old
   if (Version.Major = 5) and (Version.Minor = 2) and (Version.Build < 1) then
   begin
     SuppressibleMsgBox('When running on Windows 2003, Service Pack 1 is required.', mbError, MB_OK, MB_OK);
@@ -95,7 +95,7 @@ begin
     exit;
   end;
 
-  // if we are uninstaling the driver right now, query for a reboot
+  // if we are uninstalling the driver right now, query for a reboot
   if RegQueryDWordValue(HKEY_LOCAL_MACHINE, 'SYSTEM\CurrentControlSet\Services\dcrypt', 'DeleteFlag', DeleteFlag) then
   begin
     if (DeleteFlag <> 0) then
@@ -109,7 +109,7 @@ begin
     end;
   end;
 
-  // check is a verion is already installed
+  // check is a version is already installed
   if RegQueryDWordValue(HKEY_LOCAL_MACHINE, 'SYSTEM\CurrentControlSet\Services\dcrypt\config', 'sysBuild', DrvVersion) then
   begin
     if (DrvVersion > 848) then
@@ -138,7 +138,7 @@ begin
 
   if (Exec(ExpandConstant('{app}\dcinst.exe'), '-isenc', '', SW_HIDE, ewWaitUntilTerminated, ExecRet) = False) and (ExecRet = 51) then // ST_ENCRYPTED
   begin
-    MsgBox('DiskCryptor can not be uninstalled, because system boot device is encrypted.'#13#10'Please decrypt this device and try again.', mbError, MB_OK);
+    MsgBox('DiskCryptor cannot be uninstalled, because system boot device is encrypted.'#13#10'Please decrypt this device and try again.', mbError, MB_OK);
     Result := False;
     exit;
   end;
@@ -151,7 +151,7 @@ var
   ExecRet: Integer;
 begin
 
-  // after the instalation
+  // after the installation
   if (CurStep <> ssPostInstall) then  
     exit;
  
@@ -170,7 +170,7 @@ var
   ExecRet: Integer;
 begin
   
-  // before the uninstalation
+  // before the uninstallation
   if (CurUninstallStep <> usUninstall) then
     exit;
   
@@ -188,7 +188,7 @@ begin
   // check if bootloader is installed
   if (Exec(ExpandConstant('{app}\dcinst.exe'), '-isboot', '', SW_HIDE, ewWaitUntilTerminated, ExecRet) = True) and (ExecRet = 0) then
   begin
-    if MsgBox('Uninstall DiskCryptor bootloader from you HDD?', mbConfirmation, MB_YESNO) = IDYES then
+    if MsgBox('Uninstall DiskCryptor bootloader from your HDD?', mbConfirmation, MB_YESNO) = IDYES then
     begin
       // uninstall the bootloader
       if (Exec(ExpandConstant('{app}\dcinst.exe'), '-unldr', '', SW_HIDE, ewWaitUntilTerminated, ExecRet) = False) or (ExecRet <> 0) then

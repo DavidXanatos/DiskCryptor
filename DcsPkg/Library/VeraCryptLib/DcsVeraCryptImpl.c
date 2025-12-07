@@ -386,7 +386,7 @@ SecRegionChangePwd() {
 	Password                confirmPassword;
 	INT32                   vcres;
 
-	Status = RndPreapare();
+	Status = RndPrepare();
 	if (EFI_ERROR(Status)) {
 		ERR_PRINT(L"Rnd: %r\n", Status);
 		return Status;
@@ -630,7 +630,7 @@ SecRegionTryDecrypt()
 	if (gAuthPwdCode == AskPwdRetChange) {
 		if (gRnd != NULL)
 		{
-			res = RndPreapare();
+			res = RndPrepare();
 			if (!EFI_ERROR(res)) {
 				res = SecRegionChangePwd();
 				if (EFI_ERROR(res)) {
@@ -832,7 +832,7 @@ DcsVeraCrypt(
 
 	res = PrepareBootParams(BootDriveSignature, SecRegionCryptInfo);
 	if (EFI_ERROR(res)) {
-		ERR_PRINT(L"Can not set params for OS: %r", res);
+		ERR_PRINT(L"Cannot set params for OS: %r", res);
 		return res;
 	}
 

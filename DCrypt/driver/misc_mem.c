@@ -156,7 +156,7 @@ NTSTATUS mm_lock_user_memory(HANDLE process_id, PVOID ptr, ULONG length)
 	PUSER_MEM_LOCK lock = NULL;
 	NTSTATUS       status;
 
-	// if PsSetCreateProcessNotifyRoutine fails, we can not lock usermode memory,
+	// if PsSetCreateProcessNotifyRoutine fails, we cannot lock usermode memory,
 	// because if the process terminated without unlocking the pages, system will BSOD 
 	if (g_ps_notify_registered == FALSE)
 	{
@@ -294,7 +294,7 @@ void mm_init()
 		DbgMsg("CreateProcessNotifyRoutine installed\n");
 		g_ps_notify_registered = TRUE;
 	} else {
-		DbgMsg("can not install CreateProcessNotifyRoutine\n");
+		DbgMsg("cannot install CreateProcessNotifyRoutine\n");
 		g_ps_notify_registered = FALSE;
 	}
 	InitializeListHead(&g_secure_memory_list);

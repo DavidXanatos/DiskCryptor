@@ -72,7 +72,7 @@ static HANDLE dc_create_trim_file(dev_hook *hook, ULONGLONG length)
 
 	if ( !NT_SUCCESS(status = ZwCreateFile(&h_file, GENERIC_WRITE, &obj_a, &iosb, NULL, 0, 0, FILE_CREATE, 0, NULL, 0)) )
 	{
-		DbgMsg("Can not create trim file, status=%08x, path=%ws\n", status, buff);
+		DbgMsg("Cannot create trim file, status=%08x, path=%ws\n", status, buff);
 		return NULL;
 	}
 	vdli.ValidDataLength.QuadPart = length;
@@ -81,7 +81,7 @@ static HANDLE dc_create_trim_file(dev_hook *hook, ULONGLONG length)
 	if ( !NT_SUCCESS(status = ZwSetInformationFile(h_file, &iosb, &eofi, sizeof(eofi), FileEndOfFileInformation)) ||
 		 !NT_SUCCESS(status = ZwSetInformationFile(h_file, &iosb, &vdli, sizeof(vdli), FileValidDataLengthInformation)) )
 	{
-		DbgMsg("Can not allocate space for trim, status=%08x, path=%ws\n", status, buff);
+		DbgMsg("Cannot allocate space for trim, status=%08x, path=%ws\n", status, buff);
 	}
 	return h_file;
 }

@@ -53,14 +53,14 @@ DoExecCmd()
 #endif
 			res = EfiExec(NULL, gEfiExecCmd);
 			if (EFI_ERROR(res))
-				AsciiSPrint(gDoExecCmdMsg, sizeof(gDoExecCmdMsg), "\nCan't exec %s start partition %g\n", gEfiExecCmd, gEfiExecPartGuid);
+				AsciiSPrint(gDoExecCmdMsg, sizeof(gDoExecCmdMsg), "\nCannot execute %s start partition %g\n", gEfiExecCmd, gEfiExecPartGuid);
 			else
-				AsciiSPrint(gDoExecCmdMsg, sizeof(gDoExecCmdMsg), "\nDone exec %s start partition %g\n", gEfiExecCmd, gEfiExecPartGuid);
+				AsciiSPrint(gDoExecCmdMsg, sizeof(gDoExecCmdMsg), "\nDone executing %s start partition %g\n", gEfiExecCmd, gEfiExecPartGuid);
 		}	else {
-			AsciiSPrint(gDoExecCmdMsg, sizeof(gDoExecCmdMsg), "\nCan't open start partition %g\n", gEfiExecPartGuid);
+			AsciiSPrint(gDoExecCmdMsg, sizeof(gDoExecCmdMsg), "\nCannot open start partition %g\n", gEfiExecPartGuid);
 		}
 	}	else {
-		AsciiSPrint(gDoExecCmdMsg, sizeof(gDoExecCmdMsg), "\nCan't find start partition %g\n", gEfiExecPartGuid);
+		AsciiSPrint(gDoExecCmdMsg, sizeof(gDoExecCmdMsg), "\nCannot find start partition %g\n", gEfiExecPartGuid);
 	}
 	return res;
 }
@@ -153,7 +153,7 @@ The actual entry point for the application.
 @param[in] SystemTable    A pointer to the EFI System Table.
 
 @retval EFI_SUCCESS       The entry point executed successfully.
-@retval other             Some error occur when executing this entry point.
+@retval other             Some error occurred when executing this entry point.
 
 **/
 EFI_STATUS
@@ -201,7 +201,7 @@ DcsBootMain(
 	// Dump platform info
 	if (EFI_ERROR(FileExist(NULL, L"\\EFI\\" DCS_DIRECTORY L"\\PlatformInfo")) &&
 		!EFI_ERROR(FileExist(NULL, L"\\EFI\\" DCS_DIRECTORY L"\\DcsInfo.dcs"))) {
-		OUT_PRINT(L"Collecting Platform informations...\n");
+		OUT_PRINT(L"Collecting Platform information...\n");
 		res = EfiExec(NULL, L"\\EFI\\" DCS_DIRECTORY L"\\DcsInfo.dcs");
 		if (!EFI_ERROR(res) && 
 			!EFI_ERROR(FileExist(NULL, L"\\EFI\\" DCS_DIRECTORY L"\\PlatformInfo"))) {
@@ -283,7 +283,7 @@ DcsBootMain(
     EfiSetVar(L"DcsExecCmd", NULL, NULL, 0, EFI_VARIABLE_BOOTSERVICE_ACCESS);
 
 	// Find new start partition
-    ConnectAllEfi(); // this applyes the installed IO hook
+    ConnectAllEfi(); // this applies the installed IO hook
 	InitBio();
 	res = InitFS();
 

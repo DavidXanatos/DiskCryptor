@@ -336,7 +336,7 @@ _about_dlg_proc(
 							s_using = (
 								flags.conf_flags & CONF_HW_CRYPTO ? L"Enabled" : L"Disabled"
 							);
-							if ( flags.load_flags & DST_INTEL_NI ) s_inset = L"Intel® AES Instructions Set (AES-NI)";
+							if ( flags.load_flags & DST_INTEL_NI ) s_inset = L"Intel AES Instructions Set (AES-NI)";
 							if ( flags.load_flags & DST_VIA_PADLOCK ) s_inset = L"The VIA PadLock Advanced Cryptography Engine (ACE)";
 						}
 						_snwprintf( s_display, countof(s_display), 
@@ -551,7 +551,7 @@ void _is_breaking_action( )
 					default: flag = -1; break;
 				}
 
-				// get auxyliary data
+				// get auxiliary data
 				// Note: these may be reset during msg box so we need to re get them each time
 				if (flag == F_PENDING && pending_headers && (mnt->mnt.info.status.flags & F_ENABLED) == 0)  
 				{
@@ -592,7 +592,7 @@ void _is_breaking_action( )
 				action = __msg_q(
 					__dlg,
 					L"Formatting was suspended for volume%s %s.\n\n"
-					L"Continue formating?",
+					L"Continue formatting?",
 					count > 1 ? L"s" : STR_NULL,
 					s_vol);
 				break;

@@ -81,7 +81,7 @@ find:
  add   di, 0x10       ; next table
  cmp   di, 7C00h+1FEh ; scanned beyond end of table ??
  jb    find
- ; atcive partition not found
+ ; active partition not found
  call  error_msg
  db 'no active partition found',0
 active_found:
@@ -94,7 +94,7 @@ active_found:
  mov   [buff_lo], bp
  inc   bx
  mov   [sectors], bx
- ; reat boot sector
+ ; read boot sector
  call  read_sectors
  jnc   do_boot_1
  call  error_msg

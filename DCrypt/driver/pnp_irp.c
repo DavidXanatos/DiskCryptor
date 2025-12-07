@@ -46,10 +46,10 @@ NTSTATUS dc_pnp_usage_irp(dev_hook *hook, PIRP irp)
 			{
 				SetFlag(hook->flags, F_HIBERNATE);
 
-				// prevent hibernating if memory contain encryption keys
+				// prevent hibernating if memory contains encryption keys
 				if (dc_dump_helpers.dump_is_hibernation_allowed() == FALSE)
 				{
-					DbgMsg("hibernation prevented because memory contain encryption keys\n");
+					DbgMsg("hibernation prevented because memory contains encryption keys\n");
 					complete_irp = TRUE;
 					status = STATUS_UNSUCCESSFUL;
 				}

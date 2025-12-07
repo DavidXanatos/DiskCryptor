@@ -4,7 +4,7 @@ DiskCryptor is an open source encryption solution that offers encryption of all 
 
 Originally DiskCryptor was developed as a replacement for DriveCrypt Plus Pack and PGP WDE by ntldr, however since development has stopped since 2014 we decided to continue the development on our own here. 
 
-We have updated DiskCryptor for use with windows 10 and 11, adding a UEFI/GPT bootloader as well as other minor fixes to improve compatibility. We aim at further improving and maintaining compatibility with modern windows versions.
+We have updated DiskCryptor for use with Windows 10 and 11, adding a UEFI/GPT bootloader as well as other minor fixes to improve compatibility. We aim at further improving and maintaining compatibility with modern Windows versions.
 
 This website, for now, mostly mirrors information from the old wiki, as we develop new features new content will be added to reflect the changes in the new builds.
 
@@ -33,7 +33,7 @@ This website, for now, mostly mirrors information from the old wiki, as we devel
 <li><strong>Broad choice in configuration of booting</strong> an encrypted OS. Support for various multi-boot options.
 <ul>
 <li>Full compatibility with <a href="https://en.wikipedia.org/wiki/Unified_Extensible_Firmware_Interface">UEFI</a>/<a href="https://en.wikipedia.org/wiki/GUID_Partition_Table">GPT</a> boot</li>
-<li>MBR bootloader Full compatibility with third party boot loaders (<a href="https://en.wikipedia.org/wiki/LILO_(boot_loader)">LILO</a>, <a href="https://en.wikipedia.org/wiki/GNU_GRUB">GRUB</a>, etc.).</li>
+<li>MBR bootloader. Full compatibility with third party boot loaders (<a href="https://en.wikipedia.org/wiki/LILO_(boot_loader)">LILO</a>, <a href="https://en.wikipedia.org/wiki/GNU_GRUB">GRUB</a>, etc.).</li>
 <li>Encryption of system partitions with pre-boot authentication.</li>
 <li>Option to place boot loader on external media and to authenticate using the key media.</li>
 <li>Support for key files.</li>

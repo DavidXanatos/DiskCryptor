@@ -309,7 +309,7 @@ The actual entry point for the application.
 @param[in] SystemTable    A pointer to the EFI System Table.
 
 @retval EFI_SUCCESS       The entry point executed successfully.
-@retval other             Some error occur when executing this entry point.
+@retval other             Some error occurred when executing this entry point.
 
 **/
 EFI_STATUS

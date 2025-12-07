@@ -37,13 +37,13 @@ static NTSTATUS dump_filter_DumpStart(IN PFILTER_EXTENSION FilterExtension)
 	
 	if ( !NT_SUCCESS(dump_status = dc_dump_helpers.dump_start(FilterExtension->DumpType == DumpTypeHibernation)) )
 	{
-		// bugcheck if dump can not be written securely
+		// bugcheck if dump cannot be written securely
 		if (dump_status != STATUS_FVE_NOT_ENCRYPTED)
 		{
 			KeBugCheckEx(STATUS_ENCRYPTION_FAILED, __LINE__, dump_status, FilterExtension->DumpType, 0);
 		}
 
-		DbgMsg("dump encryption don't needed\n");
+		DbgMsg("dump encryption not needed\n");
 		return dump_status;
 	}
 
@@ -135,11 +135,11 @@ NTSTATUS dump_filter_DriverEntry(IN PFILTER_EXTENSION           FilterExtension,
 
 	// check input structures	
 	if ( (dump_mem_size = InitializationData->MaxPagesPerWrite * PAGE_SIZE) == 0 ) {
-		DbgMsg("FILTER_INITIALIZATION_DATA.MaxPagesPerWrite are invalid\n");
+		DbgMsg("FILTER_INITIALIZATION_DATA.MaxPagesPerWrite is invalid\n");
 		return STATUS_INVALID_PARAMETER;
 	}
 	if (FilterExtension->DumpType != DumpTypeCrashdump && FilterExtension->DumpType != DumpTypeHibernation) {
-		DbgMsg("FILTER_EXTENSION.DumpType are invalid\n");
+		DbgMsg("FILTER_EXTENSION.DumpType is invalid\n");
 		return STATUS_INVALID_PARAMETER;
 	}
 

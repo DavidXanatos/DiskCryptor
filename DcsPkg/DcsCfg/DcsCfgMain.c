@@ -173,7 +173,7 @@ The actual entry point for the application.
 @param[in] SystemTable    A pointer to the EFI System Table.
 
 @retval EFI_SUCCESS       The entry point executed successfully.
-@retval other             Some error occur when executing this entry point.
+@retval other             Some error occurred when executing this entry point.
 
 **/
 EFI_STATUS
@@ -446,7 +446,7 @@ DcsCfgMain(
 		if (EFI_ERROR(res) ||
 			rndSavedSize != sizeof(DCS_RND_SAVED) ||
 			EFI_ERROR(res = RndLoad(rndSaved,&gRnd)) ||
-			EFI_ERROR(res = RndPreapare()) ||
+			EFI_ERROR(res = RndPrepare()) ||
 			EFI_ERROR(res = RndGetBytes(temp, sizeof(temp)))
 			) {
 			ERR_PRINT(L"Random: %r\n", res);
@@ -457,7 +457,7 @@ DcsCfgMain(
 		UINT8 temp[4];
 		if (EFI_ERROR(res = DeListLoadFromFile()) || // Load DeList
 			EFI_ERROR(res = DeListRndLoad()) ||       // Try to load gRdn from list
-			EFI_ERROR(res = RndPreapare()) ||         // Prepare random
+			EFI_ERROR(res = RndPrepare()) ||         // Prepare random
 			EFI_ERROR(res = RndGetBytes(temp, sizeof(temp))) // Test
 			) {
 			ERR_PRINT(L"Random: %r\n", res);
@@ -491,7 +491,7 @@ DcsCfgMain(
 		UINT8 temp[4];
 		DCS_RND_SAVED  *rndSaved = NULL;
 		opt = ShellCommandLineGetValue(Package, OPT_RND_SAVE);
-		if (EFI_ERROR(res = RndPreapare()) ||
+		if (EFI_ERROR(res = RndPrepare()) ||
 			EFI_ERROR(res = RndGetBytes(temp, sizeof(temp))) ||
 			EFI_ERROR(res = RndSave(gRnd, &rndSaved)) ||
 			EFI_ERROR(res = FileSave(NULL, (CHAR16*)opt, rndSaved, sizeof(DCS_RND_SAVED)))
@@ -538,7 +538,7 @@ DcsCfgMain(
 		UINT8 temp[4];
 		if (EFI_ERROR(res = DeListLoadFromFile()) ||           // Load DeList
 			EFI_ERROR(res = RndGetBytes(temp, sizeof(temp))) || // Test Rnd
-			EFI_ERROR(res = DeListRndSave())                    // Try to save RdnRaw to DeList
+			EFI_ERROR(res = DeListRndSave())                    // Try to save RndRaw to DeList
 			) {
 			ERR_PRINT(L"Random: %r\n", res);
 		}

@@ -103,7 +103,7 @@ typedef struct _dc_status {
 } dc_status;
 
 typedef struct _dc_bench_info {
-	u64 datalen; /* total encryptrd data length */
+	u64 datalen; /* total encrypted data length */
 	u64 enctime; /* encryption time in ticks */
 	u64 cpufreq; /* ticks per second frequency */
 

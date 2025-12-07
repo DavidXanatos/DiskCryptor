@@ -38,7 +38,7 @@ CONST CHAR16* g_szVcBootString = _T(DCS_CAPTION);
 // Menu
 //////////////////////////////////////////////////////////////////////////
 
-BOOLEAN    gContiniue = TRUE;
+BOOLEAN    gContinue = TRUE;
 PMENU_ITEM gMenu = NULL;
 
 
@@ -328,7 +328,7 @@ ActionDecryptOS(IN VOID* ctx) {
 
 EFI_STATUS
 ActionExit(IN VOID* ctx) {
-	gContiniue = FALSE;
+	gContinue = FALSE;
 	return EFI_SUCCESS;
 }
 
@@ -348,7 +348,7 @@ The actual entry point for the application.
 @param[in] SystemTable    A pointer to the EFI System Table.
 
 @retval EFI_SUCCESS       The entry point executed successfully.
-@retval other             Some error occur when executing this entry point.
+@retval other             Some error occurred when executing this entry point.
 
 **/
 EFI_STATUS
@@ -430,7 +430,7 @@ DcsReMain(
 			if (EFI_ERROR(res)) {
 				ERR_PRINT(L"%r\n", res);
 			}
-		} while (gContiniue);
+		} while (gContinue);
 	}
 	else
 	{

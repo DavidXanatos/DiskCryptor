@@ -67,10 +67,10 @@ typedef struct _io_context {
 	xts_key  *chunk_key;
 	
 	BOOLEAN expected;      // this io operation is expected, enable optimization
-	BOOLEAN discontinuous; // this is discontinuous chunk
+	BOOLEAN discontinuous; // this is a discontinuous chunk
 	BOOLEAN write_pending; // write operation currently pending
 
-	BOOLEAN is_sync; // this is syncronous IO operation,
+	BOOLEAN is_sync; // this is a synchronous IO operation,
 	                 // io_encrypted_irp_io must not return before this IO completed
 	
 	ULONGLONG  write_offset;
@@ -258,7 +258,7 @@ static NTSTATUS io_chunk_read_complete(PDEVICE_OBJECT dev_obj, PIRP irp, io_cont
 			if (hook->flags & F_NO_REDIRECT)
 			{
 				offset -= hook->head_len; // XTS offset is calculated from the beginning of the volume data
-				                          // if redirection not used, substract the header length
+				                          // if redirection not used, subtract the header length
 			}
 			io_context_addref(ctx);
 			cp_parallelized_crypt(0, ctx->chunk_key, io_context_deref, ctx, buff, buff, length, offset);
@@ -431,7 +431,7 @@ static void io_async_encrypt_chunk(io_context *ctx)
 		if (ctx->hook->flags & F_NO_REDIRECT)
 		{
 			offset -= ctx->hook->head_len; // XTS offset is calculated from the beginning of the volume data
-				                           // if redirection not used, substract the header length
+				                           // if redirection not used, subtract the header length
 		}
 		cp_parallelized_crypt(1, ctx->chunk_key, io_chunk_encrypt_complete, ctx, in_buf, out_buf, ctx->chunk_length, offset);
 	} else {

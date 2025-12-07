@@ -84,7 +84,7 @@ EFI_STATUS PrepLegacyBootDataBlock()
 	EFI_STATUS ret = EFI_SUCCESS;
 	UINTN addr;
 
-	// Note: the legacy memory range is compatible with an unmodified dcrypt.sys but on some UEFI's its not free :/
+	// Note: the legacy memory range is compatible with an unmodified dcrypt.sys but on some UEFI's it's not free :/
 
 	if (bootDataBlock != NULL) return ret;
 
@@ -112,7 +112,7 @@ EFI_STATUS PrepareBootDataBlock()
 	EFI_STATUS ret = EFI_SUCCESS;
 	UINTN addr;
 
-	// Note: using the new ranges requirers a updated dcrypt.sys
+	// Note: using the new ranges requires an updated dcrypt.sys
 
 	if (bootDataBlock != NULL) return ret;
 
@@ -340,7 +340,7 @@ HeaderTryDecrypt(int* vol_found, int* hdr_found)
 		for (i = 0; i < gBIOCount; ++i) {
 
 			ret = EfiGetPartDetails(gBIOHandles[i], &part, &disk);
-			if (EFI_ERROR(ret)) continue; // means its not a partition same as EfiIsPartition() == FALSE
+			if (EFI_ERROR(ret)) continue; // means it's not a partition same as EfiIsPartition() == FALSE
 
 			disk_path = DevicePathFromHandle(disk);
 			disk_num = FindDiskNumber(disk_path);
@@ -661,11 +661,11 @@ DcsDiskCryptor(
 	// set boot data values
 	ret = SetBootDataBlock();
 	if (EFI_ERROR(ret)) {
-		ERR_PRINT(L"Can not set boot params for driver: %r\n", ret);
+		ERR_PRINT(L"Cannot set boot params for driver: %r\n", ret);
 		return ret;
 	}
 
-	// after have set up iodb and gDCryptPassword we dont longer need the password, so clear it from memory
+	// after have set up iodb and gDCryptPassword we no longer need the password, so clear it from memory
 	MEM_BURN(&gDCryptPassword, sizeof(gDCryptPassword));
 
 	if (vol_found == 0 && hdr_found > 0)
@@ -725,7 +725,7 @@ VOID DCAuthLoadConfig()
 	gDCryptBootPartition = ConfigReadString("BootPartition", "", NULL, 36 + 1);	// new
 
 // Authentication:
-	// Authenticaltion Method
+	// Authentication Method
 		// Password and bootauth keyfile 3
 		// Password request 1
 		// Embedded bootauth keyfile 2
@@ -751,7 +751,7 @@ VOID DCAuthLoadConfig()
 	// Password Prompt Message
 	gDCryptPasswordMsg = ConfigReadString("PasswordMsg", "Enter password:", NULL, MAX_MSG);
 
-	// Display Entered Password * or hide completly
+	// Display Entered Password * or hide completely
 	gPasswordProgress = (UINT8)ConfigReadInt("AuthorizeProgress", 1); // print "*"
 
 	// Authentication TimeOut

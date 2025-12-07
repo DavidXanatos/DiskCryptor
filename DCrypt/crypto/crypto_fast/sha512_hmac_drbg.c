@@ -20,7 +20,7 @@
 #include "sha512_hmac_drbg.h"
 
 /*
-	Internal function, implements HMAC_DBRG_Update according NIST SP 800-90 specification.
+	Internal function, implements HMAC_DRBG_Update according NIST SP 800-90 specification.
 */
 static void sha512_hmac_drbg_update( sha512_hmac_drbg_ctx *ctx, const void *provided_1, size_t provided_1_len,
 	                                                            const void *provided_2, size_t provided_2_len )
@@ -87,7 +87,7 @@ int _stdcall sha512_hmac_drbg_instantiate( sha512_hmac_drbg_ctx *ctx, const void
 	// Val = 0x01, 01...01
 	memset(ctx->val, 0x01, sizeof(ctx->val));
 
-	// ( Key, Val ) = HMAC_DBRG_Update ( entropy || personal, Key, Val )
+	// ( Key, Val ) = HMAC_DRBG_Update ( entropy || personal, Key, Val )
 	sha512_hmac_drbg_update(ctx, entropy, entropy_len, personal, personal_len);
 
 	// reseed_counter = 1
@@ -137,7 +137,7 @@ int _stdcall sha512_hmac_drbg_generate( sha512_hmac_drbg_ctx *ctx, const void   
 	                                                               unsigned char *output,     size_t output_len )
 {
 	if ( (ctx->reseed_counter > SHA512_HMAC_DRBG_RESEED_INTERVAL) || // If reseed_counter > reseed_interval, then return an indication that a reseed is required
-		 (additional_len > SHA512_HMAC_DRBG_MAX_ADDITIONAL_BYTES) || // chech max_additional_input_length    (NIST SP 800-90A specification)
+		 (additional_len > SHA512_HMAC_DRBG_MAX_ADDITIONAL_BYTES) || // check max_additional_input_length    (NIST SP 800-90A specification)
 		 (output_len > SHA512_HMAC_DRBG_MAX_GENERATED_BYTES) )       // check max_number_of_bits_per_request (NIST SP 800-90A specification)
 	{
 		return -1;
