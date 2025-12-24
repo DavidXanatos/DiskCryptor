@@ -10,13 +10,14 @@ jobs:
   build:
 
     runs-on: windows-2022
+    #runs-on: windows-2019
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4.1.7
 
       - name: Setup msbuild
-        uses: microsoft/setup-msbuild@v1
+        uses: microsoft/setup-msbuild@v2
 
       - name: Build DCrypt x86
         run: msbuild /t:build DCrypt\dcrypt.sln /p:Configuration="Release" /p:Platform=Win32
@@ -25,7 +26,7 @@ jobs:
         run: msbuild /t:build DCrypt\dcrypt.sln /p:Configuration="Release" /p:Platform=x64
 
       - name: Upload DCrypt
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4.4.3
         with:
           name: DCrypt
           path: |
