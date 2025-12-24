@@ -7,17 +7,6 @@ Originally DiskCryptor was developed as a replacement for DriveCrypt Plus Pack a
 We have updated DiskCryptor for use with windows 10 and 11, adding a UEFI/GPT bootloader as well as other minor fixes to improve compatibility. We aim at further improving and maintaining compatibility with modern windows versions.
 
 
-## F.A.Q.
-
-#### Is DiskCryptor still maintained? The last release was over a year ago.
-Yes. DiskCryptor is still actively maintained. However, it is a very mature piece of software, and there is little ongoing development required. As a result, releases are infrequent.
-
-#### All DiskCryptor builds are labeled “Beta.” Will there ever be a final release?
-No. There will not be a “final” release. Labeling the software as Beta is a deliberate decision. DiskCryptor is a free, low-level encryption tool, and even minor misuse can result in complete data loss.
-You use it entirely at your own risk. I have been using it since its inception without major issues, but I always have a backup and know exactly what I am doing.
-
-
-
 ## Program Features
 
 </h2></td>
@@ -57,3 +46,45 @@ You use it entirely at your own risk. I have been using it since its inception w
 <li><strong>Open license</strong> <a href="https://en.wikipedia.org/wiki/GNU_General_Public_License">GNU GPLv3</a>.</li>
 </ul></td>
 </tr>
+
+
+## F.A.Q.
+
+#### Is DiskCryptor still maintained? The last release was over a year ago.
+Yes. DiskCryptor is (as of 2026) still actively maintained. However, it is a very mature piece of software, and there is little ongoing development required. As a result, releases are infrequent.
+
+#### All DiskCryptor builds are labeled “Beta.” Will there ever be a final release?
+No. There will not be a “final” release. Labeling the software as Beta is a deliberate decision. DiskCryptor is a free, low-level encryption tool, and even minor misuse can result in complete data loss.
+You use it entirely at your own risk. I have used DiskCryptor since its inception without major issues; however, I always maintain reliable backups and understand the implications of the actions I take.
+
+#### What happens if DiskCryptor fails or my system no longer boots?
+If DiskCryptor fails or the system becomes unbootable, recovery options are limited. In many cases, recovery requires advanced technical knowledge and may not be possible at all without backups. DiskCryptor should never be used without a tested backup and recovery strategy.
+
+#### I installed a Windows update and the DiskCryptor bootloader no longer starts. Windows boots directly into recovery. What should I do?
+
+This typically occurs when the EFI firmware is configured to boot ```\EFI\Microsoft\Boot\bootmgfw.efi``` instead of ```\EFI\DCS\DcsBoot.efi```.
+In this configuration, DiskCryptor replaces bootmgfw.efi with its own bootloader. A Windows update may restore the original Microsoft bootloader, which breaks the DiskCryptor boot chain. To resolve this, you must replace the file again.
+
+Recovery procedure (from Windows Recovery Environment):
+1. Boot into WinRE and open a Command Prompt.
+2. Mount the EFI system partition: ```mountvol S: /S```
+3. Create a new file: ```S:\EFI\DCS\fix_dcs.cmd``` add the following contents to the file:
+```
+cd \EFI\Microsoft\Boot
+del bootmgfw_ms.vc.old 
+ren bootmgfw_ms.vc bootmgfw_ms.vc.old 
+ren bootmgfw.efi bootmgfw_ms.vc
+copy ..\..\DCS\DcsBoot.efi bootmgfw.efi
+```
+4. Execute the script to restore the DiskCryptor bootloader. Alternatively, you may run the commands manually one by one.
+5. Reboot.
+
+This issue may reoccur after future Windows updates. Keeping this script available allows for quick recovery.
+For a permanent solution, review and correct your EFI boot order so that the system boots \EFI\DCS\DcsBoot.efi directly.
+
+#### Does DiskCryptor support Secure Boot?
+DiskCryptor does not support Secure Boot out of the box. The DiskCryptor bootloader is not signed, and therefore it will not be accepted by a standard Secure Boot configuration.
+If Secure Boot is required, you must enroll your own private key into the Secure Boot database (DB) and sign the DiskCryptor bootloader files yourself.
+
+
+
