@@ -51,14 +51,11 @@ We have updated DiskCryptor for use with windows 10 and 11, adding a UEFI/GPT bo
 ## F.A.Q.
 
 #### Is DiskCryptor still maintained? The last release was over a year ago.
-Yes. DiskCryptor is (as of 2026) still actively maintained. However, it is a very mature piece of software, and there is little ongoing development required. As a result, releases are infrequent.
+Yes. DiskCryptor is still actively maintained. However, it is a very mature piece of software, and there is little ongoing development required. As a result, releases are infrequent.
 
 #### All DiskCryptor builds are labeled “Beta.” Will there ever be a final release?
 No. There will not be a “final” release. Labeling the software as Beta is a deliberate decision. DiskCryptor is a free, low-level encryption tool, and even minor misuse can result in complete data loss.
 You use it entirely at your own risk. I have used DiskCryptor since its inception without major issues; however, I always maintain reliable backups and understand the implications of the actions I take.
-
-#### What happens if DiskCryptor fails or my system no longer boots?
-If DiskCryptor fails or the system becomes unbootable, recovery options are limited. In many cases, recovery requires advanced technical knowledge and may not be possible at all without backups. DiskCryptor should never be used without a tested backup and recovery strategy.
 
 #### I installed a Windows update and the DiskCryptor bootloader no longer starts. Windows boots directly into recovery. What should I do?
 
@@ -86,5 +83,5 @@ For a permanent solution, review and correct your EFI boot order so that the sys
 DiskCryptor does not support Secure Boot out of the box. The DiskCryptor bootloader is not signed, and therefore it will not be accepted by a standard Secure Boot configuration.
 If Secure Boot is required, you must enroll your own private key into the Secure Boot database (DB) and sign the DiskCryptor bootloader files yourself.
 
-
+[More F.A.Q. on the Hoem Page](https://diskcryptor.org/faq/)
 
