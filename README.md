@@ -9,6 +9,17 @@ We have updated DiskCryptor for use with windows 10 and 11, adding a UEFI/GPT bo
 This website, for now, mostly mirrors information from the old wiki, as we develop new features new content will be added to reflect the changes in the new builds.
 
 
+## F.A.Q.
+
+#### Is DiskCryptor still maintained? The last release was over a year ago.
+Yes. DiskCryptor is still actively maintained. However, it is a very mature piece of software, and there is little ongoing development required. As a result, releases are infrequent.
+
+#### All DiskCryptor builds are labeled “Beta.” Will there ever be a final release?
+No. There will not be a “final” release. Labeling the software as Beta is a deliberate decision. DiskCryptor is a free, low-level encryption tool, and even minor misuse can result in complete data loss.
+You use it entirely at your own risk. I have been using it since its inception without major issues, but I always have a backup and know exactly what I am doing.
+
+
+
 ## Program Features
 
 </h2></td>
