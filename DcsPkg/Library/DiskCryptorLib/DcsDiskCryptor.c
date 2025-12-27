@@ -833,7 +833,11 @@ VOID DCAskPwd(IN UINTN pwdType, OUT dc_pass* dcPwd)
 			gDCryptAutoLogin = 0;
 			gDCryptPwdCode = AskPwdRetLogin;
 			if (!EFI_ERROR(StrCpyS(dcPwd->pass, MAX_PASSWORD, gDCryptAutoPassword))) {
-				dcPwd->size = (int)StrLen(gDCryptAutoPassword);
+                // We must multiply the string length by 2
+                // because the size is in the number of bytes occupied
+                // by the characters of the string,
+                // and the gDCryptAutoPassword encoding is UTF16-LE.
+				dcPwd->size = (int)StrLen(gDCryptAutoPassword) * 2;
 			}
 		}
 		else {
