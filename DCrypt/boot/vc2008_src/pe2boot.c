@@ -136,7 +136,7 @@ static int pe2mod(wchar_t *in, wchar_t *out)
 			}
 			CloseHandle(h_out);
 		} else {
-			wprintf(L"Can not write to %s", out);
+			wprintf(L"Cannot write to %s", out);
 		}
 	} while (0);
 

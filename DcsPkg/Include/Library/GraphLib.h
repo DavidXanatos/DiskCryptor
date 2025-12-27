@@ -71,7 +71,7 @@ typedef struct _DRAW_CONTEXT {
 	UINT32	DashLine;
 	UINT32	Alpha; //< 0..255
 	EFI_GRAPHICS_OUTPUT_BLT_PIXEL AlphaColor;
-	INT32*		Brush;		// brush points(default 1)
+	INT32*		Brush;		// brush points (default 1)
 } DRAW_CONTEXT, *PDRAW_CONTEXT;
 
 extern DRAW_CONTEXT	gDrawContext;

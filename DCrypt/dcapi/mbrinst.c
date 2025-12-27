@@ -199,8 +199,8 @@ int dc_make_iso(wchar_t *file, int small_boot)
 		p32(dr[1].volume_sequence_number + 2)[0] = 0x00010101;
 		/* validation entry */
 		ve->header_id[0] = 1;
-		ve->checksumm[0] = 0xAA;
-		ve->checksumm[1] = 0x55;
+		ve->checksum[0] = 0xAA;
+		ve->checksum[1] = 0x55;
 		ve->key_byte1[0] = 0x55;
 		ve->key_byte2[0] = 0xAA;
 		/* initial/default entry */
@@ -541,7 +541,7 @@ static int dc_set_mbr_i(int dsk_num, int begin, int small_boot)
 			resl = ST_BLDR_INSTALLED; break;
 		}
 
-		/* fins free space before and after partitions */
+		/* finds free space before and after partitions */
 		min_str = 64; max_end = 0;
 		for (i = 0, max_end = 0; i < 4; i++) 
 		{

@@ -245,7 +245,7 @@ EFI_STATUS
 RndGetBytes(UINT8 *buf, UINTN len);
 
 EFI_STATUS
-RndPreapare();
+RndPrepare();
 
 #endif
 

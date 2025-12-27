@@ -2,9 +2,10 @@ name: CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, main ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, main ]
+  workflow_dispatch:  # Allows manual triggering from GitHub UI
 
 jobs:
   build:
@@ -23,7 +24,7 @@ jobs:
       #  run: msbuild /t:build DCrypt\dcrypt.sln /p:Configuration="Release" /p:Platform=Win32
 
       - name: Build DCrypt x64
-        run: msbuild /t:build DCrypt\dcrypt.sln /p:Configuration="Release" /p:Platform=x64
+        run: msbuild /t:build DCrypt\dcrypt.sln /p:Configuration="Release" /p:Platform=x64 /m
 
       - name: Upload DCrypt
         uses: actions/upload-artifact@v4.4.3

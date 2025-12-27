@@ -1,13 +1,13 @@
 ﻿#ifndef _VOLUME_HEADER_H_
 #define _VOLUME_HEADER_H_
 
-// сигнатура заголовка, текстовое значение 'DCRP'
+// volume header signature, text value 'DCRP'
 #define DC_VOLUME_SIGN 0x50524344
 
-#define PKCS5_SALT_SIZE	64     // размер salt в заголовке = 512 бит
-#define MAX_KEY_SIZE    (32*3) // максимальный реально размер ключа для каскадного шифра = 768 бит
-#define PKCS_DERIVE_MAX (MAX_KEY_SIZE*2) // максимальный размер ключа в который разворачивается пароль
-#define DISKKEY_SIZE	256    // сколько ключевых байт храним в заголовке (взято с запасом)
+#define PKCS5_SALT_SIZE	64     // salt size in header = 512 bits
+#define MAX_KEY_SIZE    (32*3) // maximum actual key size for cascade cipher = 768 bits
+#define PKCS_DERIVE_MAX (MAX_KEY_SIZE*2) // maximum key size into which password is expanded
+#define DISKKEY_SIZE	256    // number of key bytes stored in header (taken with reserve)
 
 #define SECTOR_SIZE                 512
 #define MAX_SECTOR_SIZE             2048
@@ -28,8 +28,8 @@
 #pragma pack (push, 1)
 
 typedef struct _dc_pass {
-	int     size; // длина пароля в байтах не без завершающего нуля
-	wchar_t pass[MAX_PASSWORD]; // пароль в кодировке UTF16-LE
+	int     size; // password length in bytes without terminating null
+	wchar_t pass[MAX_PASSWORD]; // password in UTF16-LE encoding
 } dc_pass;
 
 typedef struct _dc_header {
@@ -38,7 +38,7 @@ typedef struct _dc_header {
 	unsigned long  hdr_crc; // crc32 of decrypted volume header
 	unsigned short version; // volume format version
 	unsigned long  flags;   // volume flags
-	unsigned long  disk_id; // unigue volume identifier
+	unsigned long  disk_id; // unique volume identifier
 	int alg_1;  // crypt algo 1
 	unsigned char key_1[DISKKEY_SIZE]; // crypt key 1
 	int alg_2;  // crypt algo 2

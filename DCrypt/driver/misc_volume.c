@@ -192,7 +192,7 @@ int dc_format_start(wchar_t *dev_name, dc_pass *password, crypt_info *crypt)
 			resl = ST_NOMEM; break;
 		}		
 
-		/* temporary disable automounting */
+		/* temporarily disable automounting */
 		hook->flags |= F_NO_AUTO_MOUNT;
 
 		/* open volume device */

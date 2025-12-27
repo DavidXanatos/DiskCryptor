@@ -56,7 +56,7 @@ static void sha512_compress(sha512_ctx *ctx, const unsigned char *buf)
 	// copy state into S
 	memcpy(S, ctx->hash, sizeof(S));
 
-	// copy the state into 1024-bits into W[0..15]
+	// copy the state of 1024 bits into W[0..15]
 	for (i = 0; i < 16; i++) {
 		W[i] = _byteswap_uint64(((unsigned __int64*)buf)[i]);
 	}

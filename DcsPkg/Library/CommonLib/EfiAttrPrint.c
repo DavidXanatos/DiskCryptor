@@ -49,7 +49,7 @@ SetShellAPI(
   starting at the original terminating NULL of Destination, and a new terminating
   NULL is appended.
 
-  If appending D characters onto Destination will result in a overflow of the size
+  If appending D characters onto Destination will result in an overflow of the size
   given in CurrentSize the string will be grown such that the copy can be performed
   and CurrentSize will be updated to the new size.
 
@@ -216,7 +216,7 @@ StrCopySearchAndReplace(
   while (*SourceString != CHAR_NULL) {
     //
     // if we find the FindTarget and either Skip == FALSE or Skip  and we
-    // dont have a carrot do a replace...
+    // don't have a carrot do a replace...
     //
     if (StrnCmp(SourceString, FindTarget, StrLen(FindTarget)) == 0
       && ((SkipPreCarrot && *(SourceString-1) != L'^') || !SkipPreCarrot)

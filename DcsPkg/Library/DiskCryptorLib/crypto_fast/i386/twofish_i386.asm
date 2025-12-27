@@ -220,7 +220,7 @@ _twofish256_encrypt@12:
 	push	esi
 	push	edi
 	mov	ebp, [tfm + 16+esp]    ; abuse the base pointer: set new base bointer to the crypto tfm
-	mov	edi, [in_blk+16+esp]   ; input adress in edi
+	mov	edi, [in_blk+16+esp]   ; input address in edi
 
 	mov	eax, [edi]
 	mov	ebx, [b_offset+edi]
@@ -274,7 +274,7 @@ _twofish256_decrypt@12:
 
 
 	mov	ebp, [tfm + 16+esp]    ; abuse the base pointer: set new base bointer to the crypto tfm
-	mov	edi, [in_blk + 16+esp] ; input adress in edi
+	mov	edi, [in_blk + 16+esp] ; input address in edi
 
 	mov	eax, [edi]
 	mov	ebx, [b_offset+edi]

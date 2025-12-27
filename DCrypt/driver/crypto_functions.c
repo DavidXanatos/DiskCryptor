@@ -78,7 +78,7 @@ static void dc_simple_encryption_test()
 	unsigned char     dk[256];
 	unsigned long     e_crc, d_crc, i;
 
-	// test PKDBF2
+	// test PBKDF2
 	for (i = 0; i < (sizeof(pkcs5_vectors) / sizeof(pkcs5_vectors[0])); i++)
 	{
 		sha512_pkcs5_2(pkcs5_vectors[i].i_count,
@@ -91,7 +91,7 @@ static void dc_simple_encryption_test()
 			KeBugCheckEx(STATUS_ENCRYPTION_FAILED, 'DCRP', i, 0, 0);
 		}
 	}
-	DbgMsg("PKDBF2 test passed\n");
+	DbgMsg("PBKDF2 test passed\n");
 
 	// test XTS engine if memory may be allocated
 	if ( (KeGetCurrentIrql() <= DISPATCH_LEVEL) &&

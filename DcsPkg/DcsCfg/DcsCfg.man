@@ -23,8 +23,8 @@ DcsCfg -ds <BN> -wipe <start> <end>
 
 ** Devices
  -dl - block device list (numbers are used in -ds, -de)
- -ds <BN> – select device
- -de <BN> – end device to check (starts from select)
+ -ds <BN> ï¿½ select device
+ -de <BN> ï¿½ end device to check (starts from select)
  -dc - check devices (try to authorize)
  -ul - USB devices list
  -tl - Touch devices list
@@ -44,7 +44,7 @@ DcsCfg -ds <BN> -wipe <start> <end>
  -vcp <BN> - block device change password
 
 ** Random
- -rnd <type> <param>- select rnadom type (0 - none, 1 - file, 2- rdrand, 3 HMAC, 4 OPENSSL 5 TPM)
+ -rnd <type> <param>- select random type (0 - none, 1 - file, 2- rdrand, 3 HMAC, 4 OPENSSL 5 TPM)
  -rndgen <file> - generate random file
  -rndload - load rnd generator state from file
  -rndsave - save rnd generator state to file
@@ -54,11 +54,11 @@ DcsCfg -ds <BN> -wipe <start> <end>
  -pf <gpt_file_name> - file with GPT and params
  -ps - save GPT to file
  -pz - delete info from GPT to file
- -pa - applay GPT from file to disk
+ -pa - apply GPT from file to disk
  -pe - encrypt GPT
  -pd - decrypt GPT
  -pnt <PNT> - partition number as template (from -pl)
- -phide <PHS> <PHE> - hide partions from <PHS> to <PHE>; <PHS> - start sector of hidden partition, <PHE> - end sector of hidden partition
+ -phide <PHS> <PHE> - hide partitions from <PHS> to <PHE>; <PHS> - start sector of hidden partition, <PHE> - end sector of hidden partition
  -pedt <PN> - partition number to edit(from -pl)
  -pexec - edit executable parameter
  -prndsave - save random state to params
@@ -86,7 +86,7 @@ DcsCfg -ds <BN> -wipe <start> <end>
  -tbf <tbl_file> - name of tables file
  -tbz - zero tables 
  -tbl - list tables
- -tbn <name> - name of table to delete or appened (DCSPROP_, PICTPWD_)
+ -tbn <name> - name of table to delete or append (DCSPROP_, PICTPWD_)
  -tbd - delete table (<name>)
  -tba <tbl_data_file> - append table (dcsprop or picture)
  -tbdump - save tables
@@ -131,7 +131,7 @@ EXAMPLES:
     Shell> dcscfg -ds 1 -srm 5
 
   * To wipe 5 security regions with random data (write random data [62, 62 + 256 * 5]) 
-  Sectors has to free! check first partition start sector!
+  Sectors have to be free! check first partition start sector!
     Shell> dcscfg -ds 1 -srw 5
 
   * To add gpt_hidden_boot to security region 2 on device 1

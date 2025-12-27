@@ -1,7 +1,7 @@
 #ifndef _DLGMENU_
 #define _DLGMENU_
 
-int _finish_formating(
+int _finish_formatting(
 		_dnode *node
 	);
 

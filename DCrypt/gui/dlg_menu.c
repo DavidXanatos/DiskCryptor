@@ -165,7 +165,7 @@ void _refresh_menu( )
 }
 
 
-int _finish_formating(
+int _finish_formatting(
 		_dnode *node
 	)
 {
@@ -346,7 +346,7 @@ int _menu_set_loader_mbr(
 	{
 		__msg_i( hwnd, L"MBR Bootloader successfully installed to [%s]", vol );
 	} else {
-		__error_s( hwnd, L"Error install MBR bootloader", rlt );
+		__error_s( hwnd, L"Error installing MBR bootloader", rlt );
 	}
 	return rlt;
 
@@ -392,9 +392,9 @@ int _menu_set_loader_efi(
 	else {
 
 		if (!is_shim && dc_efi_is_secureboot()) {
-			if (__msg_w(hwnd, L"This machines's EFI firmware is configured for secure boot.\n"
-				L"Without the shim loader, or YOU manually signing the bootloader files, it wont be able to boot.\n"
-				L"Do you want to install the the shim loader to?")
+			if (__msg_w(hwnd, L"This machine's EFI firmware is configured for secure boot.\n"
+				L"Without the shim loader, or YOU manually signing the bootloader files, it won't be able to boot.\n"
+				L"Do you want to install the shim loader?")
 				) {
 				is_shim = 1;
 			}
@@ -509,8 +509,8 @@ int _set_boot_loader_mbr(
 	{
 		if (__msg_w( hwnd,
 				L"Not enough space after partitions to install bootloader.\n\n"
-				L"Install bootloader to first HDD track?\n"
-				L"(incompatible with third-party bootmanagers, like GRUB)"
+				L"Install bootloader to the first HDD track?\n"
+				L"(incompatible with third-party boot managers, like GRUB)"
 				)
 			) 
 		{
@@ -542,7 +542,7 @@ int _set_boot_loader_efi(
 		__msg_e(hwnd, 
 		L"For compatibility with secure boot a shim loader must be installed,"
 		L"however the required archive (shim_x64.zip resp. shim_ia32.zip) is missing from the application directory.\n"
-		L"Bootloader installation therefor cannot continue, please reboot and disable secure boot in your firmware settings to resolve this issue.\n"
+		L"Bootloader installation therefore cannot continue, please reboot and disable secure boot in your firmware settings to resolve this issue.\n"
 		);
 		return ST_CANCEL;
 	}
@@ -575,7 +575,7 @@ void _menu_encrypt_cd(  )
 	_dnode *node = pv( malloc(sizeof(_dnode)) );		
 	memset( node, 0, sizeof(_dnode) );
 	
-	wcscpy( node->mnt.info.device, L"Encrypt iso-file" );
+	wcscpy( node->mnt.info.device, L"Encrypt ISO file" );
 	node->dlg.act_type = ACT_ENCRYPT_CD;
 
 	DialogBoxParam(
@@ -589,7 +589,7 @@ void _menu_encrypt_cd(  )
 	if ( node->dlg.rlt == ST_OK )
 	{
 		__msg_i( 
-			__dlg, L"Iso-image \"%s\" successfully encrypted to \"%s\"", 
+			__dlg, L"ISO image \"%s\" successfully encrypted to \"%s\"", 
 			_extract_name(node->dlg.iso.s_iso_src), 
 			_extract_name(node->dlg.iso.s_iso_dst)
 			);		
@@ -597,7 +597,7 @@ void _menu_encrypt_cd(  )
 	{
 		__error_s(
 			__dlg, 
-			L"Error encrypt iso-image \"%s\"", node->dlg.rlt, _extract_name(node->dlg.iso.s_iso_src) 
+			L"Error encrypting ISO image \"%s\"", node->dlg.rlt, _extract_name(node->dlg.iso.s_iso_src) 
 			);
 	}
 	free(node);
@@ -781,7 +781,7 @@ void _menu_format(
 			rlt = dc_done_format( node->mnt.info.device );
 			if ( rlt == ST_OK )
 			{
-				_finish_formating(node);
+				_finish_formatting(node);
 			}
 		} else {
 			_create_act_thread(node, ACT_FORMAT, ACT_RUNNING);
@@ -806,7 +806,7 @@ void _menu_unmount(
 		{
 			if ( __msg_w( __dlg,
 					L"This volume contains opened files.\n"
-					L"Would you like to force a unmount on this volume?" )
+					L"Would you like to force an unmount on this volume?" )
 				)
 			{
 				resl = dc_unmount_volume( node->mnt.info.device, MF_FORCE );

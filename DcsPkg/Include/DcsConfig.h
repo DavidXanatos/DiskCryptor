@@ -1,5 +1,5 @@
 /** @file
-DCS configurationDCS configuration
+DCS configuration
 
 Copyright (c) 2016. Disk Cryptography Services for EFI (DCS), Alex Kolotnikov
 Copyright (c) 2016. VeraCrypt, Mounir IDRASSI
@@ -29,7 +29,7 @@ https://opensource.org/licenses/Apache-2.0
 
 #define DCS_DIRECTORY L"DCS"
 
-#define DCS_CAPTION "Disk Cryptor" //Disk Crypto graphy Services
+#define DCS_CAPTION "Disk Cryptor" //Disk Cryptography Services
 #define DCS_VERSION 204 // 2.04
 
 #define NO_BML

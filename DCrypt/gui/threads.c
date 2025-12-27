@@ -88,7 +88,7 @@ _thread_format_proc(
 
 	if ( rlt == ST_FINISHED )
 	{
-		_finish_formating( node );
+		_finish_formatting( node );
 	}
 	LeaveCriticalSection( &crit_sect );
 
@@ -291,7 +291,7 @@ _dact *_create_act_thread(
 
 				free(act);
 				
-				__error_s( __dlg, L"Error create thread", -rlt );
+				__error_s( __dlg, L"Error creating thread", -rlt );
 				return NULL;
 			}
 		}

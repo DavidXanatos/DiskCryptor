@@ -307,5 +307,5 @@ DscInstallHook(
 		&gDcsIntComponentName,
 		&gDcsIntComponentName2);
 
-	//Note: For the hook to be applyed ConnectAllEfi(); must be called.
+	//Note: For the hook to be applied ConnectAllEfi(); must be called.
 }

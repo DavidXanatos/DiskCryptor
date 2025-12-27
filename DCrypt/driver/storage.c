@@ -285,7 +285,7 @@ int dc_create_storage(dev_hook *hook, u64 *storage)
 	/* delete old storage first */
 	dc_delete_storage(hook);
 	
-	/* try to create continuous $dcsys$ file */
+	/* try to create contiguous $dcsys$ file */
 	for (i = 0; (i < MAX_RETRY) && (h_file == NULL); i++)
 	{
 		if ( (h_file = dc_create_dcsys(hook, 0)) == NULL ) {
@@ -297,7 +297,7 @@ int dc_create_storage(dev_hook *hook, u64 *storage)
 			h_files[n_files++] = h_file; h_file = NULL;			
 		}
 	}
-	/* close all fail handles */
+	/* close all failed handles */
 	while (n_files != 0) {
 		ZwClose(h_files[--n_files]);
 	}

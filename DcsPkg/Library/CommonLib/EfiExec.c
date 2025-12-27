@@ -48,9 +48,9 @@ EfiExec(
 
 /**
 This function will connect all current system handles recursively. The
-connection will finish until every handle's child handle created if it have.
+connection will finish until every handle's child handle is created if it has one.
 
-@retval EFI_SUCCESS           All handles and it's child handle have been
+@retval EFI_SUCCESS           All handles and their child handles have been
 connected
 @retval EFI_STATUS            Return the status of gBS->LocateHandleBuffer().
 

@@ -217,7 +217,7 @@ _init_list pass_status[ ] =
 	{ ST_PASS_NOT_CONFIRMED,	L" The password was not correctly confirmed"	},
 	{ ST_PASS_EMPTY_CONFIRM,	L" Confirm is empty"							},
 	{ ST_PASS_EMPTY_KEYLIST,	L" Keyfiles list is empty"						},
-	{ ST_PASS_CORRRECT,			L" Ready"										},
+	{ ST_PASS_CORRECT,			L" Ready"										},
 	{ 0, STR_NULL }
 };
 

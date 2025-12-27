@@ -80,9 +80,9 @@ int main(int argc, char *argv[])
 		passed = FALSE;
 	}
 	if ( test_serpent256() ) {
-		printf("Seprent-256: PASSED\n");
+		printf("Serpent-256: PASSED\n");
 	} else {
-		printf("Seprent-256: FAILED\n");
+		printf("Serpent-256: FAILED\n");
 		passed = FALSE;
 	}
 

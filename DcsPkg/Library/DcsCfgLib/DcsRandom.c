@@ -490,7 +490,7 @@ RndGetBytes(
 }
 
 EFI_STATUS
-RndPreapare() 
+RndPrepare() 
 {
 	if (gRnd != NULL) {
 		return gRnd->Prepare(gRnd);

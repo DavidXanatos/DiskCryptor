@@ -117,7 +117,7 @@ NTSTATUS dc_create_close_irp(PDEVICE_OBJECT dev_obj, PIRP irp)
 		if (token != NULL) PsDereferencePrimaryToken(token);
 	}
 	if (irp_sp->MajorFunction == IRP_MJ_CLOSE) {
-		// syncronize all encryptions
+		// synchronize all encryptions
 		dc_sync_all_encs();
 	}
 	return dc_complete_irp(irp, status, 0);

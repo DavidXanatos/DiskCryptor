@@ -212,7 +212,7 @@ void _run_wizard_action(
 			if ( set_loader )
 			{
 				if ( __is_efi_boot )
-					node->dlg.rlt = _set_boot_loader_efi( hwnd, -1, is_shim, 2); // add boot menu entry and repalce windows loader
+					node->dlg.rlt = _set_boot_loader_efi( hwnd, -1, is_shim, 2); // add boot menu entry and replace windows loader
 				else
 					node->dlg.rlt = _set_boot_loader_mbr( hwnd, -1, is_small );
 			}
@@ -327,7 +327,7 @@ int _get_info_install_boot_page(
 	rlt = dc_get_boot_disk( &boot_disk_1, &boot_disk_2 );
 	if ( rlt == ST_OK )
 	{	
-		// check if bootloader is present and if so skip the bootloader instalation page
+		// check if bootloader is present and if so skip the bootloader installation page
 		if ( dc_get_ldr_config( boot_disk_1, &conf ) == ST_OK )
 			sheets[WPAGE_ENC_BOOT].show = FALSE;
 		// check if bootloader is active and if so skip the stop page
@@ -347,7 +347,7 @@ int _init_wizard_encrypt_pages(
 {
 	wchar_t *static_head[ ] = 
 	{
-		L"# Choice iso-file",
+		L"# Choose ISO file",
 		L"# Format Options",
 		L"# Encryption Settings",
 		L"# Boot Settings",
@@ -798,7 +798,7 @@ _wizard_encrypt_dlg_proc(
 				if ( node->dlg.iso.h_thread != NULL )
 				{
 					SuspendThread( node->dlg.iso.h_thread );
-					if ( __msg_w( hwnd, L"Do you really want to interrupt the encryption\nof an iso-file?" ) == 0 ) 
+					if ( __msg_w( hwnd, L"Do you really want to interrupt the encryption\nof an ISO file?" ) == 0 ) 
 					{						
 						b_close = FALSE;
 					}

@@ -293,7 +293,7 @@ STD_ERROR_HANDLE     = -12
 DUPLICATE_CLOSE_SOURCE = 1
 DUPLICATE_SAME_ACCESS  = 2
 
-; File mapping acccess rights
+; File mapping access rights
 
 SECTION_QUERY	    = 01h
 SECTION_MAP_WRITE   = 02h

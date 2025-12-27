@@ -657,10 +657,10 @@ DeListExecEdit()
 			EFI_PARTITION_ENTRY *part;
 			part = &GptMainEntrys[i];
 			if (CompareMem(&gEfiPartTypeSystemPartGuid, &part->PartitionTypeGUID, sizeof(EFI_GUID)) == 0) {
-				if (CompareMem(&DeExecParams->ExecPartGuid, &part->UniquePartitionGUID, sizeof(EFI_GUID)) != 0) {
-					OUT_PRINT(L"EFI partition missmatched, updated");
-					CopyMem(&DeExecParams->ExecPartGuid, &part->UniquePartitionGUID, sizeof(EFI_GUID));
-				}
+		if (CompareMem(&DeExecParams->ExecPartGuid, &part->UniquePartitionGUID, sizeof(EFI_GUID)) != 0) {
+				OUT_PRINT(L"EFI partition mismatched, updated");
+				CopyMem(&DeExecParams->ExecPartGuid, &part->UniquePartitionGUID, sizeof(EFI_GUID));
+			}
 				break;
 			}
 		}
@@ -711,8 +711,8 @@ DeListPwdCacheEdit()
 	DePwdCache->CRC = 0;
 	res =gBS->CalculateCrc32(DePwdCache, 512, &crc);
 	DePwdCache->CRC = crc;
-	MEM_BURN (&pwd, sizeof(pwd));
-	MEM_BURN (&pim, sizeof(pim));
+	MEM_BURN(&pwd, sizeof(pwd));
+	MEM_BURN(&pim, sizeof(pim));
 	return res;
 }
 

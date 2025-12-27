@@ -164,7 +164,7 @@ struct iso_validation_entry {
 	char platform_id[ISODCL (2, 2)];
 	char unused[ISODCL (3, 4)];
 	char id_string[ISODCL (5, 28)];
-	char checksumm[ISODCL (29, 30)];
+	char checksum[ISODCL (29, 30)];
 	char key_byte1[ISODCL (31, 31)];
 	char key_byte2[ISODCL (32, 32)];
 };

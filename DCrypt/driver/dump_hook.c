@@ -92,7 +92,7 @@ static NTSTATUS dump_hook_new_WritePendingRoutine(IN LONG           Action,
 	// direct call old_WritePendingRoutine if encryption is not needed
 	if (dump_status == STATUS_FVE_NOT_ENCRYPTED || Action != IO_DUMP_WRITE_START)
 	{
-		if (Action != IO_DUMP_WRITE_START) { // zero DiskByteOffset and Mdl for reinsurance
+		if (Action != IO_DUMP_WRITE_START) { // zero DiskByteOffset and Mdl for safety
 			DiskByteOffset = NULL;
 			Mdl = NULL;
 		}
@@ -151,11 +151,11 @@ static BOOLEAN dump_hook_new_OpenRoutine(IN LARGE_INTEGER PartitionOffset)
 	{
 		if (dump_status != STATUS_FVE_NOT_ENCRYPTED)
 		{
-			DbgMsg("dumping operation are not allowed\n");
+			DbgMsg("dumping operations are not allowed\n");
 			return FALSE;
 		}
 
-		DbgMsg("dump encryption don't needed\n");
+		DbgMsg("dump encryption not needed\n");
 	}
 
 	return ( old_OpenRoutine != NULL ? old_OpenRoutine(PartitionOffset) : FALSE );

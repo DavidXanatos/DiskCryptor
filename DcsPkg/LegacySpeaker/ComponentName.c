@@ -80,7 +80,7 @@ LegacySpeakerComponentNameGetDriverName (
 }
 
 /**
-  Retrieves a Unicode string that is the user readable name of the controller
+  Retrieves a Unicode string that is the user-readable name of the controller
   that is being managed by an EFI Driver.
 
   @param  This             A pointer to the EFI_COMPONENT_NAME_PROTOCOL instance.

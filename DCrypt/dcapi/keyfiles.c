@@ -71,7 +71,7 @@ int dc_add_single_kf(dc_pass *pass, wchar_t *path)
 			sha512_hash(&k_ctx->sha, k_ctx->kf_block, bytes);
 		} while (1);		
 	
-		/* done hasing */
+		/* done hashing */
 		sha512_done(&k_ctx->sha, k_ctx->hash);
 
 		/* zero unused password buffer bytes */

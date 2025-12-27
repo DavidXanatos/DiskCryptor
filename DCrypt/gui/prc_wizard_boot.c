@@ -436,7 +436,7 @@ int _save_boot_config(
 				conf->disk_id = wcstoul(text, L'\0', 16);
 			}
 			else {
-				__msg_e(hwnd, L"You must select partition by id");
+				__msg_e(hwnd, L"You must select a partition by ID");
 				return ST_ERROR;
 			}
 		}

@@ -117,7 +117,7 @@ begin
  Result := true;
  if not Exec(ExpandConstant('{app}\dcinst.exe'), '-isenc', '', SW_SHOW, ewWaitUntilTerminated, error) then error := 0;
  if error = 51 { ST_ENCRYPTED } then begin
-  MsgBox('DiskCryptor can not be uninstalled, because system boot device is encrypted.'#13#10+
+  MsgBox('DiskCryptor cannot be uninstalled, because system boot device is encrypted.'#13#10+
          'Please decrypt this device and try again.', mbError, MB_OK);
   Result := false;
  end;
@@ -179,7 +179,7 @@ begin
    end;
    succs := Exec(ExpandConstant('{app}\dcinst.exe'), '-isboot', '', SW_SHOW, ewWaitUntilTerminated, error);
    if succs and (error = 0) then begin
-    if MsgBox('Uninstall DiskCryptor bootloader from you HDD?', mbConfirmation, MB_YESNO) = IDYES then begin
+    if MsgBox('Uninstall DiskCryptor bootloader from your HDD?', mbConfirmation, MB_YESNO) = IDYES then begin
       succs := Exec(ExpandConstant('{app}\dcinst.exe'), '-unldr', '', SW_SHOW, ewWaitUntilTerminated, error);
       if (not succs) or (error <> 0) then begin
         MsgBox('Error occurred when removing bootloader (error code: ' + IntToStr(error) + ' ).', mbError, MB_OK);

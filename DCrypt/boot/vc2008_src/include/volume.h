@@ -25,9 +25,9 @@
 #define VF_NONE           0x00
 #define VF_TMP_MODE       0x01 /* temporary encryption mode */
 #define VF_REENCRYPT      0x02 /* volume re-encryption in progress */
-#define VF_STORAGE_FILE   0x04 /* redirected area are placed in file */
+#define VF_STORAGE_FILE   0x04 /* redirected area is placed in file */
 #define VF_NO_REDIR       0x08 /* redirection area is not present */
-#define VF_EXTENDED       0x10 /* this volume placed on extended partition */
+#define VF_EXTENDED       0x10 /* this volume is placed on extended partition */
 
 #define ENC_BLOCK_SIZE  (1280 * 1024)
 
@@ -44,7 +44,7 @@ typedef struct _dc_header {
 	u32 hdr_crc;               /* crc32 of decrypted volume header */
 	u16 version;               /* volume format version */
 	u32 flags;                 /* volume flags */
-	u32 disk_id;               /* unigue volume identifier */
+	u32 disk_id;               /* unique volume identifier */
 	int alg_1;                 /* crypt algo 1 */
 	u8  key_1[DISKKEY_SIZE];   /* crypt key 1  */
 	int alg_2;                 /* crypt algo 2 */

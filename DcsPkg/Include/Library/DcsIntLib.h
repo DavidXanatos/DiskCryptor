@@ -64,7 +64,7 @@ typedef struct _DCSINT_BLOCK_IO {
 //
 
 /**
-  Check whether the controller is a supported.
+  Check whether the controller is supported.
 
   @param  This                   The driver binding protocol.
   @param  Controller             The controller handle to check.

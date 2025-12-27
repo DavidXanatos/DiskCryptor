@@ -5,7 +5,7 @@ int  cp_init_fast_crypt();
 void cp_free_fast_crypt();
 
 #define F_MIN_REQ      2048 /* minimum block size for one request */
-#define F_OP_THRESOLD  4096 /* parallelized crypt thresold */
+#define F_OP_THRESOLD  4096 /* parallelized crypt threshold */
 
 typedef void (*fc_callback)(void*);
 

@@ -240,7 +240,7 @@ int test_pkcs5()
 	unsigned char dk[144];
 	int           i, dklen;
 
-	// test PKDBF2
+	// test PBKDF2
 	for (i = 0; i < _countof(pkcs5_vectors); i++)
 	{
 		pass  = pkcs5_vectors[i].password;

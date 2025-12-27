@@ -81,7 +81,7 @@ AskConsolePwdInt(
 extern EFI_GUID*                     gSmbSystemUUID;        // Universal unique ID 
 extern CHAR8*                        gSmbSystemSerial;      // System serial
 extern CHAR8*                        gSmbSystemSKU;         // SKU number
-extern CHAR8*                        gSmbSystemManufacture;     // computer manufacture
+extern CHAR8*                        gSmbSystemManufacture;     // computer manufacturer
 extern CHAR8*                        gSmbSystemModel;           // computer model
 extern CHAR8*                        gSmbSystemVersion;         // computer version
 
@@ -96,7 +96,7 @@ EFI_STATUS
 SMBIOSGetSerials();
 
 EFI_STATUS
-PaltformGetIDCRC(
+PlatformGetIDCRC(
 	IN  EFI_HANDLE  handle,
 	OUT UINT32      *crc32
 	);

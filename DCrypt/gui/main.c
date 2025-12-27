@@ -279,7 +279,7 @@ int WINAPI wWinMain(
 	}
 	if ( ( rlt = dc_open_device( ) ) != ST_OK )
 	{
-		__error_s( HWND_DESKTOP, L"Can not open DC device", rlt );
+		__error_s( HWND_DESKTOP, L"Cannot open DC device", rlt );
 		return 0; 
 	}
 	
@@ -349,7 +349,7 @@ int WINAPI wWinMain(
 	}
 	if ( ( rlt = rnd_init( ) ) != ST_OK )
 	{
-		__error_s( HWND_DESKTOP, L"Can not initialize RNG", rlt );
+		__error_s( HWND_DESKTOP, L"Cannot initialize RNG", rlt );
 		return 0;
 	}
 

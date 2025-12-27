@@ -402,7 +402,7 @@ int dc_process_unmount(dev_hook *hook, int opt)
 
 		if ((opt & MF_NOSYNC) == 0)
 		{
-			// temporary disable IRP processing
+			// temporarily disable IRP processing
 			hook->flags |= F_DISABLE;
 
 			// wait for pending IRPs completion
@@ -410,7 +410,7 @@ int dc_process_unmount(dev_hook *hook, int opt)
 				while (hook->remove_lock.Common.IoCount > 1) dc_delay(20);
 			}
 			if (hook->flags & F_SYNC) {
-				// send signal to syncronous mode thread
+				// send signal to synchronous mode thread
 				dc_send_sync_packet(hook->dev_name, S_OP_FINALIZE, 0);
 			}			
 		}

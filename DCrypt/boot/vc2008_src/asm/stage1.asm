@@ -157,15 +157,15 @@ gdtr:					; Global Descriptors Table Register
   dw 6*8-1				; limit of GDT (size minus one)
   dd gdt				; linear address of GDT
 
-gdt rw 4				; null desciptor
-    dw 0FFFFh, 0, 9200h, 0CFh		; 32-bit data desciptor
-    dw 0FFFFh, 0, 9A00h, 0CFh		; 32-bit code desciptor
+gdt rw 4				; null descriptor
+    dw 0FFFFh, 0, 9200h, 0CFh		; 32-bit data descriptor
+    dw 0FFFFh, 0, 9A00h, 0CFh		; 32-bit code descriptor
 pm32_edes:
-    dw 0FFFFh, 0, 9200h, 0CFh		; 32-bit extended data desciptor
+    dw 0FFFFh, 0, 9200h, 0CFh		; 32-bit extended data descriptor
 pm16_cdes:
-    dw 0FFFFh, 0, 9E00h, 0		; 16 bit code desciptor
+    dw 0FFFFh, 0, 9E00h, 0		; 16 bit code descriptor
 pm16_ddes:
-    dw 0FFFFh, 0, 9200h, 0		; 16 bit data desciptor
+    dw 0FFFFh, 0, 9200h, 0		; 16 bit data descriptor
 
 pm_enable:
 use16
@@ -285,7 +285,7 @@ use32
  ; switch to RM
  call	jump_to_rm
 use16
- ; nook int15
+ ; hook int15
  xor	ax, ax
  mov	fs, ax
  ; hook int13

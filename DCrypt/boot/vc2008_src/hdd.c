@@ -56,7 +56,7 @@ int hdd_lba_io(
 {
 	u8     sbuf[32];
 	rm_ctx ctx;
-	lba_p *lba = pv(0x580); /* this needed for avoid stupid actions by buggy BIOSes */
+	lba_p *lba = pv(0x580); /* this is needed to avoid stupid actions by buggy BIOSes */
 	int    succs = 0;
 
 	/* save old buffer */	

@@ -30,7 +30,7 @@
 #define KB_QWERTZ       1 /* QWERTZ keyboard layout */
 #define KB_AZERTY       2 /* AZERTY keyboard layout */
 
-#define OP_EXTERNAL     0x01 /* this option indicate external bootloader usage       */
+#define OP_EXTERNAL     0x01 /* this option indicates external bootloader usage       */
 #define OP_EPS_TMO      0x02 /* set time limit for password entering                 */
 #define OP_TMO_STOP     0x04 /* cancel timeout if any key pressed                    */
 #define OP_NOPASS_ERROR 0x08 /* use incorrect password action if no password entered */

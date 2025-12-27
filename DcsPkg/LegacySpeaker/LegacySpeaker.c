@@ -87,7 +87,7 @@ OutputBeep (
 
 /**
   This function will program the speaker tone frequency. The value should be with 64k
-  boundary since it takes only 16 bit value which gets programmed in two step IO opearattion
+  boundary since it takes only 16 bit value which gets programmed in two step IO operation
 
   @param  Frequency     A value which should be 16 bit only.
 

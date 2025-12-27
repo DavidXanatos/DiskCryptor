@@ -402,7 +402,7 @@ retry_auth:;
 			/* hook BIOS interrupts */
 			bios_hook_ints();
 		} else {
-			/* clean password buffer to prevent leaks */
+			/* clear password buffer to prevent leaks */
 			zeroauto(&bd_dat->password, sizeof(dc_pass));
 		}
 	}

@@ -66,7 +66,7 @@ BOOLEAN is_volume_header_correct(dc_header *header)
 	for (i = 0; i < sizeof(header->salt); i++) v |= header->salt[i];
 	if (v == 0) return FALSE;
 
-	// check header signature and checksumm
+	// check header signature and checksum
 	if (header->sign != DC_VOLUME_SIGN) return FALSE;
 	if (header->hdr_crc != crc32((const unsigned char*)&header->version, DC_CRC_AREA_SIZE)) return FALSE;
 

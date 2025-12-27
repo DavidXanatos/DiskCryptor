@@ -10,7 +10,7 @@ int hdd_io(int hdd_n, void *buff, u16 sectors, u64 start, int read)
 	u32      head, cyl;
 	u8       dos_n = hdd2dos(hdd_n);
 	hdd_inf *hdd   = &iodb.p_hdd[hdd_n];
-	lba_p   *lba   = pv(0x580); /* this needed for avoid stupid actions by buggy BIOSes */	
+	lba_p   *lba   = pv(0x580); /* this is needed to avoid stupid actions by buggy BIOSes */	
 	int      succs = 0;
 
 	/* setup initial context */

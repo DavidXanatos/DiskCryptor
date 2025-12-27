@@ -27,7 +27,7 @@ https://opensource.org/licenses/LGPL-3.0
 
 
 //////////////////////////////////////////////////////////////////////////
-// Auxyliary hardware
+// Auxiliary hardware
 //////////////////////////////////////////////////////////////////////////
 EFI_STATUS 
 InitAuxDrivers()
@@ -256,7 +256,7 @@ OnExit(
 			EFI_HANDLE h;
 			res = EfiFindPartByGUID(guid, &h);
 			if (EFI_ERROR(res)) {
-				ERR_PRINT(L"\nCan't find start partition\n");
+				ERR_PRINT(L"\nCannot find start partition\n");
 				CleanSensitiveData(FALSE);
 				retValue = EFI_DCS_HALT_REQUESTED;
 				goto exit;

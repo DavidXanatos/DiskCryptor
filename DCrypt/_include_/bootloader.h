@@ -40,7 +40,7 @@
 #define LDR_OP_HW_CRYPTO    0x0010 // use hardware cryptography when possible
 #define LDR_OP_SMALL_BOOT   0x0020 // this is a small (aes only) bootloader
 #define LDR_OP_DEBUG        0x0040 // enable debug output
-#define LDR_OP_AUTH_MSG     0x0080 // show autorizing message
+#define LDR_OP_AUTH_MSG     0x0080 // show authorizing message
 #define LDR_OP_OK_MSG       0x0100 // show password correct message
 //#define LDR_OP_           0x0200
 //#define LDR_OP_           0x0400
@@ -57,20 +57,20 @@
 
 #define DC_BOOT_OLD    118
 typedef struct _mbr_config {
-	unsigned long  sign1; // сигнатура для поиска загрузчика в памяти
-	unsigned long  sign2; // сигнатура для поиска загрузчика в памяти
-	unsigned long  ldr_ver;    // версия загрузчика
-	unsigned char  logon_type; // настройки авторизации (константы LDR_LT_x)
-	unsigned char  error_type; // настройки действия при ошибке авторизации (константы LDR_ET_x)
-	unsigned char  boot_type;  // настройки загрузки авторизация успешно завершена (константы LDR_BT_x)
-	unsigned long  disk_id; // ID раздела, используется при LDR_BT_DISK_ID
-	unsigned short options; // прочик настройки и флаги (константы LDR_OP_x)
-	unsigned char  kbd_layout; // раскладка клавиатуры загрузчика (константы LDR_KB_x)
-	char  eps_msg[128]; // текст сообщения запроса авторизации
-	char  err_msg[128]; // тест сообщения ошибки авторизации
-	unsigned char save_mbr[512]; // сохраненный оригинальный MBR
-	unsigned long timeout;  // таймаут авторизации (используется при включенном флаге LDR_OP_EPS_TMO)
-	unsigned char emb_key[64]; // встроенный в загрузчик ключ
+	unsigned long  sign1; // signature to search for bootloader in memory
+	unsigned long  sign2; // signature to search for bootloader in memory
+	unsigned long  ldr_ver;    // bootloader version
+	unsigned char  logon_type; // authorization settings (constants LDR_LT_x)
+	unsigned char  error_type; // action settings for authorization error (constants LDR_ET_x)
+	unsigned char  boot_type;  // boot settings when authorization completed successfully (constants LDR_BT_x)
+	unsigned long  disk_id; // partition ID, used with LDR_BT_DISK_ID
+	unsigned short options; // other settings and flags (constants LDR_OP_x)
+	unsigned char  kbd_layout; // bootloader keyboard layout (constants LDR_KB_x)
+	char  eps_msg[128]; // authorization request message text
+	char  err_msg[128]; // authorization error message text
+	unsigned char save_mbr[512]; // saved original MBR
+	unsigned long timeout;  // authorization timeout (used when LDR_OP_EPS_TMO flag is enabled)
+	unsigned char emb_key[64]; // key embedded in bootloader
 
 } mbr_config;
 
@@ -85,12 +85,12 @@ typedef struct _ldr_config {
 	unsigned short options;      // settings and flags (LDR_OP_x constants)
 	unsigned char kbd_layout;    // bootloader keyboard layout (constants LDR_KB_x)
 	char eps_msg[128];           // message text of the authorization request
-	char err_msg[128];           // test authorization error message
+	char err_msg[128];           // authorization error message text
 	unsigned char save_mbr[512]; // saved original MBR
 	unsigned long timeout;       // authorization timeout (used when the LDR_OP_EPS_TMO flag is on)
 	unsigned char emb_key[64];   // key in the bootloader
 	char ago_msg[128];           // message text of the authorization started
-	char aok_msg[128];           // message text of the authorization successfull
+	char aok_msg[128];           // message text of the authorization successful
 
 	char reserved[2982];         // 4k total
 } ldr_config;

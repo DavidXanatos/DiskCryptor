@@ -5,7 +5,7 @@
 ## [1.1.846.118] - 2014-07-09
 
 ### Improved:
-- More accurate handling writing of the volume header. Reduced risk of data loss in the encryption process.
+- More accurate handling of writing the volume header. Reduced risk of data loss in the encryption process.
 
 ### Fixed:
 - Small Windows 8 compatibility bugfixes.
@@ -17,7 +17,7 @@
 - Compatibility with Windows 8.0 and 8.1.
 
 ### Fixed: 
-- BSOD when decrypting of formatted volume.
+- BSOD when decrypting a formatted volume.
 
 ### Improved: 
 - Internal improvements of code quality.
@@ -29,21 +29,21 @@
 ## [1.0.802.118] - 2014-01-01
 
 ### Improved:
-- Compatibility with perfmon (IO operation are showed in Disk Activity tab).
+- Compatibility with perfmon (IO operations are shown in Disk Activity tab).
 - Internal improvements of code quality.
 
 ### Fixed:
-- Bug with a lost memory on some notebooks (e820 map enlarged to 64 items).
+- Memory leak bug on some notebooks (e820 map enlarged to 64 items).
 
 
 ## [1.0.757.115] - 2013-01-03
 
 ### Added: 
 - workaround for AES-NI support on Hyper-V.
-- internal self-tests for PKDBF2 and XTS engines.
+- internal self-tests for PBKDF2 and XTS engines.
 
 ### Fixed:
-- bug with data loss with some cases on VIA-PadLock.
+- bug with data loss in some cases on VIA-PadLock.
 - regression with SSD detection on Windows XP.
 - bug with no FS creation when formatting from GUI.
 
@@ -116,7 +116,7 @@
 ## [1.0.664.106] - Beta - 2010-05-08
 
 ### Added:
-- New optimizations special for SSD and fast RAID's.
+- New optimizations specialized for SSD and fast RAIDs.
 - TRIM support for SSD and Disable TRIM option.
 
 
@@ -141,7 +141,7 @@
 ## [0.9.573.105] - Beta - 2010-02-18
 
 ### Added: 
-- Small bootloader only with AES. Required for compatibility with stupid and greedy BIOS'es in PXE boot mode.
+- Small bootloader only with AES. Required for compatibility with problematic BIOSes in PXE boot mode.
 
 
 ## [0.9.569.103] - Beta - 2010-02-14
@@ -151,7 +151,7 @@
 - Vista-PE plugin.
 
 ### Improved:
-- Significantly performance of AES for VIA processors.
+- Significantly improved performance of AES for VIA processors.
 - Bootloader PXE compatibility.
 
 
@@ -173,7 +173,7 @@
 ## [0.9.558.98] - Beta - 2009-09-12
 
 ### Added:
-- Preventing system power state changes during the encryption process.
+- Prevention of system power state changes during the encryption process.
 
 ### Improved:
 - Volume formatting speed.
@@ -205,7 +205,7 @@
 ## [0.7] - 2009-05-31
 
 ### Added:
-- Automatically delete mount points added when mounting.
+- Automatic deletion of mount points added when mounting.
 - CD encryption feature.
 - Compatibility with Windows 7.
 - Correct signature of drivers and other executable files (special thanks to ReactOS Foundation).
@@ -257,7 +257,7 @@
 ## [0.5] - 2008-12-26
 
 ### Added:
-- Hibernation support in partial-encrypted state.
+- Hibernation support in partially encrypted state.
 - Keyfiles support.
 
 ### Removed:
@@ -270,7 +270,7 @@
 - Many hardware compatibility issues.
 
 ### Misc:
-- Password length limit increased to 128 symbols.
+- Password length limit increased to 128 characters.
 
 
 <br/><br/><br/> 
@@ -294,7 +294,7 @@
 - Compatibility with buggy and stupid BIOSes.
 
 ### Removed:
-- Floppy bootloaders support.
+- Support for floppy bootloaders.
 
 ### Fixed:
 - Many bugs.
@@ -308,17 +308,17 @@
 ### Added:
 - Console version of DiskCryptor.
 - Support for installing bootloader to CD or any bootable device.
-- embedded password feature in bootloader.
+- Embedded password feature in bootloader.
 - Multi boot and advanced booting options.
 - Limited QWERTZ and AZERTY keyboard layouts support when pre-boot authentication.
 - Power safe encryption, encryption stopping and reverting.
-- Password prompt when decryption and changing password.
-- Advanced IO queue options. This option enable multi CPU I/O requests splitting (increase perfomance to 50–400%).
+- Password prompt when decrypting and changing password.
+- Advanced IO queue options. This option enables multi CPU I/O requests splitting (increase performance to 50–400%).
 - Optional authentication timeout to pre-boot authentication.
 - Retry authentication option to pre-boot authentication.
 - Disk speed testing tool.
-- Embedded volume header backup. Backup header encrypted with different salt and needed for resiliency.
-- Skipping bad sectors when encryption.
+- Embedded volume header backup. Backup header encrypted with different salt and needed for resilience.
+- Skipping bad sectors during encryption.
 - Password strength meter.
 
 ### Security improvement:
@@ -341,7 +341,7 @@
 ## [0.2.6] - Beta - 2008-03-18
 
 ### Added:
-- Dynamical (LDM) disks support.
+- Dynamic (LDM) disks support.
 - New bootloader architecture.
 - Plugin for BartPE.
 - Support for Windows Server 2008.
@@ -349,7 +349,7 @@
 ### Security improvement:
 - Added automatically erasing keys in memory when shutdown, reboot or hibernate to prevent ["Cold Boot" Attacks](http://en.wikipedia.org/wiki/Cold_boot_attack).
 - Added avoiding [LRW weakness](http://grouper.ieee.org/groups/1619/email/msg00923.html).
-- When changing a password made erase volume header by Gutmann method to prevent restore previous password by magnetic microscopy.
+- When changing a password made erase volume header by Gutmann method to prevent restoring previous password by magnetic microscopy.
 
 ### Improved:
 - Auto mounting.
@@ -357,16 +357,16 @@
 - Support for encryption devices with non-standard MaximumTransferLength.
 
 ### Fixed:
-- Bug with encryption process may be stopped if other process has high CPU usage.
+- Bug with encryption process may stop if other process has high CPU usage.
 - Bug with impossible to use Shadow copy service in encrypted volume on win2003.
-- Bug with possible encryption error on volumes bigger that 4Gb.
+- Bug with possible encryption error on volumes bigger than 4GB.
 
 
 ## [0.2.5] - Beta - 2008-01-11
 
 ### Added:
 - Crash dumps and hiberfil encryption feature.
-- Data leak control. This feature preventing data leaks through non-encrypted system files.
+- Data leak control. This feature prevents data leaks through non-encrypted system files.
 
 ### Improved:
 - Volume encryption/decryption speed.
@@ -394,16 +394,16 @@
 
 ### Improved:
 - Random numbers generator used to generate keys. Added new sources of entropy.
-- Extreme improved cryptographic functions for the x86 architecture. Increased speed in 1.5–1.7 times compared with TrueCrypt 4.3.
+- Extremely improved cryptographic functions for the x86 architecture. Increased speed in 1.5–1.7 times compared with TrueCrypt 4.3.
 - Full support for Windows Vista.
 - Removed license violations with TrueCrypt collective license. All TrueCrypt code rewritten.
 - Rewritten most of the boot code, it becomes smaller.
 
 ### Fixed:
-- BSOD when extraction removable device in the encryption/decryption progress.
-- Bug with bootloader not installed, if you starting encryption process without admin privilege.
-- Bug with decryption volume in SATA ACHI disk.
-- Bug with it is impossible formatting encrypted volume.
+- BSOD when extracting removable device in the encryption/decryption progress.
+- Bug with bootloader not installed, if you start encryption process without admin privilege.
+- Bug with decrypting volume in SATA AHCI disk.
+- Bug with it being impossible to format encrypted volume.
 - Many small issues with some flashes and card readers.
 
 ### Misc:

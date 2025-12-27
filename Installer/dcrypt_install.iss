@@ -1,8 +1,8 @@
-﻿[Setup]
+[Setup]
 AppName=DiskCryptor
 AppVerName=DiskCryptor 1.3
 AppId=DiskCryptor
-AppVersion=1.3.0
+AppVersion=1.3.1
 AppPublisher=http://diskcryptor.org/
 AppPublisherURL=http://diskcryptor.org/
 AppMutex=DISKCRYPTOR_MUTEX
@@ -138,7 +138,7 @@ begin
 
   if (Exec(ExpandConstant('{app}\dcinst.exe'), '-isenc', '', SW_HIDE, ewWaitUntilTerminated, ExecRet) = False) and (ExecRet = 51) then // ST_ENCRYPTED
   begin
-    MsgBox('DiskCryptor can not be uninstalled, because system boot device is encrypted.'#13#10'Please decrypt this device and try again.', mbError, MB_OK);
+    MsgBox('DiskCryptor cannot be uninstalled, because system boot device is encrypted.'#13#10'Please decrypt this device and try again.', mbError, MB_OK);
     Result := False;
     exit;
   end;
@@ -188,7 +188,7 @@ begin
   // check if bootloader is installed
   if (Exec(ExpandConstant('{app}\dcinst.exe'), '-isboot', '', SW_HIDE, ewWaitUntilTerminated, ExecRet) = True) and (ExecRet = 0) then
   begin
-    if MsgBox('Uninstall DiskCryptor bootloader from you HDD?', mbConfirmation, MB_YESNO) = IDYES then
+    if MsgBox('Uninstall DiskCryptor bootloader from your HDD?', mbConfirmation, MB_YESNO) = IDYES then
     begin
       // uninstall the bootloader
       if (Exec(ExpandConstant('{app}\dcinst.exe'), '-unldr', '', SW_HIDE, ewWaitUntilTerminated, ExecRet) = False) or (ExecRet <> 0) then
@@ -197,4 +197,3 @@ begin
   end;
 
 end;
-

@@ -29,7 +29,7 @@ static dev_hook* current_dump_device = NULL;
 static NTSTATUS dc_dump_start(__in BOOLEAN is_hibernation)
 {
 	dev_hook* hook;
-	ULONG     humber_of_mounts = 0;
+	ULONG     number_of_mounts = 0;
 	BOOLEAN   dump_device_encrypted = FALSE;
 	ULONG     found_dump_devices = 0;
 
@@ -39,7 +39,7 @@ static NTSTATUS dc_dump_start(__in BOOLEAN is_hibernation)
 		{
 			// dump device must be mounted,
 			// dump device must not contain unencrypted part
-			// and encryption keys must not been erased by dc_clean_keys / mm_clean_secure_memory
+			// and encryption keys must not have been erased by dc_clean_keys / mm_clean_secure_memory
 			dump_device_encrypted = (hook->flags & F_ENABLED) != 0 &&
 				                    ( (hook->flags & F_SYNC) == 0 || (hook->flags & F_REENCRYPT) != 0 ) &&
 									(hook->dsk_key != NULL && hook->dsk_key->encrypt != NULL) &&
@@ -47,11 +47,11 @@ static NTSTATUS dc_dump_start(__in BOOLEAN is_hibernation)
 			found_dump_devices++;
 			current_dump_device = hook;
 		}
-		if (hook->flags & F_ENABLED) humber_of_mounts++;
+		if (hook->flags & F_ENABLED) number_of_mounts++;
 	}
 
-	// if no active mounts, dump encryption don't needed
-	if (humber_of_mounts == 0)
+	// if no active mounts, dump encryption not needed
+	if (number_of_mounts == 0)
 	{
 		dc_clean_pass_cache(); // prevent saving unencrypted passwords to disk
 		return STATUS_FVE_NOT_ENCRYPTED;
@@ -60,7 +60,7 @@ static NTSTATUS dc_dump_start(__in BOOLEAN is_hibernation)
 	// operation allowed if dump device is correctly encrypted
 	if (found_dump_devices == 1 && dump_device_encrypted) return STATUS_SUCCESS;
 
-	// operation not allowed because encryption keys may be leak to dump
+	// operation not allowed because encryption keys may leak to dump
 	return STATUS_ACCESS_DENIED;
 }
 
@@ -92,15 +92,15 @@ NTSTATUS dc_dump_encrypt(
 	if ( (length % XTS_SECTOR_SIZE) != 0 || (offset % XTS_SECTOR_SIZE) != 0 ) return STATUS_DATATYPE_MISALIGNMENT_ERROR;
 
 	// Callers of MmGetSystemAddressForMdlSafe must be running at IRQL <= DISPATCH_LEVEL
-	// Mdl must me already mapped to system VA
+	// Mdl must be already mapped to system VA
 	if ((Mdl->MdlFlags & (MDL_MAPPED_TO_SYSTEM_VA | MDL_SOURCE_IS_NONPAGED_POOL)) == 0) return STATUS_NOT_MAPPED_DATA;
 	p_data = (PUCHAR)Mdl->MappedSystemVa;
 
 	if (current_dump_device->flags & F_NO_REDIRECT) {
-		// redirection is not used, the data are moved forward on the header length
+		// redirection is not used, the data are moved forward by the header length
 		DiskByteOffset->QuadPart += current_dump_device->head_len;
 	} else {
-		// writing to redirected area are not supported
+		// writing to redirected area is not supported
 		if (offset < current_dump_device->head_len) return STATUS_NOT_SUPPORTED;
 	}
 
@@ -135,7 +135,7 @@ NTSTATUS dc_dump_encrypt(
 static BOOLEAN dc_dump_is_hibernation_allowed()
 {
 	dev_hook* hook;
-	ULONG     humber_of_mounts = 0;
+	ULONG     number_of_mounts = 0;
 	ULONG     hibernation_devices = 0;
 	BOOLEAN   hibernation_device_encrypted = FALSE;
 
@@ -146,18 +146,18 @@ static BOOLEAN dc_dump_is_hibernation_allowed()
 		{
 			// dump device must be mounted,
 			// dump device must not contain unencrypted part
-			// and encryption keys must not been erased by dc_clean_keys / mm_clean_secure_memory
+			// and encryption keys must not have been erased by dc_clean_keys / mm_clean_secure_memory
 			hibernation_device_encrypted = (hook->flags & F_ENABLED) != 0 &&
 				                           ( (hook->flags & F_SYNC) == 0 || (hook->flags & F_REENCRYPT) != 0 ) &&
 									       (hook->dsk_key != NULL && hook->dsk_key->encrypt != NULL) &&
 										   (hook->tmp_key == NULL || hook->tmp_key->encrypt != NULL);
 			hibernation_devices++;
 		}
-		if (hook->flags & F_ENABLED) humber_of_mounts++;
+		if (hook->flags & F_ENABLED) number_of_mounts++;
 	}
 
-	// hibernation allowed if no active mounts or hibernation device is full encrypted
-	return humber_of_mounts == 0 || (hibernation_devices == 1 && hibernation_device_encrypted);
+	// hibernation allowed if no active mounts or hibernation device is fully encrypted
+	return number_of_mounts == 0 || (hibernation_devices == 1 && hibernation_device_encrypted);
 }
 
 // dump helpers structure passed to dump filters

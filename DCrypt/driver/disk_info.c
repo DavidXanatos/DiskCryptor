@@ -123,7 +123,7 @@ NTSTATUS dc_fill_device_info(dev_hook *hook)
 
 		if ( !NT_SUCCESS(status = io_device_control(hook->orig_dev, IOCTL_DISK_GET_DRIVE_GEOMETRY, NULL, 0, &dg, sizeof(dg))) )
 		{
-			DbgMsg("can not get drive geometry, dev=%ws, status=%0.8x\n", hook->dev_name, status);
+			DbgMsg("cannot get drive geometry, dev=%ws, status=%0.8x\n", hook->dev_name, status);
 			return status;
 		}
 
@@ -137,7 +137,7 @@ NTSTATUS dc_fill_device_info(dev_hook *hook)
 		}
 	}
 	if ( !NT_SUCCESS(status) ) {
-		DbgMsg("can not get drive size, dev=%ws, status=%0.8x\n", hook->dev_name, status);
+		DbgMsg("cannot get drive size, dev=%ws, status=%0.8x\n", hook->dev_name, status);
 		return status;
 	} else {
 		DbgMsg("device %ws size = %uMB\n", hook->dev_name, (ULONG)(dev_length / 1024 / 1024));

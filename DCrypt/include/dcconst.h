@@ -4,7 +4,7 @@
 /* hook control flags */
 #define F_NONE          0x0000
 #define F_ENABLED       0x0001 // device mounted
-#define F_SYNC          0x0002 // syncronous IRP processing mode
+#define F_SYNC          0x0002 // synchronous IRP processing mode
 #define F_SYSTEM        0x0004 // this is a system device
 #define F_REMOVABLE     0x0008 // this is removable device
 #define F_HIBERNATE     0x0010 // this device used for hibernation
@@ -16,7 +16,7 @@
 #define F_NO_AUTO_MOUNT 0x0400 // automounting disabled for this device
 #define F_PROTECT_DCSYS 0x0800 // protect $dcsys$ file from any access
 #define F_PREVENT_ENC   0x1000 // fail any encrypt/decrypt requests with ST_CANCEL status
-#define F_CDROM         0x2000 // this is CDROM device
+#define F_CDROM         0x2000 // this is CD-ROM device
 #define F_NO_REDIRECT   0x4000 // redirection area is not used
 #define F_SSD           0x8000 // this is SSD disk
 
@@ -28,7 +28,7 @@
 /* unmount flags */
 #define MF_FORCE     0x01 // unmount volume if FSCTL_LOCK_VOLUME fail
 #define MF_NOFSCTL   0x02 // no send FSCTL_DISMOUNT_VOLUME
-#define MF_NOSYNC    0x04 // no stop syncronous mode thread
+#define MF_NOSYNC    0x04 // no stop synchronous mode thread
 #define MF_DELMP     0x08 // delete volume mount point when unmount
 #define MF_NOWAIT_IO 0x10 // no wait for IO IRPs completion
 
@@ -36,16 +36,16 @@
 #define MF_READ_ONLY 0x20 // mount volume as read only
 
 /* operation status codes */
-#define ST_OK             0  /* operation completed successfull */
+#define ST_OK             0  /* operation completed successfully */
 #define ST_ERROR          1  /* unknown error    */
 #define ST_NF_DEVICE      2  /* device not found */
 #define ST_RW_ERR         3  /* read/write error */
 #define ST_PASS_ERR       4  /* invalid password */
-#define ST_ALR_MOUNT      5  /* device has already mounted */
+#define ST_ALR_MOUNT      5  /* device is already mounted */
 #define ST_NO_MOUNT       6  /* device not mounted */
 #define ST_LOCK_ERR       7  /* error on volume locking  */
 #define ST_UNMOUNTABLE    8  /* device is unmountable */
-#define ST_NOMEM          9  /* not enought memory */
+#define ST_NOMEM          9  /* not enough memory */
 #define ST_ERR_THREAD     10 /* error on creating system thread */
 #define ST_INV_WIPE_MODE  11 /* invalid data wipe mode */
 #define ST_INV_DATA_SIZE  12 /* invalid data size */
@@ -60,14 +60,14 @@
 #define ST_BLDR_NOTINST   21 /* bootloader is not installed */
 #define ST_INV_BLDR_SIZE  22 /* invalid bootloader size */
 #define ST_BLDR_NO_CONF   23 /* bootloader corrupted, config not found */
-#define ST_BLDR_OLD_VER   24 /* old bootloader can not be configured */
+#define ST_BLDR_OLD_VER   24 /* old bootloader cannot be configured */
 #define ST_AUTORUNNED     25 /* */
 #define ST_NEED_EXIT      26 /* */
-#define ST_NO_ADMIN       27 /* user not have admin privilegies */
+#define ST_NO_ADMIN       27 /* user does not have admin privileges */
 #define ST_NF_BOOT_DEV    28 /* boot device not found */
-#define ST_REG_ERROR      29 /* can not open registry key */
+#define ST_REG_ERROR      29 /* cannot open registry key */
 #define ST_NF_REG_KEY     30 /* registry key not found */
-#define ST_SCM_ERROR      31 /* can not open SCM database */
+#define ST_SCM_ERROR      31 /* cannot open SCM database */
 #define ST_FINISHED       32 /* encryption finished */
 #define ST_INSTALLED      32 /* driver already installed */
 #define ST_INV_SECT       34 /* device has unsupported sector size */
@@ -81,9 +81,9 @@
 #define ST_CANCEL         42 /* operation canceled */
 #define ST_INV_VOL_VER    43 /* invalid volume version */
 #define ST_EMPTY_KEYFILES 44 /* keyfiles not found */
-#define ST_NOT_BACKUP     45 /* this is a not backup file */
-#define ST_NO_OPEN_FILE   46 /* can not open file */
-#define ST_NO_CREATE_FILE 47 /* can not create file */
+#define ST_NOT_BACKUP     45 /* this is not a backup file */
+#define ST_NO_OPEN_FILE   46 /* cannot open file */
+#define ST_NO_CREATE_FILE 47 /* cannot create file */
 #define ST_INV_VOLUME     48 /* invalid volume header */
 #define ST_OLD_VERSION    49 /* */
 #define ST_NEW_VERSION    50 /* */
@@ -93,7 +93,7 @@
 #define ST_VOLUME_TOO_NEW 54 /* */
 #define ST_INVALID_PARAM  55 /* an invalid parameter was provided */
 #define ST_INV_FORMAT     56 /* disk has incompatible partition format */
-#define ST_NO_OPEN_DIR    57 /* can not open directory */
+#define ST_NO_OPEN_DIR    57 /* cannot open directory */
 #define ST_DIR_NOT_EMPTY  58 /* directory is not empty */
 #define ST_BL_NOT_PASSED  59 /* bootloader check not passed */
 

@@ -46,7 +46,7 @@ int dc_k_benchmark(int cipher, dc_bench_info *info)
 	for (i = 0; i < TEST_BLOCK_LEN; i++) buff[i] = i % 256;
 	for (i = 0; i < DISKKEY_SIZE; i++) dkey[i] = i % 256;
 	xts_set_key(dkey, cipher, xkey);
-	/* query perfomance frequency */
+	/* query performance frequency */
 	KeQueryPerformanceCounter((PLARGE_INTEGER)&info->cpufreq);
 	if (info->cpufreq == 0) goto exit;
 

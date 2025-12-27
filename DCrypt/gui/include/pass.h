@@ -6,7 +6,7 @@
 #define ST_PASS_NOT_CONFIRMED		3
 #define ST_PASS_EMPTY_CONFIRM		4
 #define ST_PASS_EMPTY_KEYLIST		5
-#define ST_PASS_CORRRECT			6
+#define ST_PASS_CORRECT			6
 
 typedef struct __pass_inf 
 {
