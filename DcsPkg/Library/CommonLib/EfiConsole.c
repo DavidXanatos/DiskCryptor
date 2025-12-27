@@ -486,7 +486,7 @@ DcsMenuAppend(
 	if (item == NULL) return item;
 	item->Action = action;
 	item->Context = actionContext;
-	StrCat(item->Text, text);
+	StrCatS(item->Text, 128, text);
 	item->Select = select;
 	if (menu != NULL) {
 		menu->Next = item;

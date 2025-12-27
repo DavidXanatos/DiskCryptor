@@ -22,7 +22,7 @@ typedef UINTN size_t;
 typedef CHAR16 wchar_t;
 
 #define MAX_STRING_SIZE  0x1000
-#define wcscpy                            StrCpy
+#define wcscpy_s                          StrCpyS
 #define memcpy(dest,source,count)         CopyMem(dest,source,(UINTN)(count))
 #define strchr(str,ch)                    ScanMem8((VOID *)(str),AsciiStrSize(str),(UINT8)ch)
 #define strcmp                            AsciiStrCmp
@@ -246,21 +246,21 @@ wchar_t *XmlQuoteTextW (const wchar_t *textSrc, wchar_t *textDst, int textDstMax
 		case L'&':
 			if (textDst + 6 > textDstLast)
 				return NULL;
-			wcscpy (textDst, L"&amp;");
+			wcscpy_s (textDst, (textDstLast - textDst), L"&amp;");
 			textDst += 5;
 			continue;
 
 		case L'>':
 			if (textDst + 5 > textDstLast)
 				return NULL;
-			wcscpy (textDst, L"&gt;");
+			wcscpy_s (textDst, (textDstLast - textDst), L"&gt;");
 			textDst += 4;
 			continue;
 
 		case L'<':
 			if (textDst + 5 > textDstLast)
 				return NULL;
-			wcscpy (textDst, L"&lt;");
+			wcscpy_s (textDst, (textDstLast - textDst), L"&lt;");
 			textDst += 4;
 			continue;
 

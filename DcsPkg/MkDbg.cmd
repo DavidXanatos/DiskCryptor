@@ -1,7 +1,7 @@
 @echo off
 call "%~dp0setenv.bat"
 call "%~dp0dcs_bld.bat" X64 || goto :exit
-call "%~dp0dcs_bld.bat" IA32 || goto :exit
+REM call "%~dp0dcs_bld.bat" IA32 || goto :exit
 
 if ["%1"]==[""] goto :exit
 set DCS=DCS

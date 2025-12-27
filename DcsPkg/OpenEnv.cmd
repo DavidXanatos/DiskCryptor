@@ -1,11 +1,14 @@
 @echo off
 pushd %~dp0
 
-call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\Tools\VsDevCmd.bat"
+call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat"
 
-call "..\edksetup.bat"
+set NASM_PREFIX=%~dp0..\..\nasm\
 
-set PATH=%PATH%;C:\nasm
+rem call "..\edksetup.bat"
+call "setenv.bat"
+
+REM on a new edk2 don't forget to run edksetup.bat Rebuild
 
 echo ***********************************************
 echo *  

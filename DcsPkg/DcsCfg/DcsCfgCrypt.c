@@ -1527,7 +1527,7 @@ PartitionOuterInit(
 		MEM_FREE(DeCryptoHeader);
 		DeCryptoHeader = Header;
 		AskAsciiString("Encrypted GPT file name:", fname8, sizeof(fname8), 1, "gpt_enc");
-		AsciiStrToUnicodeStr(fname8, fname16);
+		AsciiStrToUnicodeStrS(fname8, fname16, 256);
 		DcsDiskEntrysFileName = fname16;
 		DeListSaveToFile();
 	}
@@ -1540,7 +1540,7 @@ PartitionOuterInit(
 		DcsHidePart.EndingLBA = GptMainEntrys[endIndex].EndingLBA;
 		GptHideParts();
 		AskAsciiString("Hidden GPT file name:", fname8, sizeof(fname8), 1, "gpt_hidden");
-		AsciiStrToUnicodeStr(fname8, fname16);
+		AsciiStrToUnicodeStrS(fname8, fname16, 256);
 		DcsDiskEntrysFileName = fname16;
 		DeListSaveToFile();
 	}

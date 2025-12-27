@@ -557,7 +557,7 @@ DcsTpm2NvRead(
 		NonceCaller.size = 0x20;
 		Salt.size = 0;
 		Symmetric.algorithm = TPM_ALG_XOR;
-		Symmetric.keyBits.xor = TPM_ALG_SHA256;
+		Symmetric.keyBits.xor_ = TPM_ALG_SHA256;
 
 		CE(Tpm2StartAuthSession(
 			TpmKey,

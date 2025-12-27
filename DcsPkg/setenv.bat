@@ -6,6 +6,10 @@ if not defined DCS_ARCH   set DCS_ARCH=X64
 if not defined DCS_TYPE   set DCS_TYPE=DEBUG
 
 if not defined DCS_TOOLCHAIN (
+  if exist "C:\Program Files\Microsoft Visual Studio\2022" (
+    set DCS_TOOLCHAIN=VS2022
+    goto done_dcs_toolchain
+  )
   if exist "C:\Program Files (x86)\Microsoft Visual Studio\2019" (
     set DCS_TOOLCHAIN=VS2019
     goto done_dcs_toolchain

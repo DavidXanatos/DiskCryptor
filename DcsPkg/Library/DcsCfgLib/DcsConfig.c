@@ -135,7 +135,7 @@ CHAR16 *ConfigReadStringW(char *configKey, CHAR16 *defaultValue, CHAR16 *str, in
 		StrCpyS(str, maxLen, defaultValue);
 	}
 	else {
-		AsciiStrToUnicodeStr(strTemp, str);
+		AsciiStrToUnicodeStrS(strTemp, str, maxLen);
 	}
 	MEM_FREE(strTemp);
 

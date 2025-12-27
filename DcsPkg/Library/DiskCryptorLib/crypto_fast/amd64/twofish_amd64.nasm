@@ -19,6 +19,9 @@
 ;*   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
 ;***************************************************************************
 
+DEFAULT REL
+SECTION .text
+
 %define a_offset 0
 %define b_offset 4
 %define c_offset 8
@@ -207,7 +210,6 @@
 	ror	%4D,  1
 %endmacro
 
-section text
 global twofish256_encrypt
 global twofish256_decrypt
 

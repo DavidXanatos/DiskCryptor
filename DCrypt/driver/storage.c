@@ -140,7 +140,7 @@ static void dc_rename_file(HANDLE h_file)
 	info->ReplaceIfExists = TRUE;
 	info->RootDirectory   = NULL;
 	RtlStringCchPrintfW(info->FileName, 32, L"$dcsys$_fail_%x", __rdtsc());
-	info->FileNameLength = wcslen(info->FileName) * sizeof(wchar_t);
+	info->FileNameLength = (ULONG)(wcslen(info->FileName) * sizeof(wchar_t));
 
 	ZwSetInformationFile(h_file, &iosb, info, sizeof(buff), FileRenameInformation);
 }

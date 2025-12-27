@@ -23,8 +23,8 @@ DcsCfg -ds <BN> -wipe <start> <end>
 
 ** Devices
  -dl - block device list (numbers are used in -ds, -de)
- -ds <BN> � select device
- -de <BN> � end device to check (starts from select)
+ -ds <BN> - select device
+ -de <BN> - end device to check (starts from select)
  -dc - check devices (try to authorize)
  -ul - USB devices list
  -tl - Touch devices list

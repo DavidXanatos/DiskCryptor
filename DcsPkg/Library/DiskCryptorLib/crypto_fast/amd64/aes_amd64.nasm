@@ -138,6 +138,8 @@
 
 ; End of user defines
 
+DEFAULT REL
+
 %ifdef AES_VAR
 %ifndef AES_128
 %define AES_128
@@ -715,7 +717,7 @@ end_prologue
 		mov     [rsp+2*8], rbp  ; output pointer in [rsp]
 		mov     [rsp+3*8], r12  ; context in r8
 %endif
-    lea     tptr,[rel enc_tab]
+    lea     tptr,[enc_tab]
     sub     kptr, fofs
 
     mov     eax, [rdi+0*4]
@@ -820,7 +822,7 @@ end_prologue
 		mov     [rsp+3*8], r12  ; context in r8
 %endif
     add     kptr, 4*KS_LENGTH
-    lea     tptr,[rel dec_tab]
+    lea     tptr,[dec_tab]
     sub     kptr, rofs
 
     mov     eax, [rdi+0*4]
@@ -882,3 +884,5 @@ end_prologue
 %endif
 
 %endif
+
+    end

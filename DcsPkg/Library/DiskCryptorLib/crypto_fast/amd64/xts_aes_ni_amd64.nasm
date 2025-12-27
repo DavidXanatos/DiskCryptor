@@ -16,6 +16,9 @@
 ;   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;
 
+DEFAULT REL
+SECTION .text
+
 %macro aesxor_4 6 ; B0, B1, B2, B3, key, round
   movdqa     tt, [%5+(%6*10h)]
   pxor	     %1, tt
@@ -225,7 +228,6 @@ align 16
 %define enc_key 0
 %define dec_key 4*15*4
 
-section .text
 global xts_aes_ni_encrypt
 global xts_aes_ni_decrypt
 

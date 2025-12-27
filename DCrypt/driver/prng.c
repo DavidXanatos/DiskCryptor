@@ -138,14 +138,14 @@ void cp_rand_reseed()
 {
 	seed_data seed;
 
-	KeQuerySystemTime(&seed.seed20); //fix-me: not available in win10 wdk
+	KeQuerySystemTime(&seed.seed20);
 	
 	seed.seed1  = PsGetCurrentProcess();
 	seed.seed2  = PsGetCurrentProcessId();
 	seed.seed3  = KeGetCurrentThread();
 	seed.seed4  = PsGetCurrentThreadId();
 	seed.seed5  = KeGetCurrentProcessorNumber();
-	seed.seed6  = KeQueryInterruptTime(); //fix-me: not available in win10 wdk
+	seed.seed6  = KeQueryInterruptTime();
 	seed.seed10 = KeQueryPerformanceCounter(NULL);
 	seed.seed11 = __rdtsc();
 	seed.seed12 = ExGetPreviousMode();	
@@ -167,12 +167,12 @@ void cp_rand_reseed()
 		seed.seed16 = PsGetProcessExitTime();
 		IoGetStackLimits(&seed.seed22, &seed.seed23);
 	}	
-	KeQueryTickCount(&seed.seed21); //fix-me: not available in win10 wdk
+	KeQueryTickCount(&seed.seed21);
 	
 	/* add collected seed */
 	cp_rand_add_seed(&seed, sizeof(seed));
 	/* add SharedUserData as additional seed */
-	cp_rand_add_seed(SharedUserData, sizeof(KUSER_SHARED_DATA)); //fix-me: not available in win10 wdk
+	cp_rand_add_seed(SharedUserData, sizeof(KUSER_SHARED_DATA));
 	
 	/* Prevent leaks */	
 	burn(&seed, sizeof(seed));

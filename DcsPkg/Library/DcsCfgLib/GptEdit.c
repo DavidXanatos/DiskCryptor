@@ -657,10 +657,10 @@ DeListExecEdit()
 			EFI_PARTITION_ENTRY *part;
 			part = &GptMainEntrys[i];
 			if (CompareMem(&gEfiPartTypeSystemPartGuid, &part->PartitionTypeGUID, sizeof(EFI_GUID)) == 0) {
-		if (CompareMem(&DeExecParams->ExecPartGuid, &part->UniquePartitionGUID, sizeof(EFI_GUID)) != 0) {
-				OUT_PRINT(L"EFI partition mismatched, updated");
-				CopyMem(&DeExecParams->ExecPartGuid, &part->UniquePartitionGUID, sizeof(EFI_GUID));
-			}
+				if (CompareMem(&DeExecParams->ExecPartGuid, &part->UniquePartitionGUID, sizeof(EFI_GUID)) != 0) {
+					OUT_PRINT(L"EFI partition mismatched, updated");
+					CopyMem(&DeExecParams->ExecPartGuid, &part->UniquePartitionGUID, sizeof(EFI_GUID));
+				}
 				break;
 			}
 		}

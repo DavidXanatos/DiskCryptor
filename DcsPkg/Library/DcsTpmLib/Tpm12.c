@@ -788,7 +788,7 @@ Tpm12OSAPStart(
 	IN CHAR16    *ownerPass
 	)
 {
-	EFI_STATUS   res;
+	/*EFI_STATUS   res;
 	TPM_DIGEST   ownerKey;
 	UINTN        CtxSize;
 	VOID*        HmacCtx;
@@ -815,7 +815,8 @@ Tpm12OSAPStart(
 	HmacSha1Update(HmacCtx, &gTpm12Osap->nonceOddOSAP, sizeof(gTpm12Osap->nonceOddOSAP));
 	HmacSha1Final(HmacCtx, (UINT8*)&gTpm12Osap->SharedSecret);
 	MEM_FREE(HmacCtx);
-	return res;
+	return res;*/
+	return EFI_UNSUPPORTED; // todo
 }
 
 EFI_STATUS
@@ -823,7 +824,7 @@ Tpm12OSAPAppend(
 	IN  UINT8 continueSession
 	) 
 {
-	EFI_STATUS res;
+	/*EFI_STATUS res;
 	UINTN        CtxSize;
 	VOID*        HmacCtx;
 	TPM_DIGEST   hashCmd;
@@ -845,7 +846,8 @@ Tpm12OSAPAppend(
 	HmacSha1Final(HmacCtx, (UINT8*)&auth);
 	MEM_FREE(HmacCtx);
 	res = Tpm12IOWriteBytes(gTpm12Io, &auth, sizeof(auth), FALSE);
-	return res;
+	return res;*/
+	return EFI_UNSUPPORTED; // todo
 }
 
 //////////////////////////////////////////////////////////////////////////

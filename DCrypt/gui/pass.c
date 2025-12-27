@@ -57,9 +57,9 @@ static void _check_password(dc_pass *pass, _pass_inf *inf)
 				 ((c >= L':') && (c <= L'@')) ||
 				 ((c >= L'[') && (c <= L'`')) ||
 				 ((c >= L'{') && (c <= L'~')) ||
-				 ((c >= L'\x00A1') && (c <= L'\x00BF')) ||
-				 (c == L'\x20AC') || (c == L'\x00A3') || (c == L'\x00A5') ||
-				 (c == L'\x00A7') || (c == L'\x00B6') || (c == L'\x00D7') )
+				 ((c >= L'‘') && (c <= L'—')) ||				 
+				 (c == L'‚') || (c == L'„') || (c == L'…') || 
+				 (c == L'‹') || (c == L'›') || (c == L'¦') ) 
 			{
 				flags |= P_SPCH; break;
 			} else {
@@ -81,7 +81,7 @@ static void _check_password(dc_pass *pass, _pass_inf *inf)
 		chars++;
 	}
 	if (flags & P_SPCH) {
-		chars += ('/' - '!') + ('@' - ':') + ('`' - '[') + ('~' - '{') + ('�' - '�') + 6;
+		chars += ('/' - '!') + ('@' - ':') + ('`' - '[') + ('~' - '{') + ('—' - '‘') + 6;
 	}
 	if (flags & P_NCHAR) {
 		chars += 64;

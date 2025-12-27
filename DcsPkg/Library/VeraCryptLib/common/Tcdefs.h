@@ -170,10 +170,10 @@ typedef uint64 uint_64t;
 typedef CHAR16 wchar_t;
 typedef int LONG;
 
-#define wcscpy StrCpy
+#define wcscpy_s StrCpyS
 #define wcslen StrLen
 #define wcscmp StrCmp
-#define wcscat StrCat
+#define wcscat_s StrCatS
 
 #define memcpy(dest,source,count)         CopyMem(dest,source,(UINTN)(count))
 #define memset(dest,ch,count)             SetMem(dest,(UINTN)(count),(UINT8)(ch))

@@ -557,12 +557,12 @@ BOOL EAInitMode (PCRYPTO_INFO ci)
 
 static void EAGetDisplayName(wchar_t *buf, int ea, int i)
 {
-	wcscpy (buf, CipherGetName (i));
+	wcscpy_s (buf, 128, CipherGetName (i));
 	if (i = EAGetPreviousCipher(ea, i))
 	{
-		wcscat (buf, L"(");
+		wcscat_s (buf, 128, L"(");
 		EAGetDisplayName (&buf[wcslen(buf)], ea, i);
-		wcscat (buf, L")");
+		wcscat_s (buf, 128, L")");
 	}
 }
 
@@ -576,12 +576,12 @@ wchar_t *EAGetName (wchar_t *buf, int ea, int guiDisplay)
 	else
 	{
 		int i = EAGetLastCipher(ea);
-		wcscpy (buf, (i != 0) ? CipherGetName (i) : L"?");
+		wcscpy_s (buf, 128, (i != 0) ? CipherGetName (i) : L"?");
 
 		while (i = EAGetPreviousCipher(ea, i))
 		{
-			wcscat (buf, L"-");
-			wcscat (buf, CipherGetName (i));
+			wcscat_s (buf, 128, L"-");
+			wcscat_s (buf, 128, CipherGetName (i));
 		}
 	}
 	return buf;
@@ -789,7 +789,7 @@ void HashGetName2 (wchar_t *buf, int hashId)
 {
    Hash* pHash = HashGet(hashId);
    if (pHash)
-		wcscpy(buf, pHash -> Name);
+		wcscpy_s(buf, 128, pHash -> Name);
 	else
 		buf[0] = L'\0';
 }
