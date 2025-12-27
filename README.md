@@ -83,5 +83,5 @@ For a permanent solution, review and correct your EFI boot order so that the sys
 DiskCryptor does not support Secure Boot out of the box. The DiskCryptor bootloader is not signed, and therefore it will not be accepted by a standard Secure Boot configuration.
 If Secure Boot is required, you must enroll your own private key into the Secure Boot database (DB) and sign the DiskCryptor bootloader files yourself.
 
-[More F.A.Q. on the Hoem Page](https://diskcryptor.org/faq/)
+[More F.A.Q. on the Home Page](https://diskcryptor.org/faq/)
 
