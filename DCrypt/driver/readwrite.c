@@ -123,6 +123,12 @@ static void io_context_deref(io_context *ctx)
 
 		if (ctx->new_buff)
 		{
+			/* SECURITY: Zero the buffer before returning to prevent data leakage */
+			if (ctx->chunk_length > 0) {
+				RtlSecureZeroMemory(ctx->new_buff, ctx->chunk_length);
+			}
+			KeMemoryBarrier();  /* Ensure zeroing completes before free */
+			
 			if (ctx->new_buff_index >= 0) {
 				ExFreeToNPagedLookasideList(&g_temp_buff_lists[ctx->new_buff_index], ctx->new_buff);
 			} else {
@@ -134,6 +140,9 @@ static void io_context_deref(io_context *ctx)
 		if (ctx->is_sync) {
 			KeSetEvent(&ctx->done_event, IO_NO_INCREMENT, FALSE);
 		} else {
+			/* SECURITY: Zero sensitive context data before returning to lookaside list */
+			RtlSecureZeroMemory(&ctx->chunk_key, sizeof(ctx->chunk_key));
+			KeMemoryBarrier();
 			ExFreeToNPagedLookasideList(&g_io_contexts_list, ctx);
 		}
 	}
@@ -559,6 +568,9 @@ cleanup:
 	{
 		KeWaitForSingleObject(&ctx->done_event, Executive, KernelMode, FALSE, NULL);
 		status = ctx->status;
+		/* SECURITY: Zero sensitive context data before returning to lookaside list */
+		RtlSecureZeroMemory(&ctx->chunk_key, sizeof(ctx->chunk_key));
+		KeMemoryBarrier();
 		ExFreeToNPagedLookasideList(&g_io_contexts_list, ctx);
 	}
 	return status;

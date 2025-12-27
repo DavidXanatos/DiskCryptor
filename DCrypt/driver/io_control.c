@@ -46,19 +46,68 @@
 	(_ioctl) == IOCTL_DISK_CHECK_VERIFY || (_ioctl) == IOCTL_CDROM_CHECK_VERIFY || \
 	(_ioctl) == IOCTL_STORAGE_CHECK_VERIFY || (_ioctl) == IOCTL_STORAGE_CHECK_VERIFY2 )
 
-#define TRIM_BUFF_MAX(_set) ( \
-	_align(sizeof(DEVICE_MANAGE_DATA_SET_ATTRIBUTES), sizeof(DEVICE_DATA_SET_RANGE)) + \
-	((_set)->DataSetRangesLength * 2) + (sizeof(DEVICE_DATA_SET_RANGE) * 2) )
+/*
+ * SECURITY: Safe integer arithmetic for TRIM buffer calculations
+ * These macros check for overflow before performing calculations
+ */
 
-#define TRIM_BUFF_LENGTH(_set) ( \
-	(_set)->DataSetRangesOffset + (_set)->DataSetRangesLength )
-
-#define TRIM_ADD_RANGE(_set, _start, _size) if ((_size) != 0) { \
-	PDEVICE_DATA_SET_RANGE _range = addof((_set), (_set)->DataSetRangesOffset + (_set)->DataSetRangesLength); \
-	(_set)->DataSetRangesLength += sizeof(DEVICE_DATA_SET_RANGE); \
-	_range->StartingOffset = (_start); \
-	_range->LengthInBytes  = (_size); \
+/* 
+ * Calculate maximum TRIM buffer size with overflow protection
+ * Returns 0 on overflow (which will cause allocation to fail safely)
+ */
+static __forceinline ULONG dc_safe_trim_buff_max(PDEVICE_MANAGE_DATA_SET_ATTRIBUTES set)
+{
+	ULONG base_size, range_size, total;
+	
+	base_size = (ULONG)_align(sizeof(DEVICE_MANAGE_DATA_SET_ATTRIBUTES), sizeof(DEVICE_DATA_SET_RANGE));
+	
+	/* Check for overflow in DataSetRangesLength * 2 */
+	if (set->DataSetRangesLength > (MAXULONG / 2)) {
+		return 0;  /* Overflow - return 0 to fail allocation */
+	}
+	range_size = set->DataSetRangesLength * 2;
+	
+	/* Check for overflow in addition */
+	if (range_size > (MAXULONG - base_size - (sizeof(DEVICE_DATA_SET_RANGE) * 2))) {
+		return 0;  /* Overflow */
+	}
+	
+	total = base_size + range_size + (sizeof(DEVICE_DATA_SET_RANGE) * 2);
+	return total;
 }
+
+#define TRIM_BUFF_MAX(_set) dc_safe_trim_buff_max(_set)
+
+/* 
+ * Calculate TRIM buffer length with overflow protection
+ */
+static __forceinline ULONG dc_safe_trim_buff_length(PDEVICE_MANAGE_DATA_SET_ATTRIBUTES set)
+{
+	/* Check for overflow in addition */
+	if (set->DataSetRangesOffset > (MAXULONG - set->DataSetRangesLength)) {
+		return MAXULONG;  /* Return max to indicate overflow */
+	}
+	return set->DataSetRangesOffset + set->DataSetRangesLength;
+}
+
+#define TRIM_BUFF_LENGTH(_set) dc_safe_trim_buff_length(_set)
+
+/*
+ * Safe TRIM range addition with overflow checking
+ */
+#define TRIM_ADD_RANGE(_set, _start, _size) do { \
+	if ((_size) != 0) { \
+		ULONG _new_length; \
+		/* Check for overflow before adding range */ \
+		if ((_set)->DataSetRangesLength <= (MAXULONG - sizeof(DEVICE_DATA_SET_RANGE))) { \
+			PDEVICE_DATA_SET_RANGE _range = addof((_set), (_set)->DataSetRangesOffset + (_set)->DataSetRangesLength); \
+			_new_length = (_set)->DataSetRangesLength + sizeof(DEVICE_DATA_SET_RANGE); \
+			(_set)->DataSetRangesLength = _new_length; \
+			_range->StartingOffset = (_start); \
+			_range->LengthInBytes  = (_size); \
+		} \
+	} \
+} while(0)
 
 #define LEN_BEFORE_STORAGE(_hook) ( (_hook)->stor_off - (_hook)->head_len )
 #define OFF_END_OF_STORAGE(_hook) ( (_hook)->stor_off + (_hook)->head_len )
@@ -66,6 +115,146 @@
 
 /* function types declaration */
 IO_COMPLETION_ROUTINE dc_ioctl_complete;
+
+/*
+ * IOCTL Access Control Implementation
+ * 
+ * This provides tiered access control for IOCTLs based on:
+ * - Public: Anyone can access (read-only status, version)
+ * - Admin: Requires administrator privileges
+ * - Protected: Admin + additional validation
+ * - Kernel: Kernel mode callers only
+ */
+
+/*
+ * Get the security access level required for an IOCTL
+ */
+static int dc_get_ioctl_access_level(ULONG ioctl_code)
+{
+    switch (ioctl_code)
+    {
+        /* Public - read-only operations */
+        case DC_GET_VERSION:
+        case DC_CTL_STATUS:
+        case DC_CTL_GET_FLAGS:
+        case DC_CTL_BENCHMARK:
+        case DC_CTL_RESOLVE:
+            return IOCTL_ACCESS_PUBLIC;
+        
+        /* Admin - sensitive operations */
+        case DC_CTL_ADD_PASS:
+        case DC_CTL_CLEAR_PASS:
+        case DC_CTL_MOUNT:
+        case DC_CTL_MOUNT_ALL:
+        case DC_CTL_UNMOUNT:
+        case DC_CTL_ADD_SEED:
+        case DC_CTL_GET_RAND:
+        case DC_CTL_LOCK_MEM:
+        case DC_CTL_UNLOCK_MEM:
+        case DC_CTL_SET_FLAGS:
+        case DC_CTL_CHANGE_PASS:
+        case DC_CTL_SYNC_STATE:
+        case DC_BACKUP_HEADER:
+            return IOCTL_ACCESS_ADMIN;
+        
+        /* Protected - destructive operations */
+        case DC_CTL_ENCRYPT_START:
+        case DC_CTL_ENCRYPT_START2:
+        case DC_CTL_DECRYPT_START:
+        case DC_CTL_RE_ENC_START:
+        case DC_CTL_ENCRYPT_STEP:
+        case DC_CTL_DECRYPT_STEP:
+        case DC_FORMAT_START:
+        case DC_FORMAT_STEP:
+        case DC_FORMAT_DONE:
+        case DC_RESTORE_HEADER:
+            return IOCTL_ACCESS_PROTECTED;
+        
+        /* Kernel mode only - system/dump helpers and BSOD */
+        case DC_CTL_BSOD:
+        case DC_GET_DUMP_HELPERS:
+            return IOCTL_ACCESS_KERNEL;
+        
+        default:
+            return IOCTL_ACCESS_PROTECTED;  /* Default to protected for unknown IOCTLs */
+    }
+}
+
+/*
+ * Check if the caller has administrator privileges
+ * Uses token privilege check for LUID of SeLoadDriverPrivilege
+ */
+static BOOLEAN dc_is_caller_admin(PIRP irp)
+{
+    SECURITY_SUBJECT_CONTEXT subject_context;
+    BOOLEAN is_admin = FALSE;
+    PRIVILEGE_SET priv_set;
+    
+    /* Set up privilege set for SeLoadDriverPrivilege check */
+    priv_set.PrivilegeCount = 1;
+    priv_set.Control = PRIVILEGE_SET_ALL_NECESSARY;
+    priv_set.Privilege[0].Luid.LowPart = 0x0A;  /* SE_LOAD_DRIVER_PRIVILEGE */
+    priv_set.Privilege[0].Luid.HighPart = 0;
+    priv_set.Privilege[0].Attributes = 0;
+    
+    /* Get the subject context */
+    SeCaptureSubjectContext(&subject_context);
+    
+    /* Check for admin privilege (SeLoadDriverPrivilege is a good proxy for admin) */
+    is_admin = SePrivilegeCheck(&priv_set, &subject_context, UserMode);
+    
+    SeReleaseSubjectContext(&subject_context);
+    
+    return is_admin;
+}
+
+/*
+ * Validate IOCTL access based on security level
+ * Returns STATUS_SUCCESS if access allowed, STATUS_ACCESS_DENIED otherwise
+ */
+static NTSTATUS dc_check_ioctl_access(PIRP irp, ULONG ioctl_code)
+{
+    int access_level;
+    
+    access_level = dc_get_ioctl_access_level(ioctl_code);
+    
+    switch (access_level)
+    {
+        case IOCTL_ACCESS_PUBLIC:
+            /* Anyone can access */
+            return STATUS_SUCCESS;
+        
+        case IOCTL_ACCESS_KERNEL:
+            /* Kernel mode only */
+            if (irp->RequestorMode != KernelMode)
+            {
+                DbgMsg("SECURITY: IOCTL 0x%08x denied - requires kernel mode\n", ioctl_code);
+                return STATUS_ACCESS_DENIED;
+            }
+            return STATUS_SUCCESS;
+        
+        case IOCTL_ACCESS_ADMIN:
+        case IOCTL_ACCESS_PROTECTED:
+            /* Kernel mode always allowed */
+            if (irp->RequestorMode == KernelMode)
+            {
+                return STATUS_SUCCESS;
+            }
+            
+            /* User mode requires admin privileges */
+            if (!dc_is_caller_admin(irp))
+            {
+                DbgMsg("SECURITY: IOCTL 0x%08x denied - requires administrator\n", ioctl_code);
+                return STATUS_ACCESS_DENIED;
+            }
+            return STATUS_SUCCESS;
+        
+        default:
+            /* Unknown access level - deny by default */
+            DbgMsg("SECURITY: IOCTL 0x%08x denied - unknown access level\n", ioctl_code);
+            return STATUS_ACCESS_DENIED;
+    }
+}
 
 static int dc_ioctl_process(u32 code, dc_ioctl *data)
 {
@@ -194,12 +383,27 @@ NTSTATUS dc_drv_control_irp(PDEVICE_OBJECT dev_obj, PIRP irp)
 	PIO_STACK_LOCATION irp_sp = IoGetCurrentIrpStackLocation(irp);
 	NTSTATUS           status = STATUS_INVALID_DEVICE_REQUEST; // returned status
 	ULONG              length = 0; // returned length
+	ULONG              ioctl_code;
 	//
 	void              *data    = irp->AssociatedIrp.SystemBuffer;
 	u32                in_len  = irp_sp->Parameters.DeviceIoControl.InputBufferLength;
 	u32                out_len = irp_sp->Parameters.DeviceIoControl.OutputBufferLength;
 	
-	switch (irp_sp->Parameters.DeviceIoControl.IoControlCode)
+	ioctl_code = irp_sp->Parameters.DeviceIoControl.IoControlCode;
+	
+	/* Check IOCTL access permissions before processing */
+	status = dc_check_ioctl_access(irp, ioctl_code);
+	if (!NT_SUCCESS(status))
+	{
+		irp->IoStatus.Status = status;
+		irp->IoStatus.Information = 0;
+		IoCompleteRequest(irp, IO_NO_INCREMENT);
+		return status;
+	}
+	
+	status = STATUS_INVALID_DEVICE_REQUEST;  /* Reset for normal processing */
+	
+	switch (ioctl_code)
 	{
 		case DC_GET_VERSION:
 			if (irp_sp->Parameters.DeviceIoControl.OutputBufferLength != sizeof(ULONG))
@@ -288,17 +492,14 @@ NTSTATUS dc_drv_control_irp(PDEVICE_OBJECT dev_obj, PIRP irp)
 			status = STATUS_SUCCESS;
 		break;
 		case DC_CTL_BSOD:
+			/* SECURITY: Access check already performed - kernel mode only */
 			mm_clean_secure_memory();
 			dc_clean_keys();
 
 			KeBugCheck(IRQL_NOT_LESS_OR_EQUAL);
 		break;
-		case DC_GET_DUMP_HELPERS: // This IOCTL is allowed only from kernel mode
-			if (irp->RequestorMode != KernelMode)
-			{
-				status = STATUS_ACCESS_DENIED;
-				break;
-			}
+		case DC_GET_DUMP_HELPERS:
+			/* SECURITY: Access check already performed - kernel mode only */
 			if (irp_sp->Parameters.DeviceIoControl.OutputBufferLength != sizeof(DC_DUMP_HELPERS))
 			{
 				status = STATUS_INVALID_PARAMETER;

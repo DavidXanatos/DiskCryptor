@@ -880,13 +880,33 @@ void _menu_mount(
 	{
 		__execute(node->mnt.info.status.mnt_point);
 	}
+	/* Check for legacy header and prompt for upgrade */
+	if ( rlt == ST_OK )
+	{
+		dc_status status;
+		if ( dc_get_device_status(node->mnt.info.device, &status) == ST_OK )
+		{
+			if ( status.flags & F_LEGACY_HEADER )
+			{
+				if ( __msg_q( __dlg, 
+					L"This volume uses legacy encryption (1,000 PBKDF2 iterations).\n\n"
+					L"Modern security standards recommend 600,000 iterations.\n"
+					L"Would you like to upgrade the volume security now?\n\n"
+					L"(You will be prompted to change your password)" ) )
+				{
+					_menu_change_pass( node );
+				}
+			}
+		}
+	}
 }
 
 
 void _menu_mountall( )
 {
 	dlgpass dlg_info  = { NULL, NULL, NULL, NULL, 0 };
-	int     mount_cnt = 0;	
+	int     mount_cnt = 0;
+	int     legacy_cnt = 0;
 
 	dc_mount_all(NULL, &mount_cnt, 0); 
 	if ( mount_cnt == 0 )
@@ -897,6 +917,30 @@ void _menu_mountall( )
 			secure_free( dlg_info.pass );
 
 			__msg_i( __dlg, L"Mounted devices: %d", mount_cnt );
+
+			/* Check for legacy headers after mount all */
+			if ( mount_cnt > 0 )
+			{
+				vol_inf info;
+				if ( dc_first_volume(&info) == ST_OK )
+				{
+					do {
+						if ( (info.status.flags & F_ENABLED) && 
+						     (info.status.flags & F_LEGACY_HEADER) )
+						{
+							legacy_cnt++;
+						}
+					} while ( dc_next_volume(&info) == ST_OK );
+				}
+				if ( legacy_cnt > 0 )
+				{
+					__msg_i( __dlg, 
+						L"%d volume(s) use legacy encryption (1,000 PBKDF2 iterations).\n\n"
+						L"For improved security, use 'Change Password' on each volume\n"
+						L"to upgrade to modern encryption (600,000 iterations).",
+						legacy_cnt );
+				}
+			}
 		}
 	}
 }

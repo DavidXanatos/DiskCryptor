@@ -138,6 +138,10 @@ void cp_rand_reseed()
 {
 	seed_data seed;
 
+	/* 
+	 * Use legacy kernel APIs for maximum compatibility with WDK libraries.
+	 * The precise variants require newer libs that may not be available.
+	 */
 	KeQuerySystemTime(&seed.seed20);
 	
 	seed.seed1  = PsGetCurrentProcess();
@@ -171,7 +175,8 @@ void cp_rand_reseed()
 	
 	/* add collected seed */
 	cp_rand_add_seed(&seed, sizeof(seed));
-	/* add SharedUserData as additional seed */
+	
+	/* Add SharedUserData as additional entropy source */
 	cp_rand_add_seed(SharedUserData, sizeof(KUSER_SHARED_DATA));
 	
 	/* Prevent leaks */	
