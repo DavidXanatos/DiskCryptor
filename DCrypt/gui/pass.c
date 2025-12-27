@@ -81,7 +81,7 @@ static void _check_password(dc_pass *pass, _pass_inf *inf)
 		chars++;
 	}
 	if (flags & P_SPCH) {
-		chars += ('/' - '!') + ('@' - ':') + ('`' - '[') + ('~' - '{') + ('�' - '�') + 6;
+		chars += ('/' - '!') + ('@' - ':') + ('`' - '[') + ('~' - '{') + (0xBF - 0xA1) + 6;
 	}
 	if (flags & P_NCHAR) {
 		chars += 64;
