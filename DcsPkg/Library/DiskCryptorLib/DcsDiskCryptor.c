@@ -833,7 +833,7 @@ VOID DCAskPwd(IN UINTN pwdType, OUT dc_pass* dcPwd)
 			gDCryptAutoLogin = 0;
 			gDCryptPwdCode = AskPwdRetLogin;
 			if (!EFI_ERROR(StrCpyS(dcPwd->pass, MAX_PASSWORD, gDCryptAutoPassword))) {
-				dcPwd->size = (int)StrLen(gDCryptAutoPassword);
+				dcPwd->size = (int)StrLen(gDCryptAutoPassword) * 2;
 			}
 		}
 		else {

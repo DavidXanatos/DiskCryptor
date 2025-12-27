@@ -1,15 +1,15 @@
-﻿[Setup]
+[Setup]
 AppName=DiskCryptor
-AppVerName=DiskCryptor 1.2
+AppVerName=DiskCryptor 1.3
 AppId=DiskCryptor
-AppVersion=1.2.1
+AppVersion=1.3.1
 AppPublisher=http://diskcryptor.org/
 AppPublisherURL=http://diskcryptor.org/
 AppMutex=DISKCRYPTOR_MUTEX
 DefaultDirName={pf}\dcrypt
 DefaultGroupName=DiskCryptor
 UninstallDisplayIcon={app}\dcrypt.exe
-OutputBaseFilename=dcrypt_setup_1.2_beta_3
+OutputBaseFilename=dcrypt_setup_1.3_beta
 Compression=lzma
 ArchitecturesAllowed=x86 x64
 ArchitecturesInstallIn64BitMode=x64
@@ -67,7 +67,7 @@ var
   DrvVersion: Cardinal;
 begin
 
-  SuppressibleMsgBox('This is a BETA release, use it at your own risk!'#13#10'This tool is provided on an "as is" basis, with no warranty of any kind, express or implied.', mbError, MB_OK);
+  MsgBox('This is a BETA release, use it at your own risk!'#13#10'This tool is provided on an "as is" basis, with no warranty of any kind, express or implied.', mbError, MB_OK);
 
   GetWindowsVersionEx(Version);
 
@@ -79,7 +79,7 @@ begin
     exit;
   end;
 
-  // its windows xp (5.1) but service pack is too old
+  // its windows xp (5.1) but service pack is to old
   if (Version.Major = 5) and (Version.Minor = 1) and (Version.Build < 2) then
   begin
     SuppressibleMsgBox('When running on Windows XP, Service Pack 2 is required.', mbError, MB_OK, MB_OK);
@@ -87,7 +87,7 @@ begin
     exit;
   end;
 
-  // its windows server (5.2) but service pack is too old
+  // its windows server (5.2) but service pack is to old
   if (Version.Major = 5) and (Version.Minor = 2) and (Version.Build < 1) then
   begin
     SuppressibleMsgBox('When running on Windows 2003, Service Pack 1 is required.', mbError, MB_OK, MB_OK);
@@ -95,7 +95,7 @@ begin
     exit;
   end;
 
-  // if we are uninstalling the driver right now, query for a reboot
+  // if we are uninstaling the driver right now, query for a reboot
   if RegQueryDWordValue(HKEY_LOCAL_MACHINE, 'SYSTEM\CurrentControlSet\Services\dcrypt', 'DeleteFlag', DeleteFlag) then
   begin
     if (DeleteFlag <> 0) then
@@ -109,10 +109,10 @@ begin
     end;
   end;
 
-  // check is a version is already installed
+  // check is a verion is already installed
   if RegQueryDWordValue(HKEY_LOCAL_MACHINE, 'SYSTEM\CurrentControlSet\Services\dcrypt\config', 'sysBuild', DrvVersion) then
   begin
-    if (DrvVersion > 848) then
+    if (DrvVersion > 849) then
     begin
       MsgBox('A newer version of DiskCryptor is installed.'#13#10'Downgrade is not supported, please use latest version of DiskCryptor.', mbError, MB_OK);
       Result := False;
@@ -151,7 +151,7 @@ var
   ExecRet: Integer;
 begin
 
-  // after the installation
+  // after the instalation
   if (CurStep <> ssPostInstall) then  
     exit;
  
@@ -170,7 +170,7 @@ var
   ExecRet: Integer;
 begin
   
-  // before the uninstallation
+  // before the uninstalation
   if (CurUninstallStep <> usUninstall) then
     exit;
   
@@ -197,4 +197,3 @@ begin
   end;
 
 end;
-

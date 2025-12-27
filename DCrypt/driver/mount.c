@@ -612,7 +612,7 @@ int dc_get_pending_encrypt(wchar_t* path, dc_pass **pass, crypt_info *crypt)
 	UNICODE_STRING    u_name;	
 	IO_STATUS_BLOCK   iosb;
 	HANDLE            h_file;
-	xts_key			 *hdr_key;
+	xts_key			 *hdr_key = NULL;
 	dsk_pass		 *d_pass;	
 	int				  resl, succs;
 	dc_header		 *header = NULL;
@@ -664,7 +664,7 @@ int dc_get_pending_encrypt(wchar_t* path, dc_pass **pass, crypt_info *crypt)
 
 		if (resl != ST_OK) break;
 		
-		crypt->cipher_id = header->alg_1;
+		crypt->cipher_id = (u8)header->alg_1;
 		crypt->wp_mode = header->tmp_wp_mode;
 
 		dc_delete_file(h_file);
