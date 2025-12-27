@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.705
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36221.1 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "crypto", "crypto", "{514F750A-9FD6-4E8B-8437-A8651F37744E}"
 EndProject
@@ -36,6 +36,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		changes.txt = changes.txt
 	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "crypto_fast_km", "crypto\crypto_fast\crypto_fast_km.vcxproj", "{52CF0C6D-15DA-4202-BBE2-B71811DEDF71}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -112,6 +114,14 @@ Global
 		{A38C04C7-B172-4897-8471-E3478903035E}.Release|Win32.Build.0 = Release|Win32
 		{A38C04C7-B172-4897-8471-E3478903035E}.Release|x64.ActiveCfg = Release|x64
 		{A38C04C7-B172-4897-8471-E3478903035E}.Release|x64.Build.0 = Release|x64
+		{52CF0C6D-15DA-4202-BBE2-B71811DEDF71}.Debug|Win32.ActiveCfg = Debug|Win32
+		{52CF0C6D-15DA-4202-BBE2-B71811DEDF71}.Debug|Win32.Build.0 = Debug|Win32
+		{52CF0C6D-15DA-4202-BBE2-B71811DEDF71}.Debug|x64.ActiveCfg = Debug|x64
+		{52CF0C6D-15DA-4202-BBE2-B71811DEDF71}.Debug|x64.Build.0 = Debug|x64
+		{52CF0C6D-15DA-4202-BBE2-B71811DEDF71}.Release|Win32.ActiveCfg = Release|Win32
+		{52CF0C6D-15DA-4202-BBE2-B71811DEDF71}.Release|Win32.Build.0 = Release|Win32
+		{52CF0C6D-15DA-4202-BBE2-B71811DEDF71}.Release|x64.ActiveCfg = Release|x64
+		{52CF0C6D-15DA-4202-BBE2-B71811DEDF71}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -122,6 +132,7 @@ Global
 		{89CD1458-7092-4E33-A916-16C264C4C29C} = {514F750A-9FD6-4E8B-8437-A8651F37744E}
 		{D16B5E41-9D42-4190-B699-CCAA58864856} = {89CD1458-7092-4E33-A916-16C264C4C29C}
 		{2CF11A71-6489-421F-A1E9-5DF1282EE632} = {89CD1458-7092-4E33-A916-16C264C4C29C}
+		{52CF0C6D-15DA-4202-BBE2-B71811DEDF71} = {514F750A-9FD6-4E8B-8437-A8651F37744E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {00EF8C04-1CCC-450B-8279-BDF58A79B14E}

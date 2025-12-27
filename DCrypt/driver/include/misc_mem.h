@@ -16,6 +16,8 @@ NTSTATUS mm_lock_user_memory(HANDLE process_id, PVOID ptr, ULONG length);
 NTSTATUS mm_unlock_user_memory(HANDLE process_id, PVOID ptr);
 void     mm_clean_secure_memory();
 
+#pragma warning(disable: 4996) // disable deprecation warning
+
 #define mm_pool_alloc(_length) ExAllocatePoolWithTag(NonPagedPool, _length, 'P_CD')
 #define mm_pool_free(_ptr)     ExFreePoolWithTag(_ptr, 'P_CD');
 

@@ -1,15 +1,15 @@
 ﻿[Setup]
 AppName=DiskCryptor
-AppVerName=DiskCryptor 1.2
+AppVerName=DiskCryptor 1.3
 AppId=DiskCryptor
-AppVersion=1.2.1
+AppVersion=1.3.0
 AppPublisher=http://diskcryptor.org/
 AppPublisherURL=http://diskcryptor.org/
 AppMutex=DISKCRYPTOR_MUTEX
 DefaultDirName={pf}\dcrypt
 DefaultGroupName=DiskCryptor
 UninstallDisplayIcon={app}\dcrypt.exe
-OutputBaseFilename=dcrypt_setup_1.2_beta_3
+OutputBaseFilename=dcrypt_setup_1.3_beta
 Compression=lzma
 ArchitecturesAllowed=x86 x64
 ArchitecturesInstallIn64BitMode=x64
@@ -67,7 +67,7 @@ var
   DrvVersion: Cardinal;
 begin
 
-  SuppressibleMsgBox('This is a BETA release, use it at your own risk!'#13#10'This tool is provided on an "as is" basis, with no warranty of any kind, express or implied.', mbError, MB_OK);
+  MsgBox('This is a BETA release, use it at your own risk!'#13#10'This tool is provided on an "as is" basis, with no warranty of any kind, express or implied.', mbError, MB_OK);
 
   GetWindowsVersionEx(Version);
 
@@ -112,7 +112,7 @@ begin
   // check is a verion is already installed
   if RegQueryDWordValue(HKEY_LOCAL_MACHINE, 'SYSTEM\CurrentControlSet\Services\dcrypt\config', 'sysBuild', DrvVersion) then
   begin
-    if (DrvVersion > 848) then
+    if (DrvVersion > 849) then
     begin
       MsgBox('A newer version of DiskCryptor is installed.'#13#10'Downgrade is not supported, please use latest version of DiskCryptor.', mbError, MB_OK);
       Result := False;

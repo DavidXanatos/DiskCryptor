@@ -80,8 +80,8 @@ void com_print(char *format, ...)
 
 	va_start(args, format);
 
-	_vsnprintf(
-		dbg_msg, sizeof(dbg_msg), format, args);
+	_vsnprintf_s(
+		dbg_msg, sizeof(dbg_msg), _TRUNCATE, format, args);
 
 	va_end(args);
 
