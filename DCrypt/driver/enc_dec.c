@@ -302,7 +302,7 @@ static int dc_init_sync_mode(dev_hook *hook, sync_context *ctx)
 
 static int dc_process_sync_packet(dev_hook *hook, sync_packet *packet, sync_context *ctx)
 {
-	int new_wp = (int)(INT_PTR)(packet->param);
+	int new_wp = (int)(ULONG_PTR)(packet->param);
 	int resl;
 
 	switch (packet->type)

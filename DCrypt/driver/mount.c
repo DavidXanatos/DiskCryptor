@@ -144,6 +144,7 @@ int dc_probe_decrypt(dev_hook *hook, dc_header **header, xts_key **res_key, dc_p
 	xts_key  *hdr_key;
 	dsk_pass *d_pass;	
 	int       resl, succs;
+	int       is_legacy = 0;
 
 	hdr_key = NULL; succs = 0; *header = NULL;
 	do
@@ -161,8 +162,8 @@ int dc_probe_decrypt(dev_hook *hook, dc_header **header, xts_key **res_key, dc_p
 		{
 			if (password != NULL)
 			{
-				/* probe mount with entered password */
-				if (succs = cp_decrypt_header(hdr_key, *header, password)) {
+				/* probe mount with entered password - use extended function for legacy detection */
+				if (succs = cp_decrypt_header_ex(hdr_key, *header, password, &is_legacy)) {
 					break;
 				}
 			}
@@ -173,7 +174,7 @@ int dc_probe_decrypt(dev_hook *hook, dc_header **header, xts_key **res_key, dc_p
 			/* probe mount with cached passwords */
 			for (d_pass = f_pass; d_pass; d_pass = d_pass->next)
 			{
-				if (succs = cp_decrypt_header(hdr_key, *header, &d_pass->pass)) {
+				if (succs = cp_decrypt_header_ex(hdr_key, *header, &d_pass->pass, &is_legacy)) {
 					break;
 				}
 			}
@@ -183,7 +184,15 @@ int dc_probe_decrypt(dev_hook *hook, dc_header **header, xts_key **res_key, dc_p
 		} while (0);
 
 		if (succs != 0) {
-			*res_key = hdr_key; hdr_key = NULL; resl = ST_OK; 
+			*res_key = hdr_key; hdr_key = NULL; resl = ST_OK;
+			
+			/* Flag legacy headers for upgrade notification */
+			if (is_legacy != 0) {
+				DbgMsg("WARNING: Legacy header detected with weak PBKDF2 (1000 iterations)\n");
+				DbgMsg("         Volume should be re-encrypted for improved security\n");
+				/* Set legacy flag on hook for UI notification */
+				hook->flags |= F_LEGACY_HEADER;
+			}
 		} else {
 			resl = ST_PASS_ERR;
 		}

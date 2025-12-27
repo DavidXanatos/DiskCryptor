@@ -191,12 +191,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <Driver>WDM</Driver>
       <EntryPointSymbol>DriverEntry</EntryPointSymbol>
-      <RandomizedBaseAddress>
-      </RandomizedBaseAddress>
-      <DataExecutionPrevention>
-      </DataExecutionPrevention>
-      <BaseAddress>
-      </BaseAddress>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
+      <!-- Removed low BaseAddress (0x10000) for better ASLR on x64 -->
       <AdditionalOptions>/pdbaltpath:%_PDB% %(AdditionalOptions)</AdditionalOptions>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
     </Link>
