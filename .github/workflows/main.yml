@@ -19,8 +19,8 @@ jobs:
       - name: Setup msbuild
         uses: microsoft/setup-msbuild@v2
 
-      - name: Build DCrypt x86
-        run: msbuild /t:build DCrypt\dcrypt.sln /p:Configuration="Release" /p:Platform=Win32
+      #- name: Build DCrypt x86
+      #  run: msbuild /t:build DCrypt\dcrypt.sln /p:Configuration="Release" /p:Platform=Win32
 
       - name: Build DCrypt x64
         run: msbuild /t:build DCrypt\dcrypt.sln /p:Configuration="Release" /p:Platform=x64
@@ -34,7 +34,7 @@ jobs:
             DCrypt/Bin/Release_amd64/*.dll
             DCrypt/Bin/Release_amd64/*.sys
             DCrypt/Bin/Release_amd64/*.pdb
-            DCrypt/Bin/Release_i386/*.exe
-            DCrypt/Bin/Release_i386/*.dll
-            DCrypt/Bin/Release_i386/*.sys
-            DCrypt/Bin/Release_i386/*.pdb
+            #DCrypt/Bin/Release_i386/*.exe
+            #DCrypt/Bin/Release_i386/*.dll
+            #DCrypt/Bin/Release_i386/*.sys
+            #DCrypt/Bin/Release_i386/*.pdb
