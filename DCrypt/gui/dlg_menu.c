@@ -352,7 +352,7 @@ int _menu_set_loader_mbr(
 
 }
 
-
+#ifdef SB_SHIM
 int _menu_set_loader_efi(
 		HWND     hwnd,
 		wchar_t *vol,
@@ -360,6 +360,14 @@ int _menu_set_loader_efi(
 		int      type,
 		int      is_shim
 	)
+#else
+int _menu_set_loader_efi(
+		HWND     hwnd,
+		wchar_t *vol,
+		int      dsk_num,
+		int      type
+	)
+#endif
 {
 	ldr_config conf;
 	int add_bme = 0;
@@ -367,7 +375,11 @@ int _menu_set_loader_efi(
 
 	if (type == CTL_LDR_STICK)
 	{
+#ifdef SB_SHIM
 		if ( (rlt = dc_mk_efi_rec( vol, FALSE, is_shim )) == ST_FORMAT_NEEDED )
+#else
+		if ( (rlt = dc_mk_efi_rec( vol, FALSE )) == ST_FORMAT_NEEDED )
+#endif
 		{
 			if ( __msg_q(
 					hwnd,
@@ -375,7 +387,11 @@ int _menu_set_loader_efi(
 					L"Format media?\n")
 					)
 			{
+#ifdef SB_SHIM
 				rlt = dc_mk_efi_rec( vol, TRUE, is_shim);
+#else
+				rlt = dc_mk_efi_rec( vol, TRUE);
+#endif
 			}
 		}
 		if (rlt == ST_OK)
@@ -391,6 +407,7 @@ int _menu_set_loader_efi(
 	}
 	else {
 
+#ifdef SB_SHIM
 		if (!is_shim && dc_efi_is_secureboot()) {
 			if (__msg_w(hwnd, L"This machine's EFI firmware is configured for secure boot.\n"
 				L"Without the shim loader, or YOU manually signing the bootloader files, it won't be able to boot.\n"
@@ -399,11 +416,16 @@ int _menu_set_loader_efi(
 				is_shim = 1;
 			}
 		}
+#endif
 
 		if (__msg_w(hwnd, L"Do you want to add a DCS loader boot menu entry (recommended).")) {
 			add_bme = 1;
 
+#ifdef SB_SHIM
 			if (!is_shim && dc_efi_is_msft_on_disk(dsk_num))
+#else
+			if (dc_efi_is_msft_on_disk(dsk_num))
+#endif
 			{
 				if (__msg_w(hwnd, L"Note: Some EFI implementations are not adhering to the standard and always start the windows bootloader.\n"
 					L"Do you want to replace the windows bootloader file (BOOTMGFW.EFI) with a redirection to the DCS loader as a workaround?")) {
@@ -412,7 +434,11 @@ int _menu_set_loader_efi(
 			}
 		}
 
-		rlt = _set_boot_loader_efi( hwnd, dsk_num, is_shim, add_bme );
+#ifdef SB_SHIM
+		rlt = _set_boot_loader_efi( hwnd, dsk_num, add_bme, is_shim );
+#else
+		rlt = _set_boot_loader_efi( hwnd, dsk_num, add_bme );
+#endif
 	}
 
 	if (rlt == ST_OK)
@@ -530,14 +556,22 @@ int _set_boot_loader_mbr(
 
 }
 
-
+#ifdef SB_SHIM
 int _set_boot_loader_efi(
 		HWND hwnd,
 		int  dsk_num,
-		int  is_shim,
+		int  add_bme,
+		int  is_shim
+	)
+#else
+int _set_boot_loader_efi(
+		HWND hwnd,
+		int  dsk_num,
 		int  add_bme
 	)
+#endif
 {
+#ifdef SB_SHIM
 	if (is_shim && !dc_efi_shim_available()) {
 		__msg_e(hwnd, 
 		L"For compatibility with secure boot a shim loader must be installed,"
@@ -556,10 +590,26 @@ int _set_boot_loader_efi(
 		) {
 		return ST_CANCEL;
 	}
+#else
+	if (dc_efi_is_secureboot()) {
+		if (!__msg_w(hwnd, 
+			L"This system's UEFI firmware has Secure Boot enabled. "
+			L"You must manually sign the DCS bootloader files or disable Secure Boot, "
+			L"otherwise THE SYSTEM WILL NOT BOOT!!!\n"
+			L"Do you want to continue?")
+			) {
+			return ST_CANCEL;
+		}
+	}
+#endif
 
 	int rlt;
 
-	rlt = dc_set_efi_boot(dsk_num, is_shim, add_bme == 2);
+#ifdef SB_SHIM
+	rlt = dc_set_efi_boot(dsk_num, add_bme == 2, is_shim);
+#else
+	rlt = dc_set_efi_boot(dsk_num, add_bme == 2);
+#endif
 
 	if (rlt == ST_OK && add_bme != 0) {
 		rlt = dc_efi_set_bme(L"DiskCrypto (DCS) loader", dsk_num);

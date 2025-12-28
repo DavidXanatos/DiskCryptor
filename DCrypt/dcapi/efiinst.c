@@ -47,7 +47,7 @@ static const wchar_t* efi_boot_file = L"\\EFI\\Boot\\BOOTx64.efi";
 static const wchar_t* efi_boot_bak = L"\\EFI\\Boot\\original_BOOTx64.bin";
 #endif
 
-//#define USE_DCS_ZIP
+#define USE_DCS_ZIP
 
 typedef struct
 {
@@ -105,6 +105,7 @@ static const wchar_t* dcs_conf_file = L"\\EFI\\DCS\\DcsProp";
 static const wchar_t* dcs_info_file = L"\\EFI\\DCS\\PlatformInfo";
 static const wchar_t* dcs_test_file = L"\\EFI\\DCS\\TestHeader";
 
+#ifdef SB_SHIM
 // shim for secure boot
 #ifdef _M_IX86
 static const wchar_t* shim_zip_file = L"shim_ia32.zip";
@@ -127,6 +128,7 @@ static const efi_file_t shim_files[] = {
 static const wchar_t* shim_boot_file = L"\\EFI\\Boot\\grubx64_real.efi";
 static const wchar_t* shim_boot_aux = L"\\EFI\\Boot\\shimx64.efi";
 #endif
+#endif SB_SHIM
 
 static const wchar_t* msft_boot_file = L"\\EFI\\Microsoft\\Boot\\bootmgfw.efi";
 static const wchar_t* msft_boot_aux = L"\\EFI\\Microsoft\\Boot\\bootmgfw_ms.vc";
@@ -199,7 +201,7 @@ int dc_efi_get_sys_part(int dsk_num, wchar_t* path)
 
 		if (dli->PartitionStyle == 1) // GPT
 		{
-			// find EFI system partition by type GUID
+			// find EFI system pattition by type GUID
 			for (DWORD i = 0; i < dli->PartitionCount; i++)
 			{
 				PPARTITION_INFORMATION_EX part = &dli->PartitionEntry[i];
@@ -348,7 +350,7 @@ int dc_copy_zip_to_efi_file(const wchar_t *root, struct zip_t *zip, const wchar_
 	sprintf_s(fileName, MAX_PATH, "%S\\%S", root, target);
 
 	if (_access(fileName, 0) != -1) { // file already exists
-		if (!DeleteFileA(fileName)) { // and cannot be deleted
+		if (!DeleteFileA(fileName)) { // and cant be deleted
 			return ST_RW_ERR;
 		}
 	}
@@ -386,6 +388,7 @@ int dc_open_zip(const wchar_t* fileName, struct zip_t **zip)
 	return ST_OK;
 }
 
+#ifdef SB_SHIM
 int dc_copy_efi_shim(const wchar_t *root)
 {
 	int      resl;
@@ -404,7 +407,7 @@ int dc_copy_efi_shim(const wchar_t *root)
 
 		resl = dc_copy_zip_to_efi_files(root, zip, shim_files, _countof(shim_files));
 
-		// create a backup copy of the shim loader we can reliably reference when creating a dedicated boot menu entry
+		// create a baclup copy of the shim loader we can relaibly reference when creating a dedicated boot menu entry
 		if (resl == ST_OK) {
 			resl = dc_copy_efi_file(root, efi_boot_file, shim_boot_aux);
 		}
@@ -417,10 +420,15 @@ int dc_copy_efi_shim(const wchar_t *root)
 
 	return resl;
 }
+#endif 
 
 #ifdef USE_DCS_ZIP
 
+#ifdef SB_SHIM
 int dc_copy_efi_dcs(const wchar_t *root, int recovery, int shim)
+#else
+int dc_copy_efi_dcs(const wchar_t *root, int recovery)
+#endif
 {
 	int      resl;
 	struct zip_t *zip = NULL;
@@ -446,12 +454,13 @@ int dc_copy_efi_dcs(const wchar_t *root, int recovery, int shim)
 		resl = dc_copy_zip_to_efi_files(root, zip, dcs_files, _countof(dcs_files));
 		if (resl != ST_OK) break;
 
-		if (dc_efi_file_exists(root, efi_boot_file)) { // if there is an original boot file
+		if (dc_efi_file_exists(root, efi_boot_file)) { // if there is a original boot file
 			if (!dc_efi_file_exists(root, efi_boot_bak)) { // and there is no boot file backup already
 				dc_copy_efi_file(root, efi_boot_file, efi_boot_bak); // backup the boot file
 			}
 		}
 
+#ifdef SB_SHIM
 		if (shim)
 		{
 			resl = dc_copy_efi_shim(root);
@@ -463,6 +472,7 @@ int dc_copy_efi_dcs(const wchar_t *root, int recovery, int shim)
 				resl = dc_copy_zip_to_efi_file(root, zip, dcs_boot_file, shim_boot_file);
 		}
 		else
+#endif
 		{
 			if (recovery)
 				resl = dc_copy_zip_to_efi_file(root, zip, dcs_re_file, efi_boot_file);
@@ -502,7 +512,11 @@ int dc_copy_res_to_efi_files(const wchar_t *root, const efi_resource_t* files, i
 	return resl;
 }
 
+#ifdef SB_SHIM
 int dc_copy_efi_dcs(const wchar_t *root, int recovery, int shim)
+#else
+int dc_copy_efi_dcs(const wchar_t *root, int recovery)
+#endif
 {
 	int      resl;
 
@@ -518,12 +532,13 @@ int dc_copy_efi_dcs(const wchar_t *root, int recovery, int shim)
 		resl = dc_copy_res_to_efi_files(root, dcs_files, _countof(dcs_files));
 		if (resl != ST_OK) break;
 
-		if (dc_efi_file_exists(root, efi_boot_file)) { // if there is an original boot file
+		if (dc_efi_file_exists(root, efi_boot_file)) { // if there is a original boot file
 			if (!dc_efi_file_exists(root, efi_boot_bak)) { // and there is no boot file backup already
 				dc_copy_efi_file(root, efi_boot_file, efi_boot_bak); // backup the boot file
 			}
 		}
 
+#ifdef SB_SHIM
 		if (shim)
 		{
 			resl = dc_copy_efi_shim(root);
@@ -535,6 +550,7 @@ int dc_copy_efi_dcs(const wchar_t *root, int recovery, int shim)
 				resl = dc_copy_res_to_efi_file(root, dcs_boot_res, shim_boot_file);
 		}
 		else
+#endif
 		{
 			if (recovery)
 				resl = dc_copy_res_to_efi_file(root, dcs_re_res, efi_boot_file);
@@ -549,7 +565,11 @@ int dc_copy_efi_dcs(const wchar_t *root, int recovery, int shim)
 
 #endif
 
+#ifdef SB_SHIM
 int dc_mk_efi_rec(const wchar_t *root, int format, int shim)
+#else
+int dc_mk_efi_rec(const wchar_t *root, int format)
+#endif
 {
 	wchar_t               disk[MAX_PATH];
 	HANDLE                hdisk = NULL;
@@ -559,7 +579,9 @@ int dc_mk_efi_rec(const wchar_t *root, int format, int shim)
 	PARTITION_INFORMATION pti;
 	//STORAGE_DEVICE_NUMBER d_num;
 
+#ifdef SB_SHIM
 	if (shim == -1) shim = dc_efi_is_secureboot();
+#endif
 
 	if (root[0] != L'\\')
 		_snwprintf(disk, countof(disk), L"\\\\.\\%c:", root[0]);
@@ -602,18 +624,26 @@ int dc_mk_efi_rec(const wchar_t *root, int format, int shim)
 				resl = ST_FORMAT_NEEDED; break;
 			}
 
+#ifdef SB_SHIM
 			resl = dc_copy_efi_dcs(root, 1, shim);
+#else
+			resl = dc_copy_efi_dcs(root, 1);
+#endif
 		}
 		else
 		{
-			CloseHandle(hdisk); // close before formatting
+			CloseHandle(hdisk); // close befoer formating
 			hdisk = NULL;
 
 			if ((resl = dc_format_fs((wchar_t*)root, L"FAT32")) != ST_OK) {
 				break;
 			}
 
+#ifdef SB_SHIM
 			resl = dc_copy_efi_dcs(root, 1, shim);
+#else
+			resl = dc_copy_efi_dcs(root, 1);
+#endif
 		}
 		if (resl != ST_OK) break;
 
@@ -642,7 +672,7 @@ int dc_replace_msft_boot(const wchar_t *root)
 		if (resl != ST_OK) break;
 
 		is_dcs_file = dc_buffer_contains_wide_string(data, size, L"\\DcsInt.dcs");
-		// does the file look like a msft boot manager, or was it already replaced?
+		// does the file look like a msft boot manager, or was it already repalced?
 		is_msft_file = dc_buffer_contains_string(data, size, "bootmgfw.pdb");
 
 		// rename msft boot manager file
@@ -650,7 +680,7 @@ int dc_replace_msft_boot(const wchar_t *root)
 			resl = dc_ren_efi_file(root, msft_boot_file, msft_boot_aux);
 			if (resl != ST_OK) break;
 		}
-		// fail if the renamed boot file does not exist
+		// fail if the renamed boot file does nto exist
 		else if (!dc_efi_file_exists(root, msft_boot_aux)) {
 			resl = ST_NF_FILE; break;
 		}
@@ -683,7 +713,7 @@ int dc_restore_msft_boot(const wchar_t *root)
 
 		if (is_dcs_file)
 		{
-			// fail if the renamed boot file does not exist
+			// fail if the renamed boot file does nto exist
 			if (!dc_efi_file_exists(root, msft_boot_aux)) {
 				resl = ST_NF_FILE; break;
 			}
@@ -709,12 +739,18 @@ int dc_is_msft_boot_replaced(const wchar_t *root)
 	return dc_efi_file_exists(root, msft_boot_aux);
 }
 
-int dc_set_efi_boot(int dsk_num, int shim, int replace_ms)
+#ifdef SB_SHIM
+int dc_set_efi_boot(int dsk_num, int replace_ms, int shim)
+#else
+int dc_set_efi_boot(int dsk_num, int replace_ms)
+#endif
 {
 	int      resl;
 	wchar_t  root[MAX_PATH] = { 0 };
 
+#ifdef SB_SHIM
 	if (shim == -1) shim = dc_efi_is_secureboot();
+#endif
 
 	do
 	{
@@ -726,7 +762,11 @@ int dc_set_efi_boot(int dsk_num, int shim, int replace_ms)
 			resl = ST_BLDR_INSTALLED; break;
 		}
 
+#ifdef SB_SHIM
 		resl = dc_copy_efi_dcs(root, 0, shim);
+#else
+		resl = dc_copy_efi_dcs(root, 0);
+#endif
 		if (resl != ST_OK) break;
 
 		ldr_config conf;
@@ -747,7 +787,9 @@ int dc_update_efi_boot(int dsk_num)
 {
 	int      resl;
 	wchar_t  root[MAX_PATH] = { 0 };
+#ifdef SB_SHIM
 	int      shim;
+#endif
 
 	do
 	{
@@ -759,10 +801,14 @@ int dc_update_efi_boot(int dsk_num)
 			resl = ST_BLDR_NOTINST; break;
 		}
 
+#ifdef SB_SHIM
 		// check if shim is installed
 		shim = dc_is_shim_on_partition(root);
 
 		resl = dc_copy_efi_dcs(root, 0, shim);
+#else
+		resl = dc_copy_efi_dcs(root, 0);
+#endif
 		if (resl != ST_OK) break;
 
 		if (dc_is_msft_boot_replaced(root)) {
@@ -778,7 +824,9 @@ int dc_unset_efi_boot(int dsk_num)
 {
 	int      resl;
 	wchar_t  root[MAX_PATH] = { 0 };
+#ifdef SB_SHIM
 	int      shim;
+#endif
 
 	do
 	{
@@ -798,6 +846,7 @@ int dc_unset_efi_boot(int dsk_num)
 		// delete the entire \\EFI\\DCS directory
 		resl = dc_delete_efi_dir(root, L"\\EFI\\DCS", 1, 0);
 
+#ifdef SB_SHIM
 		// check if shim is installed
 		shim = dc_is_shim_on_partition(root);
 
@@ -808,14 +857,16 @@ int dc_unset_efi_boot(int dsk_num)
 
 			dc_delete_efi_file(root, shim_boot_file);
 		}
-		else { // remove boot file
+		else 
+#endif
+		{ // remove boot file
 			dc_delete_efi_file(root, efi_boot_file);
 		}
 		
 		// restore original boot file
 		dc_ren_efi_file(root, efi_boot_bak, efi_boot_file);
 
-		// remove //EFI//Boot and //EFI if they are empty
+		// remove //EFI//Boot and // EFI if thay are empty
 		dc_delete_efi_dir(root, L"\\EFI", 0, 1);
 
 	} while (0);
@@ -1027,7 +1078,7 @@ int dc_efi_config_write(const wchar_t* root, ldr_config *conf)
 		WriteConfigString(configFile, configContent, "BootPartition", disk_guid); // boot partition guid without brackets*/
 
 	// Authentication:
-		// Authentication Method
+		// Authenticaltion Method
 			// Password and bootauth keyfile 3
 			// Password request 1
 			// Embedded bootauth keyfile 2
@@ -1058,7 +1109,7 @@ int dc_efi_config_write(const wchar_t* root, ldr_config *conf)
 		// Password Prompt Message
 		WriteConfigString(configFile, configContent, "PasswordMsg", (conf->logon_type & LDR_LT_MESSAGE) ? conf->eps_msg  : "");
 
-		// Display Entered Password * or hide completely
+		// Display Entered Password * or hide completly
 		WriteConfigInteger(configFile, configContent, "AuthorizeProgress", (conf->logon_type & LDR_LT_DSP_PASS) ? 1 : 0);
 
 		// Authentication TimeOut
@@ -1136,7 +1187,7 @@ int dc_efi_config_write(const wchar_t* root, ldr_config *conf)
 		free(configContent);
 	}
 
-	// only commit the file when all changes were written successfully
+	// only commite the file when all changed were writen successfully
 	if (resl == ST_OK) { 
 		DeleteFile(fileName);
 		if (!MoveFile(tempName, fileName)) {
@@ -1187,7 +1238,7 @@ int dc_efi_config_read(const wchar_t* root, ldr_config *conf)
 		if (resl != ST_OK) break;*/
 
 		// Authentication:
-			// Authentication Method
+			// Authenticaltion Method
 				// Password and bootauth keyfile 3
 				// Password request 1
 				// Embedded bootauth keyfile 2
@@ -1238,7 +1289,7 @@ int dc_efi_config_read(const wchar_t* root, ldr_config *conf)
 			conf->logon_type |= LDR_LT_MESSAGE;
 		}
 
-		// Display Entered Password * or hide completely
+		// Display Entered Password * or hide completly
 		if (ReadConfigInteger(configContent, "AuthorizeProgress", 0)) {
 			conf->logon_type |= LDR_LT_DSP_PASS;
 		}
@@ -1414,6 +1465,7 @@ void dc_efi_config_init(ldr_config *conf)
 	memcpy(conf, &def_conf, sizeof(ldr_config));
 }
 
+#ifdef SB_SHIM
 int dc_efi_shim_available()
 {
 	TCHAR	source_path[MAX_PATH], *p;
@@ -1432,6 +1484,7 @@ int dc_is_shim_on_partition(const wchar_t *root)
 {
 	return dc_efi_file_exists(root, shim_boot_file);
 }
+#endif
 
 int dc_is_dcs_on_partition(const wchar_t *root)
 {
@@ -1685,8 +1738,10 @@ int dc_efi_set_bme_ex(wchar_t* description, int dsk_num, int setBootEntry, int f
 	int      resl;
 	wchar_t  root[MAX_PATH] = { 0 };
 	PARTITION_INFORMATION_EX ptix;
-	int      shim;
 	wchar_t  execPath[MAX_PATH];
+#ifdef SB_SHIM
+	int      shim;
+#endif
 
 	do
 	{
@@ -1696,12 +1751,15 @@ int dc_efi_set_bme_ex(wchar_t* description, int dsk_num, int setBootEntry, int f
 		resl = dc_get_part_info(root, &ptix);
 		if (resl != ST_OK) break;
 
+#ifdef SB_SHIM
 		shim = dc_is_shim_on_partition(root);
 
-		if (shim) { // if shim is installed point the boot entry to the backup file as the original may get overwritten by windows updates
+		if (shim) { // if shim is installed point the boot entry to the backup file as the original may get overwriten by windows updates
 			wsprintf(execPath, L"%s", shim_boot_aux);
 		}
-		else { // else point the boot entry to "\\EFI\\DCS\\DcsBoot.efi"
+		else 
+#endif
+		{ // point the boot entry to "\\EFI\\DCS\\DcsBoot.efi"
 			wsprintf(execPath, L"%s", dcs_files[0].target);
 		}
 

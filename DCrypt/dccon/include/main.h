@@ -4,7 +4,11 @@
 #include "drv_ioctl.h"
 
 int dc_set_boot_interactive(int d_num, int small_boot);
-int dc_set_efi_boot_interactive(int d_num, int shim, int add_bme);
+#ifdef SB_SHIM
+int dc_set_efi_boot_interactive(int d_num, int add_bme, int shim);
+#else
+int dc_set_efi_boot_interactive(int d_num, int add_bme);
+#endif
 int is_param(wchar_t *name);
 
 #define on_off(a) ( (a) != 0 ? L"ON":L"OFF" )

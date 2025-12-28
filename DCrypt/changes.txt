@@ -1,6 +1,8 @@
 [27.12.2025] - 1.3.0/849.118.204
   [*] Updated driver to build with VS2022
   [*] EFI bootloader now builds with latest edk2-stable202511
+  [-] Removed shim bootloader
+  [*] Dcs files are no longer embedded in the bimary but provided as a DCS_[Arch].zip
 
 [12.08.2023] - 1.3.0/849.118.204
   [+] Added safe system volume encryption (bootloader is tested before anything gets encrypted)

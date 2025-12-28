@@ -46,7 +46,9 @@ void _refresh_boot_buttons(
 	BOOL	   enable      = FALSE;
 	BOOL       boot_device = FALSE;
 	BOOL       force_small = FALSE;
+#ifdef SB_SHIM
 	BOOL       force_shim = FALSE;
+#endif
 	HWND       h_parent    = GetParent( GetParent( hwnd ) );
 
 	int        sel_disk    = _ext_disk_num(h_list);
@@ -77,7 +79,9 @@ void _refresh_boot_buttons(
 		}
 	}
 
+#ifdef SB_SHIM
 	force_shim = dc_efi_is_secureboot();
+#endif
 
 	SetWindowText( GetDlgItem( h_parent, IDC_BTN_INSTALL ), remove ? IDS_BOOTREMOVE : IDS_BOOTINSTALL );
 	EnableWindow( GetDlgItem( h_parent, IDC_BTN_INSTALL ), enable );
@@ -88,8 +92,10 @@ void _refresh_boot_buttons(
 	EnableWindow( GetDlgItem( hwnd, IDC_USE_SMALL_BOOT ), enable && (remove || !force_small) );
 	_set_check( hwnd, IDC_USE_SMALL_BOOT, _get_check( hwnd, IDC_USE_SMALL_BOOT ) || force_small );
 
+#ifdef SB_SHIM
 	EnableWindow( GetDlgItem( hwnd, IDC_USE_SHIM_BOOT ), enable && (remove || !force_shim) );
 	_set_check( hwnd, IDC_USE_SHIM_BOOT, _get_check( hwnd, IDC_USE_SHIM_BOOT) || force_shim );
+#endif
 }
 
 
@@ -632,9 +638,11 @@ _wizard_boot_dlg_proc(
 				_set_check( hwnd, IDC_USE_SMALL_BOOT, FALSE );
 				ShowWindow(GetDlgItem(hwnd, IDC_USE_SMALL_BOOT), __is_efi_boot ? SW_HIDE : SW_SHOW);
 
+#ifdef SB_SHIM
 				_sub_class( GetDlgItem(hwnd, IDC_USE_SHIM_BOOT), SUB_STATIC_PROC, HWND_NULL );
 				_set_check( hwnd, IDC_USE_SHIM_BOOT, FALSE );
 				ShowWindow(GetDlgItem(hwnd, IDC_USE_SHIM_BOOT), __is_efi_boot ? SW_SHOW : SW_HIDE);
+#endif
 			}
 			ShowWindow(bt_sheets[0].hwnd, SW_SHOW);
 
@@ -646,7 +654,9 @@ _wizard_boot_dlg_proc(
 			int  is_efi   = _get_check(bt_sheets[0].hwnd, IDC_EFI_BOOT);
 			int  type     = _get_combo_val( GetDlgItem(bt_sheets[0].hwnd, IDC_COMBO_LOADER_TYPE), is_efi ? loader_type_efi : loader_type_mbr );
 			int  is_small = _get_check( bt_sheets[0].hwnd, IDC_USE_SMALL_BOOT );			
+#ifdef SB_SHIM
 			int  is_shim  = _get_check(bt_sheets[0].hwnd, IDC_USE_SHIM_BOOT);
+#endif
 			int  dsk_num  = _ext_disk_num( __lists[HBOT_WIZARD_BOOT_DEVS] );
 
 			int rlt;
@@ -682,7 +692,11 @@ _wizard_boot_dlg_proc(
 					if ( wcscmp(btn_text, IDS_BOOTINSTALL) == 0 )
 					{
 						if(is_efi)
+#ifdef SB_SHIM
 							_menu_set_loader_efi( hwnd, vol, dsk_num, type, is_shim );
+#else
+							_menu_set_loader_efi( hwnd, vol, dsk_num, type );
+#endif
 						else
 							_menu_set_loader_mbr( hwnd, vol, dsk_num, type, is_small );
 					}

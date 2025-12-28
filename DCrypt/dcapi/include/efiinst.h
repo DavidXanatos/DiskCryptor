@@ -7,8 +7,13 @@ void dc_api dc_efi_init();
 int dc_api dc_efi_check();
 int dc_api dc_efi_is_secureboot();
 
+#ifdef SB_SHIM
 int dc_api dc_mk_efi_rec(const wchar_t *root, int format, int shim);
-int dc_api dc_set_efi_boot(int dsk_num, int shim, int replace_ms);
+int dc_api dc_set_efi_boot(int dsk_num, int replace_ms, int shim);
+#else
+int dc_api dc_mk_efi_rec(const wchar_t *root, int format);
+int dc_api dc_set_efi_boot(int dsk_num, int replace_ms);
+#endif
 int dc_api dc_update_efi_boot(int dsk_num);
 int dc_api dc_unset_efi_boot(int dsk_num);
 
@@ -26,8 +31,10 @@ int dc_api dc_get_dcs_version(const wchar_t *root);
 
 void dc_api dc_efi_config_init(ldr_config *conf);
 
+#ifdef SB_SHIM
 int dc_api dc_efi_shim_available();
 int dc_api dc_is_shim_on_partition(const wchar_t *root);
+#endif
 int dc_api dc_is_dcs_on_partition(const wchar_t *root);
 int dc_api dc_is_dcs_on_disk(int dsk_num);
 int dc_api dc_efi_is_msft_on_disk(int dsk_num);

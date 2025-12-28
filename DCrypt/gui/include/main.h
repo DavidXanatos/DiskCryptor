@@ -63,12 +63,20 @@ int _set_boot_loader_mbr(
 		int   is_small
 	);
 
+#ifdef SB_SHIM
 int _set_boot_loader_efi(
 		HWND  hwnd,
 		int   dsk_num,
-		int   is_small,
+		int   add_bme,
+		int  is_shim
+	);
+#else
+int _set_boot_loader_efi(
+		HWND  hwnd,
+		int   dsk_num,
 		int   add_bme
 	);
+#endif
 
 BOOL _is_boot_device(
 		vol_inf *vol 
