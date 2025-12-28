@@ -3,7 +3,7 @@ pushd %~dp0
 
 call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat"
 
-set NASM_PREFIX=%~dp0..\..\nasm\
+set NASM_PREFIX=%~dp0..\..\DiskCryptor\DCrypt\tools\nasm\
 
 rem call "..\edksetup.bat"
 call "setenv.bat"

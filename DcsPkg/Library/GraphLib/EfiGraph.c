@@ -391,7 +391,7 @@ BltText(
 	{
 		INT8 ch = *c;
 		if (ch >= 32 && ch <= 126) {
-			INT8 *it = gSimplex_ascii_32_126[ch - 32];
+			INT8 *it = (INT8*)gSimplex_ascii_32_126[ch - 32];
 			INT32 nvtcs = *it++;
 			INT32 spacing = *it++;
 			INT32	fromX = -1;
