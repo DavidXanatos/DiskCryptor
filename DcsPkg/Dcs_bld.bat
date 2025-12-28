@@ -61,6 +61,7 @@ if exist SecureBoot\keys\DCS_sign.pfx (
   call SecureBoot\efi_sign.bat ..\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\LegacySpeaker.efi SecureBoot\keys\DCS_sign.pfx SecureBoot\certs\DCS_sign.crt
 )
 
+echo %DCS_EXPORT%
 mkdir %DCS_EXPORT%
 copy /y %WORKSPACE%\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsBml.efi        %DCS_EXPORT%\DcsBml%BIN_POSTFIX%.efi
 copy /y %WORKSPACE%\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsBoot.efi       %DCS_EXPORT%\DcsBoot%BIN_POSTFIX%.efi
@@ -71,3 +72,4 @@ copy /y %WORKSPACE%\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsRe.efi
 copy /y %WORKSPACE%\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\LegacySpeaker.efi %DCS_EXPORT%\LegacySpeaker%BIN_POSTFIX%.dcs
 
 :exit
+
