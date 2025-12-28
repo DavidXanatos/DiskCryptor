@@ -26,12 +26,19 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.PARENT_WS }}\edk2
-          key: edk2-edk2-stable202511-v1.1-${{ runner.os }}
+          key: edk2-edk2-stable202511-v1.2-${{ runner.os }}
       
       - name: Clone edk2 (if cache miss)
         if: steps.cache-edk2.outputs.cache-hit != 'true'
         shell: cmd
         run: cd .\.. & git clone --branch edk2-stable202511 --depth 1 --recurse-submodules --shallow-submodules https://github.com/tianocore/edk2.git
+      
+      - name: Save clean edk2 cache (checkout only)
+        if: steps.edk2-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.PARENT_WS }}\edk2
+          key: edk2-clean-edk2-stable202511-v1.2-${{ runner.os }}
             
       - name: Build Dcs
         shell: cmd
