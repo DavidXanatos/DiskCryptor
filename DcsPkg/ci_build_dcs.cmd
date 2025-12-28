@@ -1,5 +1,4 @@
 cd %~dp0..\..\edk2
-dir
 
 mklink /J DcsPkg %~dp0
 cd DcsPkg
@@ -11,8 +10,6 @@ dir %NASM_PREFIX%
 
 call setenv.bat
 
-dir
-
 REM fix
 REM \edk2\CryptoPkg\Library\OpensslLib\openssl\crypto\bn\bn_gcd.c(659): error C2220: the following warning is treated as an error
 REM \edk2\CryptoPkg\Library\OpensslLib\openssl\crypto\bn\bn_gcd.c(659): warning C4319: '~': zero extending 'unsigned int' to 'unsigned __int64' of greater size
@@ -20,8 +17,3 @@ REM \edk2\CryptoPkg\Library\OpensslLib\openssl\crypto\bn\bn_gcd.c(671): warning 
 set CL=/wd4319 %CL%
 
 call dcs_bld.bat X64Rel
-
-dir
-
-rem mkdir %~dp0.\Export
-rem copy %~dp0..\..\edk2\Export\* %~dp0.\Export\
