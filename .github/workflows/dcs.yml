@@ -21,15 +21,15 @@ jobs:
         run: |
           for %%I in ("%GITHUB_WORKSPACE%\..") do echo PARENT_WS=%%~fI>>"%GITHUB_ENV%"
       
-      - name: Restore edk2 cache
-        id: cache-edk2
-        uses: actions/cache@v4
+      - name: Restore clean edk2 cache
+        id: edk2-restore
+        uses: actions/cache/restore@v4
         with:
           path: ${{ env.PARENT_WS }}\edk2
-          key: edk2-edk2-stable202511-v1.2-${{ runner.os }}
+          key: edk2-clean-edk2-stable202511-v1a-${{ runner.os }}
       
       - name: Clone edk2 (if cache miss)
-        if: steps.cache-edk2.outputs.cache-hit != 'true'
+        if: steps.edk2-restore.outputs.cache-hit != 'true'
         shell: cmd
         run: DcsPkg\ci_get_edk2.cmd
       
@@ -38,7 +38,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: ${{ env.PARENT_WS }}\edk2
-          key: edk2-clean-edk2-stable202511-v1.2-${{ runner.os }}
+          key: edk2-clean-edk2-stable202511-v1a-${{ runner.os }}
             
       - name: Build Dcs
         shell: cmd
