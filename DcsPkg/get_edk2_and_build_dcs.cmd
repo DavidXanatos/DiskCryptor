@@ -19,6 +19,6 @@ dir %NASM_PREFIX%
 
 call setenv.bat
 
-set CL=/WX- %CL%
+set CL=/wd4319 %CL%
 
 call dcs_bld.bat X64Rel
