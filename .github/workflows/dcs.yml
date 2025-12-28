@@ -24,9 +24,11 @@ jobs:
       
       - name: Clone edk2 (if cache miss)
         if: steps.cache-edk2.outputs.cache-hit != 'true'
+        shell: cmd
         run: cd .\.. & git clone --branch edk2-stable202511 --depth 1 --recurse-submodules --shallow-submodules https://github.com/tianocore/edk2.git
             
       - name: Build Dcs
+        shell: cmd
         run: DcsPkg\get_edk2_and_build_dcs.cmd
 
       - name: Upload Dcs
