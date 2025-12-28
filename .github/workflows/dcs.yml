@@ -19,7 +19,7 @@ jobs:
         id: cache-edk2
         uses: actions/cache@v4
         with:
-          path: ..\edk2
+          path: ${{ github.workspace }}\..\edk2
           key: edk2-edk2-stable202511-v1-${{ runner.os }}
       
       - name: Clone edk2 (if cache miss)
