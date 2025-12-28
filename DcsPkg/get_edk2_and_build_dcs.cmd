@@ -28,5 +28,5 @@ set CL=/wd4319 %CL%
 call dcs_bld.bat X64Rel
 
 
-mkdir %~dp0.\Export
-copy %~dp0..\..\edk2\Export\* %~dp0.\Export\
+rem mkdir %~dp0.\Export
+rem copy %~dp0..\..\edk2\Export\* %~dp0.\Export\
