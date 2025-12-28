@@ -26,3 +26,6 @@ REM \edk2\CryptoPkg\Library\OpensslLib\openssl\crypto\bn\bn_gcd.c(671): warning 
 set CL=/wd4319 %CL%
 
 call dcs_bld.bat X64Rel
+
+dir %~dp0..\DcsPkg\*
+dir %~dp0..\DcsPkg\Export\*
