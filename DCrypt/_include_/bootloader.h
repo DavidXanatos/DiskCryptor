@@ -206,6 +206,6 @@ typedef struct _bd_data {
 #pragma pack (pop)
 
 // EFI
-#define LDR_DCS_ID 0xDC5B // DCS boot menu id
+#define LDR_DCS_ID 0xDC5B // DCS Boot menu id
 
 #endif

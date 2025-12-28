@@ -1,7 +1,7 @@
 /*
     *
     * DiskCryptor - open source partition encryption tool
-	* Copyright (c) 2020
+	* Copyright (c) 2020-2026
 	* DavidXanatos <info@diskcryptor.org>
 	* Copyright (c) 2008
 	* ntldr <ntldr@diskcryptor.net> PGP key ID - 0xC48251EB4F8E4E6E

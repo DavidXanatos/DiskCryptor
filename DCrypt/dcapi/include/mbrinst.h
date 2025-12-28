@@ -66,7 +66,7 @@ typedef struct _dc_mbr {
 			pt_ent pt[4];	// 4*16
 		};
 	};	
-	u16   magic;
+	u16   magic;			// 2
 
 } dc_mbr;
 

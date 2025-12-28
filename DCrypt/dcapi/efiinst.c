@@ -1,7 +1,7 @@
 ﻿/*
     *
     * DiskCryptor - open source partition encryption tool
-	* Copyright (c) 2019-2023
+	* Copyright (c) 2019-2026
 	* DavidXanatos <info@diskcryptor.org>
     *
 
