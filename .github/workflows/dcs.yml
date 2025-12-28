@@ -15,16 +15,16 @@ jobs:
       - name: Setup msbuild
         uses: microsoft/setup-msbuild@v2
 
-      #- name: Restore edk2 cache
-      #  id: cache-edk2
-      #  uses: actions/cache@v4
-      #  with:
-      #    path: edk2
-      #    key: edk2-edk2-stable202511-v1-${{ runner.os }}
+      - name: Restore edk2 cache
+        id: cache-edk2
+        uses: actions/cache@v4
+        with:
+          path: edk2
+          key: edk2-edk2-stable202511-v1-${{ runner.os }}
       
-      #- name: Clone edk2 (if cache miss)
-      #  if: steps.cache-edk2.outputs.cache-hit != 'true'
-      #  run: git clone --branch edk2-stable202511 --depth 1 --recurse-submodules --shallow-submodules https://github.com/tianocore/edk2.git
+      - name: Clone edk2 (if cache miss)
+        if: steps.cache-edk2.outputs.cache-hit != 'true'
+        run: cd .\.. & git clone --branch edk2-stable202511 --depth 1 --recurse-submodules --shallow-submodules https://github.com/tianocore/edk2.git
             
       - name: Build Dcs
         run: DcsPkg\get_edk2_and_build_dcs.cmd
