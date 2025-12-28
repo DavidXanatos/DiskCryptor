@@ -371,9 +371,6 @@ int _init_wizard_encrypt_pages(
 	BOOL    force_small = (
 		boot_device && ( dc_device_control(DC_CTL_GET_FLAGS, NULL, 0, &flags, sizeof(flags)) == NO_ERROR ) && ( flags.load_flags & DST_SMALL_MEM )
 	);
-	BOOL    sb_enabled = (
-		__is_efi_boot && dc_efi_is_secureboot()
-	);
 
 	while ( sheets[count].id != -1 )
 	{
@@ -433,7 +430,7 @@ int _init_wizard_encrypt_pages(
 
 		if( __is_efi_boot )
 		{
-			if (sb_enabled)
+			if (dc_efi_is_secureboot())
 			{
 				SendMessage(GetDlgItem(hwnd, IDC_WIZ_CONF_WARNING), (UINT)WM_SETFONT, (WPARAM)__font_bold, 0);
 				SetWindowText(

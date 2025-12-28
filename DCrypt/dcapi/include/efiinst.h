@@ -14,6 +14,11 @@ int dc_api dc_set_efi_boot(int dsk_num, int replace_ms, int shim);
 int dc_api dc_mk_efi_rec(const wchar_t *root, int format);
 int dc_api dc_set_efi_boot(int dsk_num, int replace_ms);
 #endif
+
+int dc_api dc_efi_is_msft_boot_replaced(int dsk_num);
+int dc_api dc_efi_replace_msft_boot(int dsk_num);
+int dc_api dc_efi_restore_msft_boot(int dsk_num);
+
 int dc_api dc_update_efi_boot(int dsk_num);
 int dc_api dc_unset_efi_boot(int dsk_num);
 

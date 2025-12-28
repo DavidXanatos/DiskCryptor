@@ -722,9 +722,9 @@ int dc_restore_msft_boot(const wchar_t *root)
 			resl = dc_ren_efi_file(root, msft_boot_aux, msft_boot_file);
 		}
 		// the boot file already looks like a msft one, just delete the old renamed file
-		//else {
-		//	dc_delete_efi_file(root, msft_boot_aux);
-		//}
+		else {
+			dc_delete_efi_file(root, msft_boot_aux);
+		}
 
 	} while (0);
 
@@ -736,7 +736,88 @@ int dc_restore_msft_boot(const wchar_t *root)
 
 int dc_is_msft_boot_replaced(const wchar_t *root)
 {
-	return dc_efi_file_exists(root, msft_boot_aux);
+	int      resl;
+	DWORD    size = 0;
+	char*    data = NULL;
+	int      is_dcs_file;
+
+	do
+	{
+		resl = dc_load_efi_file(root, msft_boot_file, &data, &size);
+		if (resl != ST_OK) break;
+
+		// does the boot file look like out bootloader?
+		is_dcs_file = dc_buffer_contains_wide_string(data, size, L"\\DcsInt.dcs");
+
+	} while (0);
+
+	if (data) {
+		free(data);
+	}
+	return is_dcs_file;
+}
+
+int dc_efi_is_msft_boot_replaced(int dsk_num)
+{
+	wchar_t  path[MAX_PATH] = { 0 };
+	if (dc_efi_get_sys_part(dsk_num, path) == ST_OK)
+		return dc_is_msft_boot_replaced(path);
+	return 0;
+}
+
+int dc_efi_replace_msft_boot(int dsk_num)
+{
+	int      resl;
+	wchar_t  root[MAX_PATH] = { 0 };
+#ifdef SB_SHIM
+	int      shim;
+#endif
+
+	do
+	{
+		resl = dc_efi_get_sys_part(dsk_num, root);
+		if (resl != ST_OK) break;
+
+		if (!dc_is_dcs_on_partition(root)) {
+			resl = ST_BLDR_NOTINST;
+			break;
+		}
+
+		if (dc_is_msft_boot_replaced(root)) {
+			resl = ST_BLDR_INSTALLED;
+			break;
+		}
+
+		resl = dc_replace_msft_boot(root);
+
+	} while (0);
+
+	return resl;
+}
+
+int dc_efi_restore_msft_boot(int dsk_num)
+{
+	int      resl;
+	wchar_t  root[MAX_PATH] = { 0 };
+#ifdef SB_SHIM
+	int      shim;
+#endif
+
+	do
+	{
+		resl = dc_efi_get_sys_part(dsk_num, root);
+		if (resl != ST_OK) break;
+
+		if (!dc_is_msft_boot_replaced(root)) {
+			resl = ST_BLDR_NOTINST;
+			break;
+		}
+
+		resl = dc_restore_msft_boot(root);
+
+	} while (0);
+
+	return resl;
 }
 
 #ifdef SB_SHIM
@@ -1747,6 +1828,11 @@ int dc_efi_set_bme_ex(wchar_t* description, int dsk_num, int setBootEntry, int f
 	{
 		resl = dc_efi_get_sys_part(dsk_num, root);
 		if (resl != ST_OK) break;
+
+		if (!dc_is_dcs_on_partition(root)) {
+			resl = ST_BLDR_NOTINST;
+			break;
+		}
 
 		resl = dc_get_part_info(root, &ptix);
 		if (resl != ST_OK) break;

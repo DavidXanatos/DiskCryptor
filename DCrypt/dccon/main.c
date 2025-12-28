@@ -152,6 +152,8 @@ static void print_usage()
 		L"    -getinfo [hdd]               Print collected PlatformInfo file to console\n"
 		L"    -addbme  [hdd]               Add DCS entry to EFI boot menu\n"
 		L"    -rembme                      Remove DCS entry from EFI boot menu\n"
+		L"    -replacems [hdd]             Replace Windows Boot Manager with DCS loader\n"
+		L"    -restorems [hdd]             Restore Windows Boot Manager file (bootmgfw.efi)\n"
 		L"    -makerec [root par] [opt]    Setup EFI recovery DCS to bootable partition\n"
 #ifdef SB_SHIM
 		L"       -shim              Force adding shim loader for secure boot\n"

@@ -549,15 +549,15 @@ int boot_menu(int argc, wchar_t *argv[])
 		{
 			wchar_t  s_size[MAX_PATH];
 			wchar_t  h_name[MAX_PATH];
-			wchar_t *str;
+			wchar_t  str[16];
 			u64      size;
 			int      i, bd_1, bd_2;
 			int      is_gpt;
-			int      mbr_ldr, efi_ldr;
+			int      mbr_ldr, efi_ldr, has_bme;
 
 			wprintf(
 				L"-------------------------------------------------------------------\n"
-				L"HDD  |           name            |  size   | bootable | bootloader\n" 
+				L"HDD  |           name            |  size   | bootable | bootloader \n" 
 				L"-----+---------------------------+---------+----------+------------\n");
 
 			if (dc_get_boot_disk(&bd_1, &bd_2) != ST_OK) {
@@ -580,13 +580,24 @@ int boot_menu(int argc, wchar_t *argv[])
 					efi_ldr = (dc_efi_config(i, 0, &conf) == ST_OK);
 
 					if (mbr_ldr && efi_ldr) {
-						str = L"EFI + MBR";
+						wcscpy(str, L"MBR, EFI");
 					} else if (mbr_ldr) {
-						str = L"MBR";
+						wcscpy(str, L"MBR");
 					} else if (efi_ldr) {
-						str = L"EFI";
+						wcscpy(str, L"EFI");
 					} else {
-						str = L"none";
+						wcscpy(str, L"none");
+					}
+
+					if (efi_ldr) {
+						wcscat(str, L" ");
+						has_bme = dc_efi_is_bme_set(i);
+						if (has_bme)
+							wcscat(str, L"<");
+						if (dc_efi_is_msft_boot_replaced(i))
+							wcscat(str, L"+");
+						else if(has_bme)
+							wcscat(str, L"-");
 					}
 
 					wprintf(
@@ -866,6 +877,34 @@ int boot_menu(int argc, wchar_t *argv[])
 				wprintf(L"DCS boot menu entry successfully removed\n");
 			}
 			break;
+		}
+
+		if ((argc >= 3) && (wcscmp(argv[2], L"-replacems") == 0))
+		{
+			int d_num;
+
+			if (dsk_num(argv[3], &d_num) == 0) {
+				resl = ST_OK; break;
+			}
+
+			if ((resl = dc_efi_replace_msft_boot(d_num)) == ST_OK) {
+				wprintf(L"DCS bootloader successfully replaced Microsoft Boot Manager file (bootmgfw.efi) on %s\n", argv[3]);
+			}
+			break;
+		}
+
+		if ((argc >= 3) && (wcscmp(argv[2], L"-restorems") == 0))
+		{
+			int d_num;
+
+			if (dsk_num(argv[3], &d_num) == 0) {
+				resl = ST_OK; break;
+			}
+
+			if ((resl = dc_efi_restore_msft_boot(d_num)) == ST_OK) {
+				wprintf(L"Microsoft Boot Manager file (bootmgfw.efi) successfully restored on %s\n", argv[3]);
+			}
+			break;	
 		}
 
 		if ((argc >= 4) && (wcscmp(argv[2], L"-makerec") == 0))
