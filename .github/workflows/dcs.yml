@@ -17,7 +17,7 @@ jobs:
 
       - name: Prepare edk2 directory
         shell: cmd
-        run: mkdir edk2 & cd .. & mklink /J edk2 .\DiskCryptor\edk2
+        run: mkdir ..\edk2 & c mklink /J edk2 ..\edk2
         
       - name: Restore edk2 cache
         id: cache-edk2
