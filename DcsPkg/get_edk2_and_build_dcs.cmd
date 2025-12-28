@@ -10,14 +10,14 @@ call edksetup.bat Rebuild
 mklink /J DcsPkg %~dp0
 cd DcsPkg
 
-dir
-
 call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat"
 
 set NASM_PREFIX=%~dp0..\DCrypt\tools\nasm\
 dir %NASM_PREFIX%
 
 call setenv.bat
+
+dir
 
 REM fix
 REM \edk2\CryptoPkg\Library\OpensslLib\openssl\crypto\bn\bn_gcd.c(659): error C2220: the following warning is treated as an error
