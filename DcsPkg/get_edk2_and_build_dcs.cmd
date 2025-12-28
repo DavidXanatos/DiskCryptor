@@ -27,5 +27,4 @@ set CL=/wd4319 %CL%
 
 call dcs_bld.bat X64Rel
 
-dir %~dp0..\DcsPkg\*
-dir %~dp0..\DcsPkg\Export\*
+
