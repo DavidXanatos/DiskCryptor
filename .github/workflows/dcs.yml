@@ -1,0 +1,27 @@
+name: DCS
+
+on:
+  workflow_dispatch:  # Allows manual triggering from GitHub UI
+
+jobs:
+  build:
+
+    runs-on: windows-2022
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.1.7
+
+      - name: Setup msbuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build Dcs
+        run: DcsPkg\get_edk2_and_build_dcs.cmd
+
+      - name: Upload Dcs
+        uses: actions/upload-artifact@v4.4.3
+        with:
+          name: DcsPkg
+          path: |
+            DcsPkg/Export/*
+            
