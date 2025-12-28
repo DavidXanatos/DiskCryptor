@@ -1,4 +1,4 @@
-cd %~dp0..\..
+cd %~dp0..\..\edk2
 dir
 
 mklink /J DcsPkg %~dp0
