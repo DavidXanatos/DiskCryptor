@@ -1,12 +1,6 @@
 cd %~dp0..\..
 dir
 
-REM git clone --branch edk2-stable202511 --recurse-submodules https://github.com/tianocore/edk2.git
-REM git clone --branch edk2-stable202511 --depth 1 --recurse-submodules --shallow-submodules https://github.com/tianocore/edk2.git
-cd edk2
-
-call edksetup.bat Rebuild
-
 mklink /J DcsPkg %~dp0
 cd DcsPkg
 
@@ -27,6 +21,7 @@ set CL=/wd4319 %CL%
 
 call dcs_bld.bat X64Rel
 
+dir
 
 rem mkdir %~dp0.\Export
 rem copy %~dp0..\..\edk2\Export\* %~dp0.\Export\
