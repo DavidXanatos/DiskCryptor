@@ -8,6 +8,8 @@ call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsD
 set NASM_PREFIX=%~dp0..\DCrypt\tools\nasm\
 dir %NASM_PREFIX%
 
+set DCS_EXPORT=%~dp0..\DCrypt\boot_efi\bin
+
 call setenv.bat
 
 REM fix
