@@ -20,6 +20,36 @@ jobs:
       - name: Setup msbuild
         uses: microsoft/setup-msbuild@v2
 
+
+      - name: Compute parent workspace path
+        id: paths
+        shell: cmd
+        run: |
+          for %%I in ("%GITHUB_WORKSPACE%\..") do echo PARENT_WS=%%~fI>>"%GITHUB_ENV%"
+      
+      - name: Restore clean edk2 cache
+        id: edk2-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.PARENT_WS }}\edk2
+          key: edk2-clean-edk2-stable202511-v1a-${{ runner.os }}
+      
+      - name: Clone edk2 (if cache miss)
+        if: steps.edk2-restore.outputs.cache-hit != 'true'
+        shell: cmd
+        run: DcsPkg\ci_get_edk2.cmd
+      
+      - name: Save clean edk2 cache (checkout only)
+        if: steps.edk2-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.PARENT_WS }}\edk2
+          key: edk2-clean-edk2-stable202511-v1a-${{ runner.os }}
+            
+      - name: Build Dcs
+        shell: cmd
+        run: DcsPkg\ci_build_dcs.cmd
+
       #- name: Build DCrypt x86
       #  run: msbuild /t:build DCrypt\dcrypt.sln /p:Configuration="Release" /p:Platform=Win32
 
@@ -39,3 +69,10 @@ jobs:
             #DCrypt/Bin/Release_i386/*.dll
             #DCrypt/Bin/Release_i386/*.sys
             #DCrypt/Bin/Release_i386/*.pdb
+            
+      - name: Upload Dcs
+        uses: actions/upload-artifact@v4.4.3
+        with:
+          name: DcsPkg
+          path: |
+            DcsPkg/Export/*
