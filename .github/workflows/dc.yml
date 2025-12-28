@@ -1,0 +1,37 @@
+name: DC
+
+on:
+  workflow_dispatch:  # Allows manual triggering from GitHub UI
+
+jobs:
+  build:
+
+    runs-on: windows-2022
+    #runs-on: windows-2019
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.1.7
+
+      - name: Setup msbuild
+        uses: microsoft/setup-msbuild@v2
+
+      #- name: Build DCrypt x86
+      #  run: msbuild /t:build DCrypt\dcrypt.sln /p:Configuration="Release" /p:Platform=Win32
+
+      - name: Build DCrypt x64
+        run: msbuild /t:build DCrypt\dcrypt.sln /p:Configuration="Release" /p:Platform=x64 /m
+
+      - name: Upload DCrypt
+        uses: actions/upload-artifact@v4.4.3
+        with:
+          name: DCrypt
+          path: |
+            DCrypt/Bin/Release_amd64/*.exe
+            DCrypt/Bin/Release_amd64/*.dll
+            DCrypt/Bin/Release_amd64/*.sys
+            DCrypt/Bin/Release_amd64/*.pdb
+            #DCrypt/Bin/Release_i386/*.exe
+            #DCrypt/Bin/Release_i386/*.dll
+            #DCrypt/Bin/Release_i386/*.sys
+            #DCrypt/Bin/Release_i386/*.pdb
