@@ -20,7 +20,8 @@
 #define F_NO_REDIRECT   0x4000 // redirection area is not used
 #define F_SSD           0x8000 // this is SSD disk
 
-#define F_PENDING	0x00010000 // this device has a pending header
+#define F_PENDING	      0x00010000 // this device has a pending header
+#define F_LEGACY_HEADER   0x00020000 // volume has legacy header with weak PBKDF2 (needs upgrade)
 
 #define F_CLEAR_ON_UNMOUNT ( \
 	F_ENABLED | F_SYNC | F_REENCRYPT | F_FORMATTING | F_PROTECT_DCSYS | F_NO_REDIRECT )
@@ -96,6 +97,8 @@
 #define ST_NO_OPEN_DIR    57 /* cannot open directory */
 #define ST_DIR_NOT_EMPTY  58 /* directory is not empty */
 #define ST_BL_NOT_PASSED  59 /* bootloader check not passed */
+#define ST_LEGACY_HEADER  60 /* legacy header with weak PBKDF2 - migration required */
+#define ST_UPGRADE_NEEDED 61 /* volume header needs security upgrade */
 
 /* data wipe modes */
 #define WP_NONE    0 /* no data wipe                           */

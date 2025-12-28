@@ -140,6 +140,9 @@ void mm_secure_free(PVOID ptr)
 	// data buffer must be zeroed before removing block from blocks list
 	RtlSecureZeroMemory(block->buffer, block->length);
 	
+	/* SECURITY: Memory barrier ensures zeroing completes before deallocation */
+	KeMemoryBarrier();
+	
 	KeAcquireInStackQueuedSpinLock(&g_secure_memory_lock, &lock_queue);
 	RemoveEntryList(&block->entry);
 	KeReleaseInStackQueuedSpinLock(&lock_queue);

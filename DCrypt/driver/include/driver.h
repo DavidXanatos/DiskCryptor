@@ -116,6 +116,12 @@ typedef struct {
 
 } DC_FLAGS, *PDC_FLAGS;
 
+/* IOCTL Security Access Levels */
+#define IOCTL_ACCESS_PUBLIC     0  /* Anyone can call (version, status, flags) */
+#define IOCTL_ACCESS_ADMIN      1  /* Requires administrator privileges */
+#define IOCTL_ACCESS_PROTECTED  2  /* Admin + additional validation */
+#define IOCTL_ACCESS_KERNEL     3  /* Kernel mode only */
+
 #define IS_UNMOUNTABLE(d) ( !((d)->flags & (F_SYSTEM | F_HIBERNATE)) && \
                              ((d)->paging_count == 0) )
 
