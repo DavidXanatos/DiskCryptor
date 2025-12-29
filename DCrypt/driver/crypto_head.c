@@ -20,7 +20,11 @@
 
 #include "defines.h"
 #include "crypto_head.h"
+#ifdef _M_ARM64
+#include "sha512_pkcs5_2_small.h"
+#else
 #include "sha512_pkcs5_2.h"
+#endif
 #include "crc32.h"
 #include "misc_mem.h"
 

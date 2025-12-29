@@ -20,6 +20,11 @@
 #include <intrin.h>
 #include "twofish_small.h"
 
+#ifdef _M_ARM64
+#define __movsb(a,b,c) memcpy(a, b, (size_t)(c))
+#define __stosb(a,b,c) memset(a, (int)(unsigned char)(b), (size_t)(c))
+#endif
+
 /* the two polynomials */
 #define MDS_POLY          0x169
 #define RS_POLY           0x14D
@@ -206,7 +211,7 @@ void twofish256_set_key(const unsigned char *key, twofish256_key *skey)
 				g = sbox(qord[y][z++], g);
 			}
 			/* multiply g by a column of the MDS */
-			skey->S[y][x] = mds_column_mult(g, y);
+			skey->S[y][x] = mds_column_mult((unsigned char)g, y);
 		}
 	}
 }

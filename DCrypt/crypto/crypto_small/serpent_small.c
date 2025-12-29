@@ -20,6 +20,11 @@
 #include <intrin.h>
 #include "serpent_small.h"
 
+#ifdef _M_ARM64
+#define __movsb(a,b,c) memcpy(a, b, (size_t)(c))
+#define __stosb(a,b,c) memset(a, (int)(unsigned char)(b), (size_t)(c))
+#endif
+
 #define LTf(_b) { \
 	_b[0] = _rotl(_b[0], 13);      \
 	_b[2] = _rotl(_b[2], 3);       \

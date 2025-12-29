@@ -21,7 +21,11 @@
 #include <ntifs.h>
 #include "defines.h"
 #include "misc.h"
+#ifdef _M_ARM64
+#include "xts_small.h"
+#else
 #include "xts_fast.h"
+#endif
 #include "fast_crypt.h"
 
 /* function types declaration */

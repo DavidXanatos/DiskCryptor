@@ -2,7 +2,11 @@
 #define _DEVHOOK_
 
 #include "defines.h"
+#ifdef _M_ARM64
+#include "xts_small.h"
+#else
 #include "xts_fast.h"
+#endif
 #include "driver.h"
 #include "data_wipe.h"
 

@@ -21,11 +21,16 @@
 #include "driver.h"
 #include "debug.h"
 #include "crypto_functions.h"
+#ifdef _M_ARM64
+#include "xts_small.h"
+#include "sha512_pkcs5_2_small.h"
+#else
 #include "xts_fast.h"
 #include "aes_padlock.h"
 #include "xts_serpent_sse2.h"
 #include "xts_serpent_avx.h"
 #include "sha512_pkcs5_2.h"
+#endif
 #include "crc32.h"
 #include "misc_mem.h"
 
@@ -127,6 +132,7 @@ void dc_init_encryption()
 {
 	DbgMsg("dc_init_encryption\n");
 
+#if defined(_M_IX86) || defined(_M_X64)
 	if (aes256_padlock_available() != 0) {
 		SetFlag(dc_load_flags, DST_VIA_PADLOCK);
 		DbgMsg("CpuFlags_VIA_PadLock: Yes\n");
@@ -142,6 +148,10 @@ void dc_init_encryption()
 		ClearFlag(dc_load_flags, DST_INTEL_NI);
 		DbgMsg("CpuFlags_AES_NI: No\n");
 	}
+#else
+	ClearFlag(dc_load_flags, DST_VIA_PADLOCK);
+	ClearFlag(dc_load_flags, DST_INTEL_NI);
+#endif
 
 #ifdef _M_IX86
 	if (xts_serpent_sse2_available() != 0) {
@@ -156,6 +166,7 @@ void dc_init_encryption()
 	SetFlag(dc_load_flags, DST_INSTR_SSE2);
 #endif
 
+#if defined(_M_IX86) || defined(_M_X64)
 	if (xts_serpent_avx_available() != 0) {
 		SetFlag(dc_load_flags, DST_INSTR_AVX);
 		DbgMsg("CpuFlags_AVX: Yes\n");
@@ -163,6 +174,9 @@ void dc_init_encryption()
 		ClearFlag(dc_load_flags, DST_INSTR_AVX);
 		DbgMsg("CpuFlags_AVX: No\n");
 	}
+#else
+	ClearFlag(dc_load_flags, DST_INSTR_AVX);
+#endif
 
 	// initialize XTS mode engine and run small encryption test
 	xts_init(dc_conf_flags & CONF_HW_CRYPTO);

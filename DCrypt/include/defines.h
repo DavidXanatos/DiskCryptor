@@ -3,6 +3,7 @@
 
 #ifdef IS_DRIVER
  #include <ntifs.h>
+ #include <intrin.h>
 #endif
 
 #if !defined(IS_DRIVER) && !defined(BOOT_LDR)
@@ -81,6 +82,15 @@ typedef char    s8;
 #define burn(_ptr, _len) { volatile char *_p = (volatile char*)(_ptr); size_t _s = (_len); while (_s--) *_p++ = 0; }
 #else
 #define burn(_ptr, _len) { RtlSecureZeroMemory(_ptr, _len); }
+#endif
+
+#ifdef _M_ARM64
+#define __movsb(a,b,c) memcpy(a, b, (size_t)(c))
+#define __stosb(a,b,c) memset(a, (int)(unsigned char)(b), (size_t)(c))
+#define __rdtsc() _ReadStatusReg(ARM64_CNTVCT)
+#define __wbinvd()
+#else
+ void __wbinvd(void); // intrinsic forward declaration
 #endif
 
 /* size optimized intrinsics */

@@ -21,7 +21,11 @@
 #include <ntifs.h>
 #include "defines.h"
 #include "driver.h"
+#ifdef _M_ARM64
+#include "xts_small.h"
+#else
 #include "xts_fast.h"
+#endif
 #include "prng.h"
 #include "fast_crypt.h"
 #include "benchmark.h"

@@ -23,6 +23,11 @@
 */
 #include "xts_small.h"
 
+#ifdef _M_ARM64
+#define __movsb(a,b,c) memcpy(a, b, (size_t)(c))
+#define __stosb(a,b,c) memset(a, (int)(unsigned char)(b), (size_t)(c))
+#endif
+
 typedef void (*set_key_p)(const unsigned char *key, void *skey);
 typedef void (*encrypt_p)(const unsigned char *in, unsigned char *out, void *key);
 
@@ -129,7 +134,9 @@ void xts_set_key(const unsigned char *key, int alg, xts_key *skey)
 	}
 	skey->algs  = (void**)algs[alg];
 	skey->max   = i-1;
-	skey->ctxsz = p_ctx - skey->tweak_k;
+	skey->ctxsz = (unsigned long)(p_ctx - skey->tweak_k);
+	skey->encrypt = xts_encrypt;
+	skey->decrypt = xts_decrypt;
 }
 
 void xts_encrypt(const unsigned char *in, unsigned char *out, unsigned long len, unsigned __int64 offset, xts_key *key)
@@ -167,6 +174,8 @@ void xts_set_key(const unsigned char *key, int alg, xts_key *skey)
 {
 	aes256_set_key(key, (aes256_key*)&skey->crypt_k);
 	aes256_set_key(key + XTS_KEY_SIZE, (aes256_key*)&skey->tweak_k);
+	skey->encrypt = xts_encrypt;
+	skey->decrypt = xts_decrypt;
 }
 
 void xts_encrypt(const unsigned char *in, unsigned char *out, unsigned long len, unsigned __int64 offset, xts_key *key)

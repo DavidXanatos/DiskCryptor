@@ -42,8 +42,6 @@ typedef struct {
 
 } SECURE_MEM_BLOCK, *PSECURE_MEM_BLOCK;
 
-void __wbinvd(void); // intrinsic forward declaration
-
 static LIST_ENTRY g_usermode_memory_list;
 static FAST_MUTEX g_usermode_memory_lock;
 static BOOLEAN    g_ps_notify_registered;

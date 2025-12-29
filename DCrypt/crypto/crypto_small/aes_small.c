@@ -29,6 +29,11 @@ static unsigned long Td0[256];
 static unsigned char Te4[256];
 static unsigned char Td4[256];
 
+#ifdef _M_ARM64
+#define __movsb(a,b,c) memcpy(a, b, (size_t)(c))
+#define __stosb(a,b,c) memset(a, (int)(unsigned char)(b), (size_t)(c))
+#endif
+
 #define Td0(x) (Td0[x])
 #define Td1(x) _rotr(Td0(x), 24)
 #define Td2(x) _rotr(Td0(x), 16)

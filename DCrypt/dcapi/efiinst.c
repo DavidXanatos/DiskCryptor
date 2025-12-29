@@ -75,23 +75,22 @@ static const int dcs_boot_res = IDR_EFI_BOOT;
 
 #else
 
+static const wchar_t* dcs_zip_file = L"DcsPkg";
 #ifdef _M_IX86
-static const wchar_t* dcs_zip_file = L"DCS_ia32.zip";
 static const efi_file_t dcs_files[] = {
 	{L"DcsBoot32.efi",		L"\\EFI\\DCS\\DcsBoot.efi"}, // boot file must be first
 	{L"DcsInt32.dcs",		L"\\EFI\\DCS\\DcsInt.dcs"},
 	{L"DcsInfo32.dcs",		L"\\EFI\\DCS\\DcsInfo.dcs"},
 	//{L"DcsCfg32.dcs",		L"\\EFI\\DCS\\DcsCfg.dcs"},
-	{L"LegacySpeaker32.dcs",	L"\\EFI\\DCS\\LegacySpeaker.dcs"}
+	{L"LegacySpeaker32.dcs",L"\\EFI\\DCS\\LegacySpeaker.dcs"}
 };
 static const wchar_t* dcs_re_file = L"DcsRe32.efi";
 static const wchar_t* dcs_boot_file = L"DcsBoot32.efi";
 #else
-static const wchar_t* dcs_zip_file = L"DCS_x64.zip";
 static const efi_file_t dcs_files[] = {
-	{L"DcsBoot.efi",			L"\\EFI\\DCS\\DcsBoot.efi"}, // boot file must be first
+	{L"DcsBoot.efi",		L"\\EFI\\DCS\\DcsBoot.efi"}, // boot file must be first
 	{L"DcsInt.dcs",			L"\\EFI\\DCS\\DcsInt.dcs"},
-	{L"DcsInfo.dcs",			L"\\EFI\\DCS\\DcsInfo.dcs"},
+	{L"DcsInfo.dcs",		L"\\EFI\\DCS\\DcsInfo.dcs"},
 	//{L"DcsCfg.dcs",			L"\\EFI\\DCS\\DcsCfg.dcs"},
 	{L"LegacySpeaker.dcs",	L"\\EFI\\DCS\\LegacySpeaker.dcs"}
 };
@@ -388,6 +387,29 @@ int dc_open_zip(const wchar_t* fileName, struct zip_t **zip)
 	return ST_OK;
 }
 
+int dc_copy_file(const wchar_t *path, const wchar_t *root, const wchar_t* source, const wchar_t* target)
+{
+	wchar_t src_path[MAX_PATH];
+	swprintf_s(src_path, MAX_PATH, L"%s%s", path, source);
+	if (_waccess(src_path, 0) == -1)  // fail if source file does not exist
+		return ST_NF_FILE;
+
+	wchar_t dest_path[MAX_PATH];
+	swprintf_s(dest_path, MAX_PATH, L"%s%s", root, target);
+	if (!CopyFile(src_path, dest_path, 0)) // overwrite existing
+		return ST_RW_ERR;
+	return ST_OK;
+}
+
+int dc_copy_pkg_to_efi_files(const wchar_t *path, const wchar_t *root, const efi_file_t* files, int count)
+{
+	int     resl = ST_OK;
+	for (int i = 0; i < count && resl == ST_OK; i++){
+		resl = dc_copy_file(path, root, files[i].source, files[i].target);
+	}
+	return resl;
+}
+
 #ifdef SB_SHIM
 int dc_copy_efi_shim(const wchar_t *root)
 {
@@ -430,14 +452,22 @@ int dc_copy_efi_dcs(const wchar_t *root, int recovery, int shim)
 int dc_copy_efi_dcs(const wchar_t *root, int recovery)
 #endif
 {
-	int      resl;
+	int     resl;
 	struct zip_t *zip = NULL;
 	TCHAR	source_path[MAX_PATH], *p;
 	DWORD	length;
+	int 	use_pkg;
 
 	if (g_inst_dll == NULL || (length = GetModuleFileName(g_inst_dll, source_path, _countof(source_path))) == 0) return ST_NF_FILE;
 	if (length >= _countof(source_path) - 1 || (p = wcsrchr(source_path, '\\')) == NULL) return ST_NF_FILE;
 	if (wcscpy_s(p + 1, _countof(source_path) - (p - source_path) - 1, dcs_zip_file) != 0) return ST_NOMEM;
+	use_pkg = dc_efi_file_exists(source_path, L"");
+	if (use_pkg) {
+		if (wcscat_s(source_path, _countof(source_path), L"\\") != 0) return ST_NOMEM;
+	} else {
+		if (wcscat_s(source_path, _countof(source_path), L".zip") != 0) return ST_NOMEM;
+	}
+
 
 	do
 	{
@@ -448,11 +478,19 @@ int dc_copy_efi_dcs(const wchar_t *root, int recovery)
 		resl = dc_efi_mkdir(root, L"\\EFI\\DCS");
 		if (resl != ST_OK) break;
 
-		resl = dc_open_zip(source_path, &zip);
-		if (resl != ST_OK) break;
+		if (use_pkg) 
+		{
+			resl = dc_copy_pkg_to_efi_files(source_path, root, dcs_files, _countof(dcs_files));
+			if (resl != ST_OK) break;
+		}
+		else
+		{
+			resl = dc_open_zip(source_path, &zip);
+			if (resl != ST_OK) break;
 
-		resl = dc_copy_zip_to_efi_files(root, zip, dcs_files, _countof(dcs_files));
-		if (resl != ST_OK) break;
+			resl = dc_copy_zip_to_efi_files(root, zip, dcs_files, _countof(dcs_files));
+			if (resl != ST_OK) break;
+		}
 
 		if (dc_efi_file_exists(root, efi_boot_file)) { // if there is a original boot file
 			if (!dc_efi_file_exists(root, efi_boot_bak)) { // and there is no boot file backup already
@@ -474,10 +512,20 @@ int dc_copy_efi_dcs(const wchar_t *root, int recovery)
 		else
 #endif
 		{
-			if (recovery)
-				resl = dc_copy_zip_to_efi_file(root, zip, dcs_re_file, efi_boot_file);
-			else 
-				resl = dc_copy_zip_to_efi_file(root, zip, dcs_boot_file, efi_boot_file);
+			if (use_pkg)
+			{
+				if (recovery)
+					resl = dc_copy_file(source_path, root, dcs_re_file, efi_boot_file);
+				else
+					resl = dc_copy_file(source_path, root, dcs_boot_file, efi_boot_file);
+			}
+			else
+			{
+				if (recovery)
+					resl = dc_copy_zip_to_efi_file(root, zip, dcs_re_file, efi_boot_file);
+				else
+					resl = dc_copy_zip_to_efi_file(root, zip, dcs_boot_file, efi_boot_file);
+			}
 		}
 
 	} while (0);

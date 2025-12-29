@@ -21,6 +21,11 @@
 #include "sha512_small.h"
 #include "sha512_pkcs5_2_small.h"
 
+#ifdef _M_ARM64
+#define __movsb(a,b,c) memcpy(a, b, (size_t)(c))
+#define __stosb(a,b,c) memset(a, (int)(unsigned char)(b), (size_t)(c))
+#endif
+
 void sha512_hmac(const void *k, unsigned long k_len, const void *d, unsigned long d_len, unsigned char *out)
 {
 	sha512_ctx    ctx;
