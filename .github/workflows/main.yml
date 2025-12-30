@@ -8,7 +8,7 @@ on:
   workflow_dispatch:  # Allows manual triggering from GitHub UI
 
 jobs:
-  Build_X64:
+  DCrypt_X64:
 
     runs-on: windows-2022
     #runs-on: windows-2019
@@ -20,6 +20,28 @@ jobs:
       - name: Setup msbuild
         uses: microsoft/setup-msbuild@v2
 
+      - name: Build DCrypt
+        run: msbuild /t:build DCrypt\dcrypt.sln /p:Configuration="Release" /p:Platform=x64 /m
+
+      - name: Upload DCrypt
+        uses: actions/upload-artifact@v4.4.3
+        with:
+          name: DCrypt_X64
+          path: |
+            DCrypt/Bin/Release_amd64/*.exe
+            DCrypt/Bin/Release_amd64/*.dll
+            DCrypt/Bin/Release_amd64/*.sys
+            DCrypt/Bin/Release_amd64/*.pdb
+
+
+  DcsPkg_X64:
+
+    runs-on: windows-2022
+    #runs-on: windows-2019
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.1.7
 
       - name: Compute parent workspace path
         id: paths
@@ -49,19 +71,6 @@ jobs:
       - name: Build Dcs
         shell: cmd
         run: DcsPkg\ci_build_dcs.cmd X64Rel
-
-      - name: Build DCrypt
-        run: msbuild /t:build DCrypt\dcrypt.sln /p:Configuration="Release" /p:Platform=x64 /m
-
-      - name: Upload DCrypt
-        uses: actions/upload-artifact@v4.4.3
-        with:
-          name: DCrypt_X64
-          path: |
-            DCrypt/Bin/Release_amd64/*.exe
-            DCrypt/Bin/Release_amd64/*.dll
-            DCrypt/Bin/Release_amd64/*.sys
-            DCrypt/Bin/Release_amd64/*.pdb
             
       - name: Upload Dcs
         uses: actions/upload-artifact@v4.4.3
@@ -70,7 +79,8 @@ jobs:
           path: |
             DcsPkg/ExportX64/*
 
-  Build_AA64:
+
+  DCrypt_AA64:
 
     runs-on: windows-2022
     #runs-on: windows-2019
@@ -81,7 +91,29 @@ jobs:
 
       - name: Setup msbuild
         uses: microsoft/setup-msbuild@v2
+        
+      - name: Build DCrypt
+        run: msbuild /t:build DCrypt\dcrypt.sln /p:Configuration="Release" /p:Platform=ARM64 /m
 
+      - name: Upload DCrypt
+        uses: actions/upload-artifact@v4.4.3
+        with:
+          name: DCrypt_AA64
+          path: |
+            DCrypt/Bin/Release_arm64/*.exe
+            DCrypt/Bin/Release_arm64/*.dll
+            DCrypt/Bin/Release_arm64/*.sys
+            DCrypt/Bin/Release_arm64/*.pdb
+
+
+  DcsPkg_AA64:
+
+    runs-on: windows-2022
+    #runs-on: windows-2019
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.1.7
 
       - name: Compute parent workspace path
         id: paths
@@ -112,85 +144,9 @@ jobs:
         shell: cmd
         run: DcsPkg\ci_build_dcs.cmd A64Rel
         
-      - name: Build DCrypt
-        run: msbuild /t:build DCrypt\dcrypt.sln /p:Configuration="Release" /p:Platform=ARM64 /m
-
-      - name: Upload DCrypt
-        uses: actions/upload-artifact@v4.4.3
-        with:
-          name: DCrypt_AA64
-          path: |
-            DCrypt/Bin/Release_arm64/*.exe
-            DCrypt/Bin/Release_arm64/*.dll
-            DCrypt/Bin/Release_arm64/*.sys
-            DCrypt/Bin/Release_arm64/*.pdb
-            
       - name: Upload Dcs
         uses: actions/upload-artifact@v4.4.3
         with:
           name: DcsPkg_AA64
           path: |
             DcsPkg/ExportAA64/*
-
-
-#  Build_IA32:
-#
-#    runs-on: windows-2022
-#    #runs-on: windows-2019
-#    
-#    steps:
-#      - name: Checkout code
-#        uses: actions/checkout@v4.1.7
-#
-#      - name: Setup msbuild
-#        uses: microsoft/setup-msbuild@v2
-#
-#
-#      - name: Compute parent workspace path
-#        id: paths
-#        shell: cmd
-#        run: |
-#          for %%I in ("%GITHUB_WORKSPACE%\..") do echo PARENT_WS=%%~fI>>"%GITHUB_ENV%"
-#      
-#      - name: Restore clean edk2 cache
-#        id: edk2-restore
-#        uses: actions/cache/restore@v4
-#        with:
-#          path: ${{ env.PARENT_WS }}\edk2
-#          key: edk2-clean-edk2-stable202511-v1a-${{ runner.os }}
-#      
-#      - name: Clone edk2 (if cache miss)
-#        if: steps.edk2-restore.outputs.cache-hit != 'true'
-#        shell: cmd
-#        run: DcsPkg\ci_get_edk2.cmd
-#      
-#      - name: Save clean edk2 cache (checkout only)
-#        if: steps.edk2-restore.outputs.cache-hit != 'true'
-#        uses: actions/cache/save@v4
-#        with:
-#          path: ${{ env.PARENT_WS }}\edk2
-#          key: edk2-clean-edk2-stable202511-v1a-${{ runner.os }}
-#            
-#      - name: Build Dcs
-#        shell: cmd
-#        run: DcsPkg\ci_build_dcs.cmd IA32Rel
-#
-#      - name: Build DCrypt
-#        run: msbuild /t:build DCrypt\dcrypt.sln /p:Configuration="Release" /p:Platform=Win32
-#
-#      - name: Upload DCrypt
-#        uses: actions/upload-artifact@v4.4.3
-#        with:
-#          name: DCrypt_IA32
-#          path: |
-#            DCrypt/Bin/Release_i386/*.exe
-#            DCrypt/Bin/Release_i386/*.dll
-#            DCrypt/Bin/Release_i386/*.sys
-#            DCrypt/Bin/Release_i386/*.pdb
-#            
-#      - name: Upload Dcs
-#        uses: actions/upload-artifact@v4.4.3
-#        with:
-#          name: DcsPkg_IA32
-#          path: |
-#            DcsPkg/ExportIA32/*
