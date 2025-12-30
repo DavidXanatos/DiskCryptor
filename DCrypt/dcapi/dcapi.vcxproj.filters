@@ -53,6 +53,9 @@
     <ClCompile Include="w10.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sbcheck.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="dcres.rc">

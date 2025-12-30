@@ -19,7 +19,7 @@
 */
 
 #include <windows.h>
-#include "misc/dirent.h" 
+#include "misc/dirent.h"
 #include <stdio.h>
 #include <io.h>
 #include <assert.h>
@@ -148,7 +148,7 @@ void dc_efi_init()
 int dc_efi_check()
 {
 	byte tempBuf[4];
-	GetFirmwareEnvironmentVariable(L" ", L"{00000000-0000-0000-0000-000000000000}", tempBuf, sizeof(tempBuf));
+	GetFirmwareEnvironmentVariableW(L" ", L"{00000000-0000-0000-0000-000000000000}", tempBuf, sizeof(tempBuf));
 	DWORD error = GetLastError();
 	assert(error != ERROR_PRIVILEGE_NOT_HELD); // forgot to call dc_efi_init first
 	return error == ERROR_ENVVAR_NOT_FOUND;
@@ -157,7 +157,7 @@ int dc_efi_check()
 int dc_efi_is_secureboot()
 {
 	byte tempBuf = 0;
-	GetFirmwareEnvironmentVariable(L"SecureBoot", efi_var_guid, &tempBuf, sizeof(tempBuf));
+	GetFirmwareEnvironmentVariableW(L"SecureBoot", efi_var_guid, &tempBuf, sizeof(tempBuf));
 	return tempBuf != 0;
 }
 
@@ -887,6 +887,13 @@ int dc_set_efi_boot(int dsk_num, int replace_ms)
 
 #ifdef SB_SHIM
 	if (shim == -1) shim = dc_efi_is_secureboot();
+#else
+	if (dc_efi_is_secureboot()) {
+		// when secure boto is enablet don't allow to install DCS if its not signed with a certificate from the current "db" variable
+		if (!dc_efi_dcs_is_signed()) {
+			return ST_SB_NO_PASS;
+		}
+	}
 #endif
 
 	do
@@ -1736,7 +1743,7 @@ int dc_efi_set_bme_impl(wchar_t* description, PPARTITION_INFORMATION_EX partInfo
 		byte* existingVar = malloc(varSize);
 		DWORD existingVarLen = GetFirmwareEnvironmentVariableW(varName, efi_var_guid, existingVar, varSize);
 		if ((existingVarLen != varSize) || (0 != memcmp(existingVar, startVar, varSize)))
-			SetFirmwareEnvironmentVariable(varName, efi_var_guid, startVar, varSize);
+			SetFirmwareEnvironmentVariableW(varName, efi_var_guid, startVar, varSize);
 		free(startVar);
 		free(existingVar);
 	}
@@ -1746,7 +1753,7 @@ int dc_efi_set_bme_impl(wchar_t* description, PPARTITION_INFORMATION_EX partInfo
 	wsprintf(order, L"%sOrder", type == NULL ? L"Boot" : type);
 	WCHAR tempBuf[1024];
 
-	UINT32 startOrderLen = GetFirmwareEnvironmentVariable(order, efi_var_guid, tempBuf, sizeof(tempBuf));
+	UINT32 startOrderLen = GetFirmwareEnvironmentVariableW(order, efi_var_guid, tempBuf, sizeof(tempBuf));
 	UINT32 startOrderNumPos = UINT_MAX;
 	int	startOrderUpdate = 0;
 	UINT16*	startOrder = (UINT16*)tempBuf;
@@ -1805,7 +1812,7 @@ int dc_efi_set_bme_impl(wchar_t* description, PPARTITION_INFORMATION_EX partInfo
 		}
 
 		if (startOrderUpdate) {
-			SetFirmwareEnvironmentVariable(order, efi_var_guid, startOrder, startOrderLen);
+			SetFirmwareEnvironmentVariableW(order, efi_var_guid, startOrder, startOrderLen);
 		}
 	}
 
@@ -1815,7 +1822,7 @@ int dc_efi_set_bme_impl(wchar_t* description, PPARTITION_INFORMATION_EX partInfo
 		WCHAR next[64];
 		wsprintf(next, L"%sNext", type == NULL ? L"Boot" : type);
 
-		SetFirmwareEnvironmentVariable(next, efi_var_guid, &statrtOrderNum, 2);
+		SetFirmwareEnvironmentVariableW(next, efi_var_guid, &statrtOrderNum, 2);
 	}
 
 	return ST_OK;
@@ -1825,13 +1832,13 @@ int dc_efi_del_bme_impl(UINT16 statrtOrderNum, wchar_t* type)
 {
 	wchar_t	varName[256];
 	swprintf_s(varName, ARRAYSIZE(varName), L"%s%04X", type == NULL ? L"Boot" : type, statrtOrderNum);
-	SetFirmwareEnvironmentVariable(varName, efi_var_guid, NULL, 0);
+	SetFirmwareEnvironmentVariableW(varName, efi_var_guid, NULL, 0);
 
 	WCHAR order[64];
 	wsprintf(order, L"%sOrder", type == NULL ? L"Boot" : type);
 	WCHAR tempBuf[1024];
 
-	UINT32 startOrderLen = GetFirmwareEnvironmentVariable(order, efi_var_guid, tempBuf, sizeof(tempBuf));
+	UINT32 startOrderLen = GetFirmwareEnvironmentVariableW(order, efi_var_guid, tempBuf, sizeof(tempBuf));
 	UINT32 startOrderNumPos = UINT_MAX;
 	int	startOrderUpdate = 0;
 	UINT16*	startOrder = (UINT16*)tempBuf;
@@ -1852,18 +1859,18 @@ int dc_efi_del_bme_impl(UINT16 statrtOrderNum, wchar_t* type)
 	}
 
 	if (startOrderUpdate) {
-		SetFirmwareEnvironmentVariable(order, efi_var_guid, startOrder, startOrderLen);
+		SetFirmwareEnvironmentVariableW(order, efi_var_guid, startOrder, startOrderLen);
 
 		// remove ourselves from BootNext value
 		UINT16 bootNextValue = 0;
 		WCHAR next[64];
 		wsprintf(next, L"%sNext", type == NULL ? L"Boot" : type);
 
-		if ((GetFirmwareEnvironmentVariable(next, efi_var_guid, &bootNextValue, 2) == 2)
+		if ((GetFirmwareEnvironmentVariableW(next, efi_var_guid, &bootNextValue, 2) == 2)
 			&& (bootNextValue == statrtOrderNum)
 			)
 		{
-			SetFirmwareEnvironmentVariable(next, efi_var_guid, startOrder, 0);
+			SetFirmwareEnvironmentVariableW(next, efi_var_guid, startOrder, 0);
 		}
 	}
 
@@ -2109,3 +2116,145 @@ int dc_api dc_get_pending_header_nt(const wchar_t* device, wchar_t* path)
 
 	return ST_NF_FILE;
 }
+
+#ifdef USE_DCS_ZIP
+
+int dc_init_secureboot_db();
+int dc_verify_file_signature(const wchar_t* filePath);
+int dc_verify_memory_signature(const void* data, size_t size);
+
+static int dc_is_signable_file(const wchar_t* filename)
+{
+	const wchar_t* ext = wcsrchr(filename, L'.');
+	if (ext == NULL) return 0;
+	return (_wcsicmp(ext, L".efi") == 0 || _wcsicmp(ext, L".dcs") == 0);
+}
+
+static int dc_pkg_is_signed(const wchar_t *path, const efi_file_t* files, int count)
+{
+	int     resl;
+	wchar_t filePath[MAX_PATH];
+
+	resl = dc_init_secureboot_db();
+	if (resl != ST_OK) return resl;
+
+	for (int i = 0; i < count && resl == ST_OK; i++){
+		
+		if (!dc_is_signable_file(files[i].source)) {
+			continue;
+		}
+
+		if (swprintf_s(filePath, MAX_PATH, L"%s%s", path, files[i].source) < 0) {
+			return ST_NOMEM;
+		}
+
+		resl = dc_verify_file_signature(filePath);
+		if (resl != ST_OK) {
+			break;
+		}
+	}
+	return resl;
+}
+
+static int dc_zip_is_signed(struct zip_t *zip, const efi_file_t* files, int count)
+{
+	int     resl;
+	char    entryName[MAX_PATH];
+	void*   buffer = NULL;
+	size_t  bufsize = 0;
+	ssize_t bytes_read;
+
+	resl = dc_init_secureboot_db();
+	if (resl != ST_OK) return resl;
+
+	for (int i = 0; i < count && resl == ST_OK; i++){
+
+		if (!dc_is_signable_file(files[i].source)) {
+			continue;
+		}
+
+		if (sprintf_s(entryName, MAX_PATH, "%S", files[i].source) < 0) {
+			resl = ST_NOMEM;
+			break;
+		}
+
+		if (zip_entry_open(zip, entryName) != 0) {
+			resl = ST_NF_FILE;
+			break;
+		}
+
+		bytes_read = zip_entry_read(zip, &buffer, &bufsize);
+		zip_entry_close(zip);
+
+		if (bytes_read < 0 || buffer == NULL) {
+			resl = ST_RW_ERR;
+			break;
+		}
+
+		resl = dc_verify_memory_signature(buffer, bufsize);
+
+		free(buffer);
+		buffer = NULL;
+
+		if (resl != ST_OK) {
+			break;
+		}
+	}
+
+	return resl;
+}
+
+int dc_efi_dcs_is_signed()
+{
+	int     resl;
+	struct zip_t *zip = NULL;
+	TCHAR	source_path[MAX_PATH], *p;
+	DWORD	length;
+	int 	use_pkg;
+
+	if (g_inst_dll == NULL || (length = GetModuleFileName(g_inst_dll, source_path, _countof(source_path))) == 0) return ST_NF_FILE;
+	if (length >= _countof(source_path) - 1 || (p = wcsrchr(source_path, '\\')) == NULL) return ST_NF_FILE;
+	if (wcscpy_s(p + 1, _countof(source_path) - (p - source_path) - 1, dcs_zip_file) != 0) return ST_NOMEM;
+	use_pkg = dc_efi_file_exists(source_path, L"");
+	if (use_pkg) {
+		if (wcscat_s(source_path, _countof(source_path), L"\\") != 0) return ST_NOMEM;
+	} else {
+		if (wcscat_s(source_path, _countof(source_path), L".zip") != 0) return ST_NOMEM;
+	}
+
+
+	do
+	{
+		if (use_pkg) 
+		{
+			resl = dc_pkg_is_signed(source_path, dcs_files, _countof(dcs_files));
+			if (resl != ST_OK) break;
+		}
+		else
+		{
+			resl = dc_open_zip(source_path, &zip);
+			if (resl != ST_OK) break;
+
+			resl = dc_zip_is_signed(zip, dcs_files, _countof(dcs_files));
+			if (resl != ST_OK) break;
+		}
+
+	} while (0);
+
+	if (zip != NULL) {
+		zip_close(zip);
+	}
+
+	return resl == ST_OK;
+}
+
+#else
+
+int dc_efi_dcs_is_signed()
+{
+	int dcs_signed; 
+	// 0 or 1 depanding on if the embedded resources are signed or not
+	return dcs_signed;
+}
+
+#endif

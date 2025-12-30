@@ -53,4 +53,6 @@ int dc_api dc_has_pending_header(const wchar_t* device);
 int dc_api dc_clear_pending_header(const wchar_t* device);
 int dc_api dc_get_pending_header_nt(const wchar_t* device, wchar_t* path);
 
+int dc_api dc_efi_dcs_is_signed();
+
 #endif

@@ -538,9 +538,9 @@ int boot_menu(int argc, wchar_t *argv[])
 		if ((argc == 3) && (wcscmp(argv[2], L"-mode") == 0))
 		{
 			int			is_efi = dc_efi_check();
-			int			is_secure = is_efi ? dc_efi_is_secureboot() : 0;
+			int			sb_enabled = is_efi ? dc_efi_is_secureboot() : 0;
 
-			wprintf(L"Boot mode: %s%s\n", is_efi ? L"EFI" : L"MBR", is_secure ? L" (SecureBoot)" : L"");
+			wprintf(L"Boot mode: %s%s\n", is_efi ? L"EFI" : L"MBR", sb_enabled ? L" (SecureBoot)" : L"");
 
 			resl = ST_OK; break;
 		}
@@ -606,6 +606,22 @@ int boot_menu(int argc, wchar_t *argv[])
 					);
 				} 
 			}
+
+			//wprintf(
+			//	L"-------------------------------------------------------------------\n"
+			//	L"* - SSD detected\n"
+			//	L"< - EFI Boot Menu Entry present\n"
+			//	L"+ - Windows bootloader replaced to load DCS loader\n"
+			//	L"- - Windows bootloader not replaced\n"
+			//);
+
+			if (dc_efi_dcs_is_signed()) {
+				wprintf(
+					L"\n"
+					L"EFI DCS Bootloader is signed for Secure Boot\n"
+				);
+			} 
+
 			resl = ST_OK; break;
 		}
 

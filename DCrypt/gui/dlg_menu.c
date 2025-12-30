@@ -591,16 +591,17 @@ int _set_boot_loader_efi(
 		return ST_CANCEL;
 	}
 #else
-	if (dc_efi_is_secureboot()) {
-		if (!__msg_w(hwnd, 
-			L"This system's UEFI firmware has Secure Boot enabled. "
-			L"You must manually sign the DCS bootloader files or disable Secure Boot, "
-			L"otherwise THE SYSTEM WILL NOT BOOT!!!\n"
-			L"Do you want to continue?")
-			) {
-			return ST_CANCEL;
-		}
-	}
+	// dc_set_efi_boot will fail with ST_SB_NO_PASS when secureboot is active and DCS is not proeprly signed
+	//if (dc_efi_is_secureboot()) {
+	//	if (!__msg_w(hwnd, 
+	//		L"This system's UEFI firmware has Secure Boot enabled. "
+	//		L"You must manually sign the DCS bootloader files or disable Secure Boot, "
+	//		L"otherwise THE SYSTEM WILL NOT BOOT!!!\n"
+	//		L"Do you want to continue?")
+	//		) {
+	//		return ST_CANCEL;
+	//	}
+	//}
 #endif
 
 	int rlt;

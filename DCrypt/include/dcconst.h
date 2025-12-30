@@ -96,6 +96,7 @@
 #define ST_NO_OPEN_DIR    57 /* cannot open directory */
 #define ST_DIR_NOT_EMPTY  58 /* directory is not empty */
 #define ST_BL_NOT_PASSED  59 /* bootloader check not passed */
+#define ST_SB_NO_PASS	  60 /* secureboot enabled and not accepting DCS signature */
 
 /* data wipe modes */
 #define WP_NONE    0 /* no data wipe                           */

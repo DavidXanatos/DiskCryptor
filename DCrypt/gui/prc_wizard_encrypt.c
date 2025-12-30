@@ -430,21 +430,22 @@ int _init_wizard_encrypt_pages(
 
 		if( __is_efi_boot )
 		{
-			if (dc_efi_is_secureboot())
+			if (dc_efi_is_secureboot() && !dc_efi_dcs_is_signed())
 			{
 				SendMessage(GetDlgItem(hwnd, IDC_WIZ_CONF_WARNING), (UINT)WM_SETFONT, (WPARAM)__font_bold, 0);
-				SetWindowText(
+				SetWindowText(GetDlgItem(hwnd, IDC_WIZ_CONF_WARNING),
+					L"Your EFI firmware is configured for secure boot. "
 #ifdef SB_SHIM
-					GetDlgItem(hwnd, IDC_WIZ_CONF_WARNING),
-					L"Your UEFI is configured for secure boot, you will need to use a shim loader!\n"
-					L"It is strongly recommended to disable secure boot in your firmware settings.\n"
+					L"You will need to use a shim loader, otherwise THE SYSTEM WILL NOT BOOT!!! "
+					L"It is strongly recommended to disable secure boot in your firmware settings.");
 #else
-					GetDlgItem(hwnd, IDC_WIZ_CONF_WARNING),
-					L"Secure Boot is enabled in UEFI. "
-					L"The DCS EFI bootloader is UNSIGNED and MUST be manually signed BY YOU, "
-					L"or Secure Boot MUST be disabled, otherwise THE SYSTEM WILL NOT BOOT!!!"
+					L"The DCS EFI bootloader is not signed with a certificate trusted by your firmware. "
+					L"It MUST be signed using a certificate present in the EFI DB variable, or Secure Boot MUST be disabled, "
+					L"otherwise, THIS SYSTEM WILL NOT BOOT!!!");
+
+				EnableWindow(GetDlgItem(parent, IDOK), FALSE);
 #endif
-				);
+
 			}
 		}
 		else

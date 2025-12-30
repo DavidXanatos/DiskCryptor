@@ -70,7 +70,7 @@ jobs:
           path: |
             DcsPkg/ExportX64/*
 
-  Build_ARM64:
+  Build_AA64:
 
     runs-on: windows-2022
     #runs-on: windows-2019
@@ -133,7 +133,7 @@ jobs:
             DcsPkg/ExportAA64/*
 
 
-#  Build_X86:
+#  Build_IA32:
 #
 #    runs-on: windows-2022
 #    #runs-on: windows-2019

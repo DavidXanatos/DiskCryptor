@@ -22,7 +22,7 @@ BEGIN
         BEGIN
             VALUE "FileDescription", "DiskCryptor GUI"
             VALUE "FileVersion", DC_FILE_VER
-            VALUE "LegalCopyright", "Copyright (c) 2007-2023"
+            VALUE "LegalCopyright", "Copyright (c) 2007-2026"
             VALUE "OriginalFilename", "dcrypt.exe"
             VALUE "ProductName", "DiskCryptor"
             VALUE "ProductVersion", DC_PRODUCT_VER
