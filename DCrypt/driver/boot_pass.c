@@ -198,6 +198,9 @@ NTSTATUS ReadEfiVar(_In_ PCWSTR Name, _In_ const GUID* VendorGuid, _Outptr_resul
 	*OutSize = 0;
 	if (OutAttributes) *OutAttributes = 0;
 
+	if (!pNtQuerySystemEnvironmentValueEx)
+		return STATUS_ENTRYPOINT_NOT_FOUND;
+
 	RtlInitUnicodeString(&usName, Name);
 
 	status = pNtQuerySystemEnvironmentValueEx(&usName, (LPGUID)(VendorGuid ? VendorGuid : &gEfiDcsVariableGuid), NULL, &size, &attrs);
@@ -205,7 +208,7 @@ NTSTATUS ReadEfiVar(_In_ PCWSTR Name, _In_ const GUID* VendorGuid, _Outptr_resul
 		return status; // e.g. STATUS_VARIABLE_NOT_FOUND, STATUS_PRIVILEGE_NOT_HELD, etc.
 	}
 
-	PVOID buf = ExAllocatePool2(POOL_FLAG_NON_PAGED, size, 'vifE');
+	PVOID buf = ExAllocatePoolWithTag(NonPagedPool, size, '8_cd');
 	if (!buf) return STATUS_INSUFFICIENT_RESOURCES;
 
 	status = pNtQuerySystemEnvironmentValueEx(&usName, (LPGUID)(VendorGuid ? VendorGuid : &gEfiDcsVariableGuid), buf, &size, &attrs);

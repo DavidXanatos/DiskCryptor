@@ -801,6 +801,7 @@ int wmain(int argc, wchar_t *argv[])
 
 		if (d_inited == 0)
 		{
+#ifndef _DEBUG
 			if (vers > DC_DRIVER_VER) 
 			{
 				wprintf(
@@ -816,6 +817,7 @@ int wmain(int argc, wchar_t *argv[])
 					L"please update DiskCryptor and reboot you system\n");
 				resl = ST_OK; break;
 			}
+#endif
 
 			resl = ST_ERROR; break;
 		}
