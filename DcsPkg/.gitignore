@@ -30,10 +30,6 @@
 
 Build
 Export
-Library/VeraCryptLib/BootCommon.h
-Library/VeraCryptLib/BootDefs.h
-Library/VeraCryptLib/common/
-Library/VeraCryptLib/crypto/
 SecureBoot/keys/
 SecureBoot/makecert.exe
 SecureBoot/pvk2pfx.exe
