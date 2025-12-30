@@ -22,7 +22,7 @@
   LIBRARY_CLASS                  = CommonLib|DXE_DRIVER DXE_RUNTIME_DRIVER UEFI_APPLICATION UEFI_DRIVER
 
 #
-#  VALID_ARCHITECTURES           = IA32 X64
+#  VALID_ARCHITECTURES           = IA32 X64 AARCH64
 #
 
 [Sources.common]
@@ -47,6 +47,9 @@
 
 [Sources.X64]
   X64/EfiCpuHalt.asm
+
+[Sources.AARCH64]
+  AARCH64/EfiCpuHalt.asm
 
 [Packages]
   MdePkg/MdePkg.dec

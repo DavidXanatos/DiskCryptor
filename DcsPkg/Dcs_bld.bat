@@ -32,8 +32,20 @@ set DCS_TYPE=DEBUG
 goto :bld
 
 :IA32Rel
-if /I NOT ["%1"]==["IA32Rel"] goto :bld
+if /I NOT ["%1"]==["IA32Rel"] goto :AARCH64
 set DCS_ARCH=IA32
+set DCS_TYPE=RELEASE
+goto :bld
+
+:AARCH64
+if /I NOT ["%1"]==["A64"] goto :AARCH64Rel
+set DCS_ARCH=AARCH64
+set DCS_TYPE=DEBUG
+goto :bld
+
+:AARCH64Rel
+if /I NOT ["%1"]==["A64Rel"] goto :bld
+set DCS_ARCH=AARCH64
 set DCS_TYPE=RELEASE
 
 :bld
@@ -46,7 +58,9 @@ if /I ["%2"]==["VS2019"] set DCS_TOOLCHAIN=VS2019
 if /I ["%2"]==["VS2022"] set DCS_TOOLCHAIN=VS2022
 
 set BIN_POSTFIX=
-if "%DCS_ARCH%"=="IA32" set BIN_POSTFIX=32
+if "%DCS_ARCH%"=="IA32" set BIN_POSTFIX=X86
+if "%DCS_ARCH%"=="AARCH64" set BIN_POSTFIX=A64
+if "%DCS_ARCH%"=="X64" set BIN_POSTFIX=X64
 
 call %~dp0bld.bat -t %DCS_TOOLCHAIN% -DSECURE_BOOT_ENABLE=1 -p %DCS_PKG_PATH% -b %DCS_TYPE% -a %DCS_ARCH%
 if ERRORLEVEL 1 goto :exit
@@ -61,15 +75,15 @@ if exist SecureBoot\keys\DCS_sign.pfx (
   call SecureBoot\efi_sign.bat ..\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\LegacySpeaker.efi SecureBoot\keys\DCS_sign.pfx SecureBoot\certs\DCS_sign.crt
 )
 
-echo %DCS_EXPORT%
-mkdir %DCS_EXPORT%
-copy /y %WORKSPACE%\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsBml.efi        %DCS_EXPORT%\DcsBml%BIN_POSTFIX%.efi
-copy /y %WORKSPACE%\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsBoot.efi       %DCS_EXPORT%\DcsBoot%BIN_POSTFIX%.efi
-copy /y %WORKSPACE%\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsCfg.efi        %DCS_EXPORT%\DcsCfg%BIN_POSTFIX%.dcs
-copy /y %WORKSPACE%\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsInfo.efi       %DCS_EXPORT%\DcsInfo%BIN_POSTFIX%.dcs
-copy /y %WORKSPACE%\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsInt.efi        %DCS_EXPORT%\DcsInt%BIN_POSTFIX%.dcs
-copy /y %WORKSPACE%\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsRe.efi         %DCS_EXPORT%\DcsRe%BIN_POSTFIX%.efi
-copy /y %WORKSPACE%\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\LegacySpeaker.efi %DCS_EXPORT%\LegacySpeaker%BIN_POSTFIX%.dcs
+echo %DCS_EXPORT%%BIN_POSTFIX%
+mkdir %DCS_EXPORT%%BIN_POSTFIX%
+copy /y %WORKSPACE%\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsBml.efi        %DCS_EXPORT%%BIN_POSTFIX%\DcsBml.efi
+copy /y %WORKSPACE%\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsBoot.efi       %DCS_EXPORT%%BIN_POSTFIX%\DcsBoot.efi
+copy /y %WORKSPACE%\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsCfg.efi        %DCS_EXPORT%%BIN_POSTFIX%\DcsCfg.dcs
+copy /y %WORKSPACE%\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsInfo.efi       %DCS_EXPORT%%BIN_POSTFIX%\DcsInfo.dcs
+copy /y %WORKSPACE%\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsInt.efi        %DCS_EXPORT%%BIN_POSTFIX%\DcsInt.dcs
+copy /y %WORKSPACE%\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsRe.efi         %DCS_EXPORT%%BIN_POSTFIX%\DcsRe.efi
+copy /y %WORKSPACE%\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\LegacySpeaker.efi %DCS_EXPORT%%BIN_POSTFIX%\LegacySpeaker.dcs
 
 :exit
 

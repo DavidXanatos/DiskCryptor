@@ -814,7 +814,9 @@ DcsVeraCrypt(
 		}
 	}
 
+#if defined(_M_X64) || defined(_M_IX86) || defined(__x86_64__) || defined(__i386__)
 	DetectX86Features();
+#endif
 	res = SecRegionTryDecrypt();
 	if (gTpm != NULL) {
 		gTpm->Lock(gTpm);

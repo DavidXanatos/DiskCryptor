@@ -190,5 +190,11 @@
     <ClCompile Include="DcsVeraCryptImpl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="crypto\Aes_hw_armv8.c">
+      <Filter>Crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="crypto\Aescrypt.c">
+      <Filter>Crypto</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

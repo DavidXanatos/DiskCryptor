@@ -1,3 +1,5 @@
+#include <Library/BaseMemoryLib.h>
+
 #include "include\defines.h"
 #include "include\boot\dc_header.h"
 #ifdef SMALL

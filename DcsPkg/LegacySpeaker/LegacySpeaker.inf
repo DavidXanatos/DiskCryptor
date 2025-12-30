@@ -42,5 +42,9 @@
   gEfiComponentName2ProtocolGuid
   gEfiComponentNameProtocolGuid
 
+#
+#  VALID_ARCHITECTURES           = IA32 X64 AARCH64
+#
+
 [Guids]
 

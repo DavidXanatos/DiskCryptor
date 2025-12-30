@@ -9,7 +9,7 @@
   PLATFORM_VERSION               = 0.1
   DSC_SPECIFICATION              = 0x00010005
   OUTPUT_DIRECTORY               = Build/DcsPkg
-  SUPPORTED_ARCHITECTURES        = X64 | IA32
+  SUPPORTED_ARCHITECTURES        = X64 | IA32 | AARCH64
   BUILD_TARGETS                  = DEBUG|RELEASE
 
 [BuildOptions]
@@ -17,7 +17,8 @@
   GCC:RELEASE_*_*_CC_FLAGS             = -DMDEPKG_NDEBUG
   INTEL:RELEASE_*_*_CC_FLAGS           = /D MDEPKG_NDEBUG
   MSFT:RELEASE_*_*_CC_FLAGS            = /D MDEPKG_NDEBUG
-  GCC:*_*_*_CC_FLAGS                   = -mno-mmx -mno-sse
+  GCC:*_*_X64_CC_FLAGS                 = -mno-mmx -mno-sse
+  GCC:*_*_IA32_CC_FLAGS                = -mno-mmx -mno-sse
 
 ################################################################################
 #
@@ -74,6 +75,10 @@
   DcsTpmLib|DcsPkg/Library/DcsTpmLib/DcsTpmLib.inf
   VeraCryptLib|DcsPkg/Library/VeraCryptLib/VeraCryptLib.inf
   DiskCryptorLib|DcsPkg/Library/DiskCryptorLib/DiskCryptorLib.inf
+
+# Architecture-specific overrides
+[LibraryClasses.AARCH64]
+  BaseMemoryLib|MdePkg/Library/BaseMemoryLib/BaseMemoryLib.inf
 
  [LibraryClasses.common.UEFI_APPLICATION]
   ShellLib|ShellPkg/Library/UefiShellLib/UefiShellLib.inf

@@ -3,6 +3,8 @@
 #include "cpu.h"
 #include "misc.h"
 
+#if defined(_M_X64) || defined(_M_IX86) || defined(__x86_64__) || defined(__i386__)
+
 #ifndef EXCEPTION_EXECUTE_HANDLER
 #define EXCEPTION_EXECUTE_HANDLER 1
 #endif
@@ -401,3 +403,5 @@ void DisableCPUExtendedFeatures ()
 
 #endif
 
+
+#endif

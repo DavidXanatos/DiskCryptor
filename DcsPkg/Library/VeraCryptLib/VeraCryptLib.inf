@@ -13,7 +13,7 @@
   LIBRARY_CLASS                  = VeraCryptLib|DXE_DRIVER DXE_RUNTIME_DRIVER UEFI_APPLICATION UEFI_DRIVER
 
 #
-#  VALID_ARCHITECTURES           = IA32 X64
+#  VALID_ARCHITECTURES           = IA32 X64 AARCH64
 #
 
 [Sources.common]
@@ -37,8 +37,6 @@ crypto\Aeskey.c
 crypto\Aesopt.h
 crypto\Aestab.c
 crypto\Aestab.h
-crypto\Aes_hw_cpu.nasm
-crypto\Aes_hw_cpu.h
 crypto\config.h
 crypto\misc.h
 crypto\Rmd160.c
@@ -66,14 +64,22 @@ BootDefs.h
 DcsVeraCrypt.c
 DcsVeraCryptImpl.c
 DcsVeraCrypt.h
+crypto\Aes_hw_cpu.h
 
 [Sources.X64]
 crypto\Aes_x64.nasm
 crypto\Gost89_x64.nasm
+crypto\Aes_hw_cpu.nasm
 
 [Sources.IA32]
 llmath.c
 crypto\Aes_x86.nasm
+crypto\Aes_hw_cpu.nasm
+
+[Sources.AARCH64]
+crypto\Aes_hw_armv8.c
+crypto\Aescrypt.c
+
 
 [Binaries.X64]
 LIB|Twofish_x64.obj|*
@@ -106,3 +112,8 @@ MSFT:NOOPT_*_IA32_CC_FLAGS    == /arch:IA32 /nologo /c /WX /GS- /W4 /Gs32768 /D 
 MSFT:DEBUG_*_X64_CC_FLAGS    == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /Zi /Gm /D_UEFI
 MSFT:RELEASE_*_X64_CC_FLAGS  == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /D_UEFI
 MSFT:NOOPT_*_X64_CC_FLAGS    == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /Zi /Gm /Od /D_UEFI
+
+[BuildOptions.AARCH64]
+MSFT:DEBUG_*_AARCH64_CC_FLAGS    == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /Zi /Gm /D_UEFI
+MSFT:RELEASE_*_AARCH64_CC_FLAGS  == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /D_UEFI
+MSFT:NOOPT_*_AARCH64_CC_FLAGS    == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /Zi /Gm /Od /D_UEFI

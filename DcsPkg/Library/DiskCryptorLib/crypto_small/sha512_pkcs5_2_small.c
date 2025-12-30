@@ -21,6 +21,11 @@
 #include "sha512_small.h"
 #include "sha512_pkcs5_2_small.h"
 
+#ifdef _M_ARM64
+#define __movsb(a,b,c) memcpy(a, b, (size_t)(c))
+#define __stosb(a,b,c) memset(a, (int)(unsigned char)(b), (size_t)(c))
+#endif
+
 void sha512_hmac(const void *k, unsigned long k_len, const void *d, unsigned long d_len, unsigned char *out)
 {
 	sha512_ctx    ctx;
@@ -79,13 +84,13 @@ void sha512_pkcs5_2(int i_count, const void *pwd, unsigned long pwd_len, const v
 
 	while (dklen != 0)
 	{
-		// first interation
+		// first iteration
 		__movsb(buff, (const unsigned char*)salt, salt_len);
 		((unsigned long*)(buff + salt_len))[0] = _byteswap_ulong(block);
 		sha512_hmac(pwd, pwd_len, buff, salt_len + sizeof(unsigned long), hmac);
 		__movsb(blk, hmac, SHA512_DIGEST_SIZE);
 
-		// next interations
+		// next iterations
 		for (i = 1; i < i_count; i++) 
 		{
 			sha512_hmac(pwd, pwd_len, hmac, SHA512_DIGEST_SIZE, hmac);

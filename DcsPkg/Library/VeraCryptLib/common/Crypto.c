@@ -1170,7 +1170,9 @@ static BOOL HwEncryptionDisabled = FALSE;
 
 BOOL IsAesHwCpuSupported ()
 {
-#ifdef TC_WINDOWS_BOOT_AES
+#if defined (_M_ARM64)
+	return FALSE;
+#elif defined(TC_WINDOWS_BOOT_AES)
 	static BOOL state = FALSE;
 	static BOOL stateValid = FALSE;
 

@@ -25,7 +25,7 @@ char *XmlQuoteText (const char *textSrc, char *textDst, int textDstMaxSize);
 wchar_t *XmlQuoteTextW(const wchar_t *textSrc, wchar_t *textDst, int textDstMaxSize);
 int XmlWriteHeader (FILE *file);
 int XmlWriteFooter (FILE *file);
-#endif !defined(_UEFI)
+#endif
 
 #ifdef __cplusplus
 }

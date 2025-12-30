@@ -21,7 +21,7 @@
   LIBRARY_CLASS                  = DiskCryptorLib|DXE_DRIVER DXE_RUNTIME_DRIVER UEFI_APPLICATION UEFI_DRIVER
 
 #
-#  VALID_ARCHITECTURES           = IA32 X64
+#  VALID_ARCHITECTURES           = IA32 X64 AARCH64
 #
 
 [Sources]
@@ -88,6 +88,14 @@
   crypto_small/sha512_pkcs5_2_small.c
   crypto_small/sha512_small.c
 
+[Sources.AARCH64]
+  crypto_small/aes_small.c
+  crypto_small/serpent_small.c
+  crypto_small/twofish_small.c
+  crypto_small/xts_small.c
+  crypto_small/sha512_pkcs5_2_small.c
+  crypto_small/sha512_small.c
+
 [Packages]
   MdePkg/MdePkg.dec
   DcsPkg/DcsPkg.dec
@@ -113,3 +121,8 @@ MSFT:NOOPT_*_IA32_CC_FLAGS    == /arch:IA32 /nologo /c /WX /GS- /W4 /Gs32768 /D 
 MSFT:DEBUG_*_X64_CC_FLAGS    == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /Zi /Gm /D_UEFI
 MSFT:RELEASE_*_X64_CC_FLAGS  == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /D_UEFI
 MSFT:NOOPT_*_X64_CC_FLAGS    == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /Zi /Gm /Od /D_UEFI
+
+[BuildOptions.AARCH64]
+MSFT:DEBUG_*_AARCH64_CC_FLAGS    == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /Zi /Gm /D_UEFI
+MSFT:RELEASE_*_AARCH64_CC_FLAGS  == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /D_UEFI
+MSFT:NOOPT_*_AARCH64_CC_FLAGS    == /nologo /c /WX /GS- /W4 /Gs32768 /D UNICODE /Gy /FIAutoGen.h /EHs-c- /GR- /GF /Zi /Gm /Od /D_UEFI

@@ -84,7 +84,14 @@ PrepareMemory(
    IN UINTN    len,
    OUT VOID**  mem
    );
-   
+
+EFI_STATUS
+PrepareMemoryAny(
+   IN UINTN    len,
+   OUT VOID**  mem,
+   OUT UINTN*  allocatedAddress
+   );
+
 EFI_STATUS
 MemoryHasPattern (
 	CONST VOID* buffer,

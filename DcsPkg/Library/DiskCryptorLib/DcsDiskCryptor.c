@@ -116,31 +116,43 @@ EFI_STATUS PrepareBootDataBlock()
 
 	if (bootDataBlock != NULL) return ret;
 
-	// select memory in range 1-16M in steps of 1M
+//#ifdef _M_ARM64
+#if 1
+  ret = PrepareMemoryAny(sizeof(*bootDataBlock), &bootDataBlock, &addr);
+#else
+	// x86/x64: select memory in range 1-16M in steps of 1M
 	for (addr = 0x00100000; addr <= 0x01000000; addr += (256 * PAGE_SIZE)) {
 		ret = PrepareMemory(addr, sizeof(*bootDataBlock), &bootDataBlock);
 		if (!EFI_ERROR(ret)) {
 			break;
 		}
 	}
+#endif
 
 	if (EFI_ERROR(ret)) {
 		return ret;
 	}
 
 	if (gConfigDebug) {
-		OUT_PRINT(L"DEBUG: bdb address 0x%08x\n", (u32)addr);
+		OUT_PRINT(L"DEBUG: bdb address 0x%p\n", addr);
 	}
 	
 	// set memory region to be zeroed by the driver
 	bootDataBlock->bd_size = sizeof(*bootDataBlock);
-	bootDataBlock->bd_base = (u32)addr;
+//#ifdef _M_ARM64
+#if 1
+  bootDataBlock->bd_base64 = (u64)addr;
+#else
+  bootDataBlock->bd_base = (u32)addr;
+#endif
 
 	return ret;
 }
 
 EFI_STATUS SetBootDataBlock()
 {
+  EFI_STATUS ret = EFI_SUCCESS;
+
 	if (bootDataBlock == NULL)
 		return EFI_UNSUPPORTED;
 
@@ -152,6 +164,15 @@ EFI_STATUS SetBootDataBlock()
 
 	// memory region gets already set by PrepareBootDataBlock
 
+  //#ifdef _M_ARM64
+#if 1
+  UINTN addr = (UINTN)bootDataBlock->bd_base64;
+  ret = EfiSetVar(L"DcsBootDataAddr", NULL, &addr, sizeof(addr), EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS);
+  if (EFI_ERROR(ret)) {
+    return ret;
+  }
+#endif
+
 	// set password
 	bootDataBlock->password.size = gDCryptPassword.size; // in bytes
 	CopyMem(bootDataBlock->password.pass, gDCryptPassword.pass, bootDataBlock->password.size);
@@ -159,7 +180,7 @@ EFI_STATUS SetBootDataBlock()
 	// set additional data
 	bootDataBlock->flags = gDCryptFlags;
 
-	return EFI_SUCCESS;
+	return ret;
 }
 
 //////////////////////////////////////////////////////////////////////////

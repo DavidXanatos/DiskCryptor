@@ -203,7 +203,9 @@ DcsCfgMain(
 	InitBio();
 	InitFS();
 	InitConfig(CONFIG_FILE_PATH);
+#if defined(_M_X64) || defined(_M_IX86) || defined(__x86_64__) || defined(__i386__)
 	DetectX86Features();
+#endif
 
 	//
    // initialize the shell lib (we must be in non-auto-init...)

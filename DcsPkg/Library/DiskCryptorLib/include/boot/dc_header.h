@@ -3,7 +3,7 @@
 
 #include "..\volume.h"
 
-#ifdef _M_IX86
+#if defined(_M_IX86) || defined(_M_ARM64)
 #define SMALL
 #endif
 

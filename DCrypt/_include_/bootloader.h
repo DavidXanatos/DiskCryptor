@@ -196,6 +196,8 @@ typedef struct _bd_data {
 
 			// uefi data
 			long flags;
+
+			unsigned __int64 bd_base64;
 		} uefi;
 
 	} u;

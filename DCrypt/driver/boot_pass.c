@@ -40,14 +40,13 @@ static void *find_8b(u8 *data, int size, u32 s1, u32 s2)
 	return NULL;
 }
 
-static void dc_zero_boot(u32 bd_base, u32 bd_size)
+static void dc_zero_boot(u64 bd_base, u32 bd_size)
 {
 	PHYSICAL_ADDRESS addr;
 	void            *mem;
 	
 	/* map bootloader body */
-	addr.HighPart = 0;
-	addr.LowPart  = bd_base;
+	addr.QuadPart = bd_base;
 
 	if (mem = MmMapIoSpace(addr, bd_size, MmCached)) {
 		/* zero bootloader body */
@@ -91,6 +90,7 @@ int dc_try_load_bdb(PHYSICAL_ADDRESS addr)
 	OBJECT_ATTRIBUTES obj_a;
 	PVOID			 p_mem = NULL;
 	SIZE_T			 u_size = PAGE_SIZE;
+	u64				 base = 0;
 
 	RtlInitUnicodeString(&u_name, L"\\Device\\PhysicalMemory");
 	InitializeObjectAttributes(&obj_a, &u_name, OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE, (HANDLE)NULL, (PSECURITY_DESCRIPTOR)NULL);
@@ -102,9 +102,11 @@ int dc_try_load_bdb(PHYSICAL_ADDRESS addr)
 			{
 				if (bdb = find_8b((u8*)p_mem, PAGE_SIZE - offsetof(bd_data, u.extra), BDB_SIGN1, BDB_SIGN2))
 				{
+					base = ((dc_load_flags & DST_UEFI_BOOT) && bdb->bd_base == 0) ? bdb->u.uefi.bd_base64 : (u64)bdb->bd_base;
+
 					//DbgMsg("boot data block found at %p\n", bdb);
-					DbgMsg("boot data block found at 0x%x\n", addr.LowPart);
-					DbgMsg("boot loader base 0x%x size %d\n", bdb->bd_base, bdb->bd_size);
+					DbgMsg("boot data block found at 0x%016I64X\n", addr.QuadPart);
+					DbgMsg("boot loader base 0x%016I64X size %d\n", base, bdb->bd_size);
 					//DbgMsg("boot extra %08x %08x\n", bdb->u.legacy.old_int13, bdb->u.uefi.sign3);
 					//DbgMsg("boot password %S\n", bdb->password.pass); // no no no
 					/* restore realmode interrupts */
@@ -119,7 +121,7 @@ int dc_try_load_bdb(PHYSICAL_ADDRESS addr)
 					/* set bootloader load flag */
 					dc_load_flags |= DST_BOOTLOADER;
 					/* zero bootloader body */
-					dc_zero_boot(bdb->bd_base, bdb->bd_size);
+					dc_zero_boot(base, bdb->bd_size);
 
 					ret = ST_OK;
 				}
@@ -147,16 +149,6 @@ int dc_get_legacy_boot_pass()
 	return ST_ERROR;
 }
 
-int dc_get_uefi_boot_pass() 
-{
-	PHYSICAL_ADDRESS addr;
-	/* scan memory in range 1-16M in steps of 1M */
-	for (addr.QuadPart = 0x00100000; addr.LowPart <= 0x01000000; addr.LowPart += (256 * PAGE_SIZE)) {
-		if (dc_try_load_bdb(addr) == ST_OK) return ST_OK;
-	}
-	return ST_ERROR;
-}
-
 typedef NTSTATUS (NTAPI * P_NtQuerySystemEnvironmentValueEx)(
 	__in PUNICODE_STRING VariableName,
 	__in LPGUID VendorGuid,
@@ -165,11 +157,13 @@ typedef NTSTATUS (NTAPI * P_NtQuerySystemEnvironmentValueEx)(
 	__out_opt PULONG Attributes
 );
 
+P_NtQuerySystemEnvironmentValueEx pNtQuerySystemEnvironmentValueEx = NULL;
+
 BOOLEAN dc_efi_check()
 {
 	UNICODE_STRING uni;
 	RtlInitUnicodeString(&uni, L"ZwQuerySystemEnvironmentValueEx");
-	P_NtQuerySystemEnvironmentValueEx pNtQuerySystemEnvironmentValueEx = MmGetSystemRoutineAddress(&uni);
+	pNtQuerySystemEnvironmentValueEx = MmGetSystemRoutineAddress(&uni);
 	if (!pNtQuerySystemEnvironmentValueEx) // only exported on windows 8 and later
 		return FALSE;
 
@@ -191,22 +185,93 @@ BOOLEAN dc_efi_check()
 	return TRUE;
 }
 
+GUID  gEfiDcsVariableGuid = { 0x101f8560, 0xd73a, 0x4ff7, { 0x89, 0xf6, 0x81, 0x70, 0xf6, 0x61, 0x55, 0x87 } };
+
+NTSTATUS ReadEfiVar(_In_ PCWSTR Name, _In_ const GUID* VendorGuid, _Outptr_result_bytebuffer_(*OutSize) PVOID* OutData, _Out_ PULONG OutSize, _Out_opt_ PULONG OutAttributes)
+{
+	NTSTATUS status;
+	UNICODE_STRING usName;
+	ULONG size = 0;
+	ULONG attrs = 0;
+
+	*OutData = NULL;
+	*OutSize = 0;
+	if (OutAttributes) *OutAttributes = 0;
+
+	RtlInitUnicodeString(&usName, Name);
+
+	status = pNtQuerySystemEnvironmentValueEx(&usName, (LPGUID)(VendorGuid ? VendorGuid : &gEfiDcsVariableGuid), NULL, &size, &attrs);
+	if (status != STATUS_BUFFER_TOO_SMALL && status != STATUS_BUFFER_OVERFLOW) {
+		return status; // e.g. STATUS_VARIABLE_NOT_FOUND, STATUS_PRIVILEGE_NOT_HELD, etc.
+	}
+
+	PVOID buf = ExAllocatePool2(POOL_FLAG_NON_PAGED, size, 'vifE');
+	if (!buf) return STATUS_INSUFFICIENT_RESOURCES;
+
+	status = pNtQuerySystemEnvironmentValueEx(&usName, (LPGUID)(VendorGuid ? VendorGuid : &gEfiDcsVariableGuid), buf, &size, &attrs);
+	if (!NT_SUCCESS(status)) {
+		ExFreePool(buf);
+		return status;
+	}
+
+	*OutData = buf;
+	*OutSize = size;
+	if (OutAttributes) *OutAttributes = attrs;
+	return STATUS_SUCCESS;
+}
+
+int dc_get_uefi_boot_pass() 
+{
+	//#ifdef _M_ARM64
+#if 1
+	PVOID data;
+	ULONG dataSize;
+	ULONG attrs;
+	PHYSICAL_ADDRESS addr;
+
+	NTSTATUS status = ReadEfiVar(L"DcsBootDataAddr", NULL, &data, &dataSize, &attrs);
+	if (!NT_SUCCESS(status)) {
+		DbgMsg("DcsBootDataAddr not found\n");
+		return ST_ERROR;
+	}
+
+	if(dataSize < sizeof(u64))
+		DbgMsg("DcsBootDataAddr size invalid %d\n", dataSize);
+	else
+		addr.QuadPart = *(u64*)data;
+
+	ExFreePool(data);
+
+	if (!addr.QuadPart) return ST_ERROR;
+	
+	DbgMsg("DcsBootDataAddr value 0x%p\n", addr.QuadPart);
+
+	if (dc_try_load_bdb(addr) == ST_OK) return ST_OK;
+
+#else
+	PHYSICAL_ADDRESS addr;
+	/* scan memory in range 1-16M in steps of 1M */
+	for (addr.QuadPart = 0x00100000; addr.LowPart <= 0x01000000; addr.LowPart += (256 * PAGE_SIZE)) {
+		if (dc_try_load_bdb(addr) == ST_OK) return ST_OK;
+	}
+#endif
+	return ST_ERROR;
+}
+
 void dc_get_boot_pass()
 {
 	DbgMsg("dc_get_boot_pass\n");
 
-	BOOLEAN efi_check_ok = dc_efi_check(); // on fail try booth
+	dc_efi_check();
 
-	if (!efi_check_ok || (dc_load_flags & DST_UEFI_BOOT)) 
+	if (dc_load_flags & DST_UEFI_BOOT)
 	{
 		if (dc_get_uefi_boot_pass() == ST_OK) {
-			if(!efi_check_ok) 
-				dc_load_flags |= DST_UEFI_BOOT;
 			return;
 		}
 	}
 
-	if (!efi_check_ok || !(dc_load_flags & DST_UEFI_BOOT)) 
+	if (!(dc_load_flags & DST_UEFI_BOOT)) 
 	{
 		if (dc_get_legacy_boot_pass() == ST_OK) {
 			return;

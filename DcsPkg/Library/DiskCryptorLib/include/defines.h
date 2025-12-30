@@ -133,6 +133,15 @@ typedef void (*callback_ex)(void*,void*);
 
  #define _disable() { __asm { cli }; }
  #define _enable()  { __asm { sti }; }
+#elif defined(_M_ARM64)
+ // x86 __movsq equivalent intent: copy c bytes
+ #define fastcpy(a,b,c)  CopyMem(pv(a), pv(b), (UINTN)(c))
+
+ // same behavior as your selector (but without width-based intrinsics)
+ #define autocpy(a,b,c)  CopyMem(pv(a), pv(b), (UINTN)(c))
+
+ // zero-fill s bytes
+ #define zeroauto(m,s)   SetMem(pv(m), (UINTN)(s), 0)
 #else
  #define fastcpy(a,b,c) __movsq(pv(a), pv(b), (size_t)(c) / 8)
  

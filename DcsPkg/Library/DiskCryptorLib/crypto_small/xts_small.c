@@ -23,6 +23,11 @@
 */
 #include "xts_small.h"
 
+#ifdef _M_ARM64
+#define __movsb(a,b,c) memcpy(a, b, (size_t)(c))
+#define __stosb(a,b,c) memset(a, (int)(unsigned char)(b), (size_t)(c))
+#endif
+
 typedef void (*set_key_p)(const unsigned char *key, void *skey);
 typedef void (*encrypt_p)(const unsigned char *in, unsigned char *out, void *key);
 

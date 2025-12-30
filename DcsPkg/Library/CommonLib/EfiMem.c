@@ -73,9 +73,45 @@ PrepareMemory(
    return status;
 }
 
+EFI_STATUS
+PrepareMemoryAny(
+   IN UINTN    len,
+   OUT VOID**  mem,
+   OUT UINTN*  allocatedAddress)
+{
+   EFI_STATUS              status;
+   EFI_PHYSICAL_ADDRESS    ptr;
+   VOID*                   buf;
+   UINTN                   pages;
+
+   pages = ((len & ~0x0FFF) + 0x1000) >> 12;
+
+   // Try to allocate below 4GB first
+   //ptr = 0xFFFFFFFF;
+   //status = gBS->AllocatePages(AllocateMaxAddress, EfiMemoryMappedIO, pages, &ptr);
+
+   //if (EFI_ERROR(status)) {
+      // If that fails, try any address
+      status = gBS->AllocatePages(AllocateAnyPages, EfiMemoryMappedIO, pages, &ptr);
+   //}
+
+   if (EFI_ERROR(status)) {
+      return status;
+   }
+
+   buf = (void*)(UINTN)ptr;
+   SetMem(buf, pages << 12, 0);
+   *mem = buf;
+   if (allocatedAddress != NULL) {
+      *allocatedAddress = (UINTN)ptr;
+   }
+   return status;
+}
+
 //////////////////////////////////////////////////////////////////////////
 // Memory misc
 //////////////////////////////////////////////////////////////////////////
+
 EFI_STATUS MemoryHasPattern (
 	CONST VOID* buffer,
 	UINTN bufferLen,

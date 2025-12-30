@@ -129,8 +129,10 @@
     <ClCompile Include="common\Pkcs5.c" />
     <ClCompile Include="common\Volumes.c" />
     <ClCompile Include="common\Xts.c" />
+    <ClCompile Include="crypto\Aescrypt.c" />
     <ClCompile Include="crypto\Aeskey.c" />
     <ClCompile Include="crypto\Aestab.c" />
+    <ClCompile Include="crypto\Aes_hw_armv8.c" />
     <ClCompile Include="crypto\Camellia.c" />
     <ClCompile Include="crypto\cpu.c" />
     <ClCompile Include="crypto\GostCipher.c" />

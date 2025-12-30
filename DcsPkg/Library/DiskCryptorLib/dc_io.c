@@ -1,3 +1,5 @@
+#include <Library/BaseMemoryLib.h>
+
 #include "include\defines.h"
 #include "include\boot\boot.h"
 #include "include\boot\bios.h"
