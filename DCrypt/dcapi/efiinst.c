@@ -39,9 +39,12 @@ static const wchar_t* efi_var_guid = L"{8BE4DF61-93CA-11D2-AA0D-00E098032B8C}";
 
 static GUID efi_sys_partition = { 0xc12a7328, 0xf81f, 0x11d2, { 0xba, 0x4b, 0x00, 0xa0, 0xc9, 0x3e, 0xc9, 0x3b } }; /*c12a7328-f81f-11d2-ba4b-00a0c93ec93b*/
 
-#ifdef _M_IX86
+#if defined(_M_IX86)
 static const wchar_t* efi_boot_file = L"\\EFI\\Boot\\BOOTia32.efi";
 static const wchar_t* efi_boot_bak = L"\\EFI\\Boot\\original_BOOTia32.bin";
+#elif defined(_M_ARM64)
+static const wchar_t* efi_boot_file = L"\\EFI\\Boot\\BOOTaa64.efi";
+static const wchar_t* efi_boot_bak = L"\\EFI\\Boot\\original_BOOTaa64.bin";
 #else
 static const wchar_t* efi_boot_file = L"\\EFI\\Boot\\BOOTx64.efi";
 static const wchar_t* efi_boot_bak = L"\\EFI\\Boot\\original_BOOTx64.bin";
@@ -75,8 +78,8 @@ static const int dcs_boot_res = IDR_EFI_BOOT;
 
 #else
 
-static const wchar_t* dcs_zip_file = L"DcsPkg";
 #ifdef _M_IX86
+static const wchar_t* dcs_zip_file = L"DcsPkg_IA32";
 static const efi_file_t dcs_files[] = {
 	{L"DcsBoot32.efi",		L"\\EFI\\DCS\\DcsBoot.efi"}, // boot file must be first
 	{L"DcsInt32.dcs",		L"\\EFI\\DCS\\DcsInt.dcs"},
@@ -87,6 +90,11 @@ static const efi_file_t dcs_files[] = {
 static const wchar_t* dcs_re_file = L"DcsRe32.efi";
 static const wchar_t* dcs_boot_file = L"DcsBoot32.efi";
 #else
+#ifdef _M_ARM64
+static const wchar_t* dcs_zip_file = L"DcsPkg_AA64";
+#else
+static const wchar_t* dcs_zip_file = L"DcsPkg_X64";
+#endif
 static const efi_file_t dcs_files[] = {
 	{L"DcsBoot.efi",		L"\\EFI\\DCS\\DcsBoot.efi"}, // boot file must be first
 	{L"DcsInt.dcs",			L"\\EFI\\DCS\\DcsInt.dcs"},
@@ -107,7 +115,7 @@ static const wchar_t* dcs_test_file = L"\\EFI\\DCS\\TestHeader";
 #ifdef SB_SHIM
 // shim for secure boot
 #ifdef _M_IX86
-static const wchar_t* shim_zip_file = L"shim_ia32.zip";
+static const wchar_t* shim_zip_file = L"Shim_IA32.zip";
 static const efi_file_t shim_files[] = {
 	{L"BOOTIA32.EFI",		L"\\EFI\\Boot\\BOOTIA32.EFI"}, // shim
 	{L"grubia32.efi",		L"\\EFI\\Boot\\grubia32.efi"}, // preloader
@@ -117,7 +125,7 @@ static const efi_file_t shim_files[] = {
 static const wchar_t* shim_boot_file = L"\\EFI\\Boot\\grubia32_real.efi";
 static const wchar_t* shim_boot_aux = L"\\EFI\\Boot\\shimia32.efi";
 #else
-static const wchar_t* shim_zip_file = L"shim_x64.zip";
+static const wchar_t* shim_zip_file = L"Shim_X64.zip";
 static const efi_file_t shim_files[] = {
 	{L"BOOTX64.EFI",			L"\\EFI\\Boot\\BOOTX64.EFI"}, // shim
 	{L"grubx64.efi",			L"\\EFI\\Boot\\grubx64.efi"}, // preloader

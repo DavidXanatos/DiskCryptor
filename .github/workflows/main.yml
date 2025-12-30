@@ -50,16 +50,13 @@ jobs:
         shell: cmd
         run: DcsPkg\ci_build_dcs.cmd X64Rel
 
-      #- name: Build DCrypt x86
-      #  run: msbuild /t:build DCrypt\dcrypt.sln /p:Configuration="Release" /p:Platform=Win32
-
       - name: Build DCrypt
         run: msbuild /t:build DCrypt\dcrypt.sln /p:Configuration="Release" /p:Platform=x64 /m
 
       - name: Upload DCrypt
         uses: actions/upload-artifact@v4.4.3
         with:
-          name: DCryptX64
+          name: DCrypt_X64
           path: |
             DCrypt/Bin/Release_amd64/*.exe
             DCrypt/Bin/Release_amd64/*.dll
@@ -69,7 +66,7 @@ jobs:
       - name: Upload Dcs
         uses: actions/upload-artifact@v4.4.3
         with:
-          name: DcsPkgX64
+          name: DcsPkg_X64
           path: |
             DcsPkg/ExportX64/*
 
@@ -121,7 +118,7 @@ jobs:
       - name: Upload DCrypt
         uses: actions/upload-artifact@v4.4.3
         with:
-          name: DCryptA64
+          name: DCrypt_AA64
           path: |
             DCrypt/Bin/Release_arm64/*.exe
             DCrypt/Bin/Release_arm64/*.dll
@@ -131,9 +128,9 @@ jobs:
       - name: Upload Dcs
         uses: actions/upload-artifact@v4.4.3
         with:
-          name: DcsPkgA64
+          name: DcsPkg_AA64
           path: |
-            DcsPkg/ExportA64/*
+            DcsPkg/ExportAA64/*
 
 
 #  Build_X86:
@@ -184,7 +181,7 @@ jobs:
 #      - name: Upload DCrypt
 #        uses: actions/upload-artifact@v4.4.3
 #        with:
-#          name: DCryptX86
+#          name: DCrypt_IA32
 #          path: |
 #            DCrypt/Bin/Release_i386/*.exe
 #            DCrypt/Bin/Release_i386/*.dll
@@ -194,6 +191,6 @@ jobs:
 #      - name: Upload Dcs
 #        uses: actions/upload-artifact@v4.4.3
 #        with:
-#          name: DcsPkgX86
+#          name: DcsPkg_IA32
 #          path: |
-#            DcsPkg/ExportX86/*
+#            DcsPkg/ExportIA32/*

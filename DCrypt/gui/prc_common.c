@@ -393,8 +393,6 @@ _tab_proc(
 					ShowWindow(GetDlgItem(hwnd, IDC_USE_SMALL_BOOT), is_efi ? SW_HIDE : SW_SHOW);
 #ifdef SB_SHIM
 					ShowWindow(GetDlgItem(hwnd, IDC_USE_SHIM_BOOT), is_efi ? SW_SHOW : SW_HIDE);
-#else
-					ShowWindow(GetDlgItem(hwnd, IDC_USE_SHIM_BOOT), SW_HIDE);
 #endif
 				}
 				break;

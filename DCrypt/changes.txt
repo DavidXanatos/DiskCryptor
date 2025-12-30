@@ -2,7 +2,7 @@
   [*] Updated driver to build with VS2022
   [*] EFI bootloader now builds with latest edk2-stable202511
   [-] Removed shim bootloader
-  [*] EFI bootloader files are no longer embedded in the binary; they are stored in DcsPkg.zip, or copied from DcsPkg folder if present
+  [*] EFI bootloader files are no longer embedded in the binary; they are stored in DcsPkg_[ARCH].zip, or copied from DcsPkg_[ARCH] folder if present
   [+] added dccon commands -replacems and -restorems
   [+] added ARM64 support to driver
   [-] removed 32-bit OS support
