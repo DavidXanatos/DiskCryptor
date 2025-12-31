@@ -54,5 +54,6 @@ int dc_api dc_clear_pending_header(const wchar_t* device);
 int dc_api dc_get_pending_header_nt(const wchar_t* device, wchar_t* path);
 
 int dc_api dc_efi_dcs_is_signed();
+int dc_api dc_efi_enum_allowed_signers(int(*cb)(const BYTE* hash, const char* name, PVOID param), PVOID param);
 
 #endif

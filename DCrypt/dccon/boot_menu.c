@@ -517,6 +517,31 @@ static int dc_is_disk_ssd(int dsk_num)
 	return dc_is_device_ssd(disk);
 }
 
+int list_signer(const BYTE* hash, const char* name, PVOID param)
+{
+	/*printf("%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X %s\n", 
+		hash[0], hash[1], hash[2], hash[3],
+		hash[4], hash[5], hash[6], hash[7],
+		hash[8], hash[9], hash[10], hash[11],
+		hash[12], hash[13], hash[14], hash[15],
+		hash[16], hash[17], hash[18], hash[19], 
+		name);*/
+
+	int* temp = (int*)param;
+	char buf[65];
+	strcpy_s(buf, sizeof(buf), name);
+
+	if (temp && *temp) {
+		if(--*temp == 0)
+			strcat_s(buf, sizeof(buf), " *");
+	}
+
+	printf("%-64s%02X%02X%02X%02X...%02X%02X\n", buf,
+		hash[0], hash[1], hash[2], hash[3],
+		hash[18], hash[19]);
+	return ST_OK;
+}
+
 int boot_menu(int argc, wchar_t *argv[])
 {
 	ldr_config conf;
@@ -614,11 +639,29 @@ int boot_menu(int argc, wchar_t *argv[])
 			//	L"+ - Windows bootloader replaced to load DCS loader\n"
 			//	L"- - Windows bootloader not replaced\n"
 			//);
+		}
 
-			if (dc_efi_dcs_is_signed()) {
+		if ( (argc == 3) && (wcscmp(argv[2], L"-sb_info") == 0) )
+		{
+			if (!dc_efi_check()) {
+				wprintf(L"System is not running in EFI mode\n");
+				resl = ST_OK; break;
+			}
+
+			int sb_enabled = dc_efi_is_secureboot();
+			int signer = dc_efi_dcs_is_signed();
+
+			wprintf(L"-------------------------------------------------------------------------------\n");
+			wprintf(L"Allowed Signers                                        Secure Boot is %s\n", sb_enabled ? L"ENABLED" : L"DISABLED");
+			wprintf(L"-------------------------------------------------------------------------------\n");
+
+			int temp = signer;
+			dc_efi_enum_allowed_signers(list_signer, &temp);
+
+			if (signer) {
 				wprintf(
 					L"\n"
-					L"EFI DCS Bootloader is signed for Secure Boot\n"
+					L"* used to sign EFI DCS Bootloader for Secure Boot on this system\n"
 				);
 			} 
 

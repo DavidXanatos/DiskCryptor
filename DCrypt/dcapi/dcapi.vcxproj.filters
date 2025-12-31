@@ -53,7 +53,7 @@
     <ClCompile Include="w10.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sbcheck.c">
+    <ClCompile Include="sb_sup.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

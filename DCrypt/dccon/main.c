@@ -741,6 +741,18 @@ int wmain(int argc, wchar_t *argv[])
 	int      vers;
 	int      d_inited;
 
+	for (; argc > 1; argc--) 
+	{
+		if (wcscmp(argv[argc - 1], L"-dbg_wait") == 0)
+		{
+			while (! IsDebuggerPresent())
+				Sleep(500);
+			__debugbreak();
+		}
+		else
+			break;
+	}
+
 	g_argc = argc; g_argv = argv;
 	do
 	{
@@ -1046,6 +1058,9 @@ int wmain(int argc, wchar_t *argv[])
 			dc_pass   *pass;			
 			crypt_info crypt;
 			DC_FLAGS   flags;
+			int        is_efi;
+
+			is_efi = dc_efi_check();
 
 			if ( (inf = find_device(argv[2])) == NULL ) {
 				resl = ST_NF_DEVICE; break;
@@ -1081,9 +1096,6 @@ int wmain(int argc, wchar_t *argv[])
 				ldr_config conf;
 				DC_FLAGS   flags;
 				int        dsk_1, dsk_2;
-				int        is_efi;
-
-				is_efi = dc_efi_check();
 
 				if ( (crypt.cipher_id != CF_AES) )
 				{
@@ -1141,7 +1153,7 @@ int wmain(int argc, wchar_t *argv[])
 				resl = ST_OK; break;
 			}
 
-			if ((inf->status.flags & F_SYSTEM) && !((dc_device_control(DC_CTL_GET_FLAGS, NULL, 0, &flags, sizeof(flags)) == NO_ERROR) && (flags.load_flags & DST_BOOTLOADER)))
+			if (is_efi && (inf->status.flags & F_SYSTEM) && !((dc_device_control(DC_CTL_GET_FLAGS, NULL, 0, &flags, sizeof(flags)) == NO_ERROR) && (flags.load_flags & DST_BOOTLOADER)))
 			{
 				resl = dc_prep_encrypt(inf->device, pass, &crypt);
 

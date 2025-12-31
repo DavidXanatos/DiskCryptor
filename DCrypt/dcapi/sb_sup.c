@@ -1,7 +1,7 @@
 ﻿/*
 *
 * DiskCryptor - open source partition encryption tool
-* Copyright (c) 2019-2026
+* Copyright (c) 2025-2026
 * DavidXanatos <info@diskcryptor.org>
 *
 
@@ -81,6 +81,7 @@ static const GUID EFI_CERT_X509_ALT_GUID =
 // Structure to hold certificate thumbprint
 typedef struct _cert_thumbprint {
 	BYTE hash[20]; // SHA1 hash
+	char CN[65];
 	struct _cert_thumbprint* next;
 } cert_thumbprint;
 
@@ -106,35 +107,28 @@ static void dc_debug_guid(const GUID* guid, const char* label)
 		guid->Data4[4], guid->Data4[5], guid->Data4[6], guid->Data4[7]);
 	OutputDebugStringA(msg);
 }
-#else
-#define dc_debug_guid(guid, label) ((void)0)
 #endif
 
-// Helper function to compare certificate thumbprints
-static int dc_compare_thumbprint(const BYTE* hash1, const BYTE* hash2)
-{
-	return memcmp(hash1, hash2, 20) == 0;
-}
-
 // Helper function to add certificate thumbprint to allowed list
-static int dc_add_allowed_signer(const BYTE* hash)
+static int dc_add_allowed_signer(const BYTE* hash, const char* name)
 {
 	cert_thumbprint* entry = (cert_thumbprint*)malloc(sizeof(cert_thumbprint));
 	if (entry == NULL) return ST_NOMEM;
 
 	memcpy(entry->hash, hash, 20);
+	strncpy_s(entry->CN, sizeof(entry->CN), name, _TRUNCATE);
 	entry->next = g_allowed_signers;
 	g_allowed_signers = entry;
 	return ST_OK;
 }
 
 // Helper function to check if certificate is in allowed list
-static int dc_is_signer_allowed(const BYTE* hash)
+int dc_is_signer_allowed(const BYTE* hash)
 {
 	cert_thumbprint* current = g_allowed_signers;
-	while (current != NULL) {
-		if (dc_compare_thumbprint(current->hash, hash)) {
-			return 1;
+	for (int i = 1; current != NULL; i++) {
+		if (memcmp(current->hash, hash, 20) == 0) {
+			return i;
 		}
 		current = current->next;
 	}
@@ -204,6 +198,7 @@ int dc_init_secureboot_db()
 	BYTE* dbData = NULL;
 	int resl = ST_OK;
 	const DWORD MAX_DB_SIZE = 65536; // 64KB should be enough for UEFI DB
+	char certName[65];
 
 	// Only initialize once
 	if (g_secureboot_db_initialized) {
@@ -234,7 +229,7 @@ int dc_init_secureboot_db()
 		// This shouldn't happen, but be defensive
 		free(dbData);
 		g_secureboot_db_initialized = 1;
-		return ST_OK;
+		return ST_NOMEM;
 	}
 
 	// Parse the EFI signature database
@@ -243,8 +238,9 @@ int dc_init_secureboot_db()
 	while (offset + sizeof(EFI_SIGNATURE_LIST) <= dbSize) {
 		EFI_SIGNATURE_LIST* sigList = (EFI_SIGNATURE_LIST*)(dbData + offset);
 
-		// Debug output
+#ifdef _DEBUG
 		dc_debug_guid(&sigList->SignatureType, "SignatureType");
+#endif
 
 		// Validate signature list size
 		if (sigList->SignatureListSize == 0 ||
@@ -276,17 +272,18 @@ int dc_init_secureboot_db()
 				// This is an X.509 certificate - calculate its thumbprint
 				BYTE thumbprint[20];
 				if (dc_calculate_thumbprint(certData, certSize, thumbprint) == ST_OK) {
-					dc_add_allowed_signer(thumbprint);
-#ifdef _DEBUG
-					char msg[512];
-					char certName[256] = "Unknown";
-
 					PCCERT_CONTEXT pCertContext = CertCreateCertificateContext(X509_ASN_ENCODING | PKCS_7_ASN_ENCODING, certData, certSize);
 					if (pCertContext != NULL) {
 						CertGetNameStringA(pCertContext, CERT_NAME_SIMPLE_DISPLAY_TYPE, 0, NULL, certName, sizeof(certName));
 						CertFreeCertificateContext(pCertContext);
 					}
+					else {
+						strcpy_s(certName, _countof(certName), "Unknown");
+					}
 
+					dc_add_allowed_signer(thumbprint, certName);
+#ifdef _DEBUG
+					char msg[512];
 					sprintf_s(msg, sizeof(msg),
 						"Added cert: %s (%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X)\n", certName, 
 						thumbprint[0], thumbprint[1], thumbprint[2], thumbprint[3],
@@ -312,25 +309,27 @@ int dc_init_secureboot_db()
 	free(dbData);
 	g_secureboot_db_initialized = 1;
 
-#ifdef _DEBUG
-	{
-		int count = 0;
-		cert_thumbprint* current = g_allowed_signers;
-		while (current != NULL) {
-			count++;
-			current = current->next;
-		}
-		char msg[128];
-		sprintf_s(msg, sizeof(msg), "Loaded %d certificates from UEFI DB\n", count);
-		OutputDebugStringA(msg);
-	}
-#endif
+	return resl;
+}
 
+int dc_efi_enum_allowed_signers(int(*cb)(const BYTE* hash, const char* name, PVOID param), PVOID param)
+{
+	int resl = ST_NF_FILE;
+
+	if (dc_init_secureboot_db() != ST_OK) return resl;
+
+	cert_thumbprint* current = g_allowed_signers;
+	while (current != NULL) {
+		resl = cb(current->hash, current->CN, param);
+		if (resl != ST_OK)
+			return resl;
+		current = current->next;
+	}
 	return resl;
 }
 
 // Extract certificate thumbprint from a signed file
-static int dc_extract_cert_from_file(const wchar_t* filePath, BYTE* thumbprint)
+int dc_extract_cert_from_file(const wchar_t* filePath, BYTE* thumbprint)
 {
 	HCERTSTORE hStore = NULL;
 	HCRYPTMSG hMsg = NULL;
@@ -413,7 +412,7 @@ static int dc_extract_cert_from_file(const wchar_t* filePath, BYTE* thumbprint)
 }
 
 // Extract certificate thumbprint from data in memory
-static int dc_extract_cert_from_memory(const void* data, size_t size, BYTE* thumbprint)
+int dc_extract_cert_from_memory(const void* data, size_t size, BYTE* thumbprint)
 {
 	HCERTSTORE hStore = NULL;
 	HCRYPTMSG hMsg = NULL;
@@ -500,6 +499,7 @@ static int dc_extract_cert_from_memory(const void* data, size_t size, BYTE* thum
 	return result;
 }
 
+/*
 // Verify signature of a file on disk
 int dc_verify_file_signature(const wchar_t* filePath)
 {
@@ -643,3 +643,4 @@ int dc_verify_memory_signature(const void* data, size_t size)
 
 	return resl;
 }
+*/

@@ -2119,9 +2119,17 @@ int dc_api dc_get_pending_header_nt(const wchar_t* device, wchar_t* path)
 
 #ifdef USE_DCS_ZIP
 
+//
+// Note: we only check if the dcs files have the right signer attached, not if the sugnature is actually valid
+// we want to check if the files should be trusted according to UEFI Secure Boot DB, not if thay are not corrupted.
+//
+
 int dc_init_secureboot_db();
-int dc_verify_file_signature(const wchar_t* filePath);
-int dc_verify_memory_signature(const void* data, size_t size);
+int dc_is_signer_allowed(const BYTE* hash);
+int dc_extract_cert_from_file(const wchar_t* filePath, BYTE* thumbprint);
+int dc_extract_cert_from_memory(const void* data, size_t size, BYTE* thumbprint);
+//int dc_verify_file_signature(const wchar_t* filePath);
+//int dc_verify_memory_signature(const void* data, size_t size);
 
 static int dc_is_signable_file(const wchar_t* filename)
 {
@@ -2133,10 +2141,12 @@ static int dc_is_signable_file(const wchar_t* filename)
 static int dc_pkg_is_signed(const wchar_t *path, const efi_file_t* files, int count)
 {
 	int     resl;
+	int     cur, idx = 0;
 	wchar_t filePath[MAX_PATH];
+	BYTE	thumbprint[20];
 
 	resl = dc_init_secureboot_db();
-	if (resl != ST_OK) return resl;
+	if (resl != ST_OK) return 0;
 
 	for (int i = 0; i < count && resl == ST_OK; i++){
 		
@@ -2148,24 +2158,39 @@ static int dc_pkg_is_signed(const wchar_t *path, const efi_file_t* files, int co
 			return ST_NOMEM;
 		}
 
-		resl = dc_verify_file_signature(filePath);
+		if (dc_extract_cert_from_file(filePath, thumbprint) == ST_OK) {
+			cur = dc_is_signer_allowed(thumbprint);
+			if (!cur)
+				resl = ST_BL_NOT_PASSED; // Certificate not in UEFI DB
+			else if (idx == 0)
+				idx = cur; // return first files signer index
+		}
+		else {
+			resl = ST_BL_NOT_PASSED; // Could not extract certificate
+		}
+		//resl = dc_verify_file_signature(filePath);
 		if (resl != ST_OK) {
 			break;
 		}
 	}
-	return resl;
+
+	if(resl != ST_OK)
+		return 0;
+	return idx;
 }
 
 static int dc_zip_is_signed(struct zip_t *zip, const efi_file_t* files, int count)
 {
 	int     resl;
+	int     cur, idx = 0;
 	char    entryName[MAX_PATH];
 	void*   buffer = NULL;
 	size_t  bufsize = 0;
 	ssize_t bytes_read;
+	BYTE	thumbprint[20];
 
 	resl = dc_init_secureboot_db();
-	if (resl != ST_OK) return resl;
+	if (resl != ST_OK) return 0;
 
 	for (int i = 0; i < count && resl == ST_OK; i++){
 
@@ -2191,7 +2216,17 @@ static int dc_zip_is_signed(struct zip_t *zip, const efi_file_t* files, int coun
 			break;
 		}
 
-		resl = dc_verify_memory_signature(buffer, bufsize);
+		if (dc_extract_cert_from_memory(buffer, bufsize, thumbprint) == ST_OK) {
+			cur = dc_is_signer_allowed(thumbprint);
+			if (!cur)
+				resl = ST_BL_NOT_PASSED; // Certificate not in UEFI DB
+			else if (idx == 0)
+				idx = cur; // return first files signer index
+		}
+		else {
+			resl = ST_BL_NOT_PASSED; // Could not extract certificate
+		}
+		//resl = dc_verify_memory_signature(buffer, bufsize);
 
 		free(buffer);
 		buffer = NULL;
@@ -2201,7 +2236,9 @@ static int dc_zip_is_signed(struct zip_t *zip, const efi_file_t* files, int coun
 		}
 	}
 
-	return resl;
+	if(resl != ST_OK)
+		return 0;
+	return idx;
 }
 
 int dc_efi_dcs_is_signed()
@@ -2212,40 +2249,28 @@ int dc_efi_dcs_is_signed()
 	DWORD	length;
 	int 	use_pkg;
 
-	if (g_inst_dll == NULL || (length = GetModuleFileName(g_inst_dll, source_path, _countof(source_path))) == 0) return ST_NF_FILE;
-	if (length >= _countof(source_path) - 1 || (p = wcsrchr(source_path, '\\')) == NULL) return ST_NF_FILE;
-	if (wcscpy_s(p + 1, _countof(source_path) - (p - source_path) - 1, dcs_zip_file) != 0) return ST_NOMEM;
+	if (g_inst_dll == NULL || (length = GetModuleFileName(g_inst_dll, source_path, _countof(source_path))) == 0) return 0;
+	if (length >= _countof(source_path) - 1 || (p = wcsrchr(source_path, '\\')) == NULL) return 0;
+	if (wcscpy_s(p + 1, _countof(source_path) - (p - source_path) - 1, dcs_zip_file) != 0) return 0;
 	use_pkg = dc_efi_file_exists(source_path, L"");
 	if (use_pkg) {
-		if (wcscat_s(source_path, _countof(source_path), L"\\") != 0) return ST_NOMEM;
+		if (wcscat_s(source_path, _countof(source_path), L"\\") != 0) return 0;
 	} else {
-		if (wcscat_s(source_path, _countof(source_path), L".zip") != 0) return ST_NOMEM;
+		if (wcscat_s(source_path, _countof(source_path), L".zip") != 0) return 0;
 	}
 
-
-	do
+	if (use_pkg) 
 	{
-		if (use_pkg) 
-		{
-			resl = dc_pkg_is_signed(source_path, dcs_files, _countof(dcs_files));
-			if (resl != ST_OK) break;
-		}
-		else
-		{
-			resl = dc_open_zip(source_path, &zip);
-			if (resl != ST_OK) break;
+		resl = dc_pkg_is_signed(source_path, dcs_files, _countof(dcs_files));
+	}
+	else if (dc_open_zip(source_path, &zip) == ST_OK) 
+	{
+		resl = dc_zip_is_signed(zip, dcs_files, _countof(dcs_files));
 
-			resl = dc_zip_is_signed(zip, dcs_files, _countof(dcs_files));
-			if (resl != ST_OK) break;
-		}
-
-	} while (0);
-
-	if (zip != NULL) {
 		zip_close(zip);
 	}
 
-	return resl == ST_OK;
+	return resl;
 }
 
 #else

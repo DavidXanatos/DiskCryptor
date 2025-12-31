@@ -281,7 +281,7 @@
     <ClCompile Include="misc\xml.c" />
     <ClCompile Include="misc\zip.c" />
     <ClCompile Include="rand.c" />
-    <ClCompile Include="sbcheck.c" />
+    <ClCompile Include="sb_sup.c" />
     <ClCompile Include="w10.c" />
   </ItemGroup>
   <ItemGroup>
