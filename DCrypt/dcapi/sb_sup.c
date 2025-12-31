@@ -37,7 +37,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma comment(lib, "crypt32.lib")
 
 
-static const wchar_t* sb_var_guid = L"{D719B2CB-3D3A-4596-A3BC-DAD00E67656F}";
+// EFI Image Security Database GUID - used for Secure Boot variables (db, dbx, KEK, PK)
+// {d719b2cb-3d3a-4596-a3bc-dad00e67656f}
+const wchar_t* sb_var_guid = L"{D719B2CB-3D3A-4596-A3BC-DAD00E67656F}";
+
+// EFI Global Variable GUID - alternative namespace for PK and KEK on some systems
+// {8be4df61-93ca-11d2-aa0d-00e098032b8c}
+//const wchar_t* efi_var_guid = L"{8BE4DF61-93CA-11D2-AA0D-00E098032B8C}";
 
 
 // EFI Signature Database structures
@@ -56,27 +62,57 @@ typedef struct {
 	// Followed by SignatureData
 } EFI_SIGNATURE_DATA;
 
-// EFI Certificate type GUIDs using Windows GUID format
-// EFI_CERT_SHA256_GUID = {c1c41b26-504e-4a37-8917-f82294feb5b8}
+// EFI Certificate type GUIDs using Windows GUID format (from UEFI Spec 2.10)
+
+// EFI_CERT_SHA256_GUID = {c1c41626-504c-4092-aca9-41f936934328}
+// Hash digest using SHA-256 (commonly used in dbx for forbidden binaries)
 static const GUID EFI_CERT_SHA256_GUID =
-{ 0xc1c41b26, 0x504e, 0x4a37, { 0x89, 0x17, 0xf8, 0x22, 0x94, 0xfe, 0xb5, 0xb8 } };
+{ 0xc1c41626, 0x504c, 0x4092, { 0xac, 0xa9, 0x41, 0xf9, 0x36, 0x93, 0x43, 0x28 } };
 
-// EFI_CERT_RSA2048_GUID = {3c5f66a8-1a4c-4a99-adb8-957f2cf94f0b}
+// EFI_CERT_RSA2048_GUID = {3c5766a8-1a4c-4a99-adb8-957f2cf94f0b}
+// RSA-2048 key (deprecated, rarely used)
 static const GUID EFI_CERT_RSA2048_GUID =
-{ 0x3c5f66a8, 0x1a4c, 0x4a99, { 0xad, 0xb8, 0x95, 0x7f, 0x2c, 0xf9, 0x4f, 0x0b } };
+{ 0x3c5766a8, 0x1a4c, 0x4a99, { 0xad, 0xb8, 0x95, 0x7f, 0x2c, 0xf9, 0x4f, 0x0b } };
 
-// EFI_CERT_X509_GUID = {a5c059a1-944b-4bf5-b2ab-eb9aa10f118d}
+// EFI_CERT_RSA2048_SHA256_GUID = {e8663db0-69b0-4e30-a6c1-c83b3ab91f7e}
+// RSA-2048 signature with SHA-256 hash (sometimes used in PK)
+static const GUID EFI_CERT_RSA2048_SHA256_GUID =
+{ 0xe8663db0, 0x69b0, 0x4e30, { 0xa6, 0xc1, 0xc8, 0x3b, 0x3a, 0xb9, 0x1f, 0x7e } };
+
+// EFI_CERT_RSA2048_SHA256_GUID variant (Microsoft specific)
+// {452e8ced-dfff-4b8c-ae01-5118862e682c}
+static const GUID EFI_CERT_TYPE_RSA2048_SHA256_GUID =
+{ 0x452e8ced, 0xdfff, 0x4b8c, { 0xae, 0x01, 0x51, 0x18, 0x86, 0x2e, 0x68, 0x2c } };
+
+// EFI_CERT_SHA1_GUID = {826ca512-cf10-4ac9-b187-be01496631bd}
+// Hash digest using SHA-1
+static const GUID EFI_CERT_SHA1_GUID =
+{ 0x826ca512, 0xcf10, 0x4ac9, { 0xb1, 0x87, 0xbe, 0x01, 0x49, 0x66, 0x31, 0xbd } };
+
+// EFI_CERT_RSA2048_SHA1_GUID = {67f8444f-8743-48f1-a328-1eaab8736080}
+// RSA-2048 signature with SHA-1 hash
+static const GUID EFI_CERT_RSA2048_SHA1_GUID =
+{ 0x67f8444f, 0x8743, 0x48f1, { 0xa3, 0x28, 0x1e, 0xaa, 0xb8, 0x73, 0x60, 0x80 } };
+
+// EFI_CERT_X509_GUID = {a5c059a1-94e4-4aa7-87b5-ab155c2bf072}
+// X.509 certificate (most commonly used in PK, KEK, db)
 static const GUID EFI_CERT_X509_GUID =
-{ 0xa5c059a1, 0x944b, 0x4bf5, { 0xb2, 0xab, 0xeb, 0x9a, 0xa1, 0x0f, 0x11, 0x8d } };
+{ 0xa5c059a1, 0x94e4, 0x4aa7, { 0x87, 0xb5, 0xab, 0x15, 0x5c, 0x2b, 0xf0, 0x72 } };
 
 // EFI_CERT_X509_SHA256_GUID = {3bd2a492-96c0-4079-b420-fcf98ef103ed}
+// X.509 certificate with SHA-256 hash
 static const GUID EFI_CERT_X509_SHA256_GUID =
 { 0x3bd2a492, 0x96c0, 0x4079, { 0xb4, 0x20, 0xfc, 0xf9, 0x8e, 0xf1, 0x03, 0xed } };
 
-// Alternative/vendor-specific X509 GUID found in some systems
-// {a5c059a1-94e4-4aa7-87b5-ab155c2bf072}
-static const GUID EFI_CERT_X509_ALT_GUID =
-{ 0xa5c059a1, 0x94e4, 0x4aa7, { 0x87, 0xb5, 0xab, 0x15, 0x5c, 0x2b, 0xf0, 0x72 } };
+// EFI_CERT_X509_SHA384_GUID = {7076876e-80c2-4ee6-aad2-28b349a6865b}
+// X.509 certificate with SHA-384 hash
+static const GUID EFI_CERT_X509_SHA384_GUID =
+{ 0x7076876e, 0x80c2, 0x4ee6, { 0xaa, 0xd2, 0x28, 0xb3, 0x49, 0xa6, 0x86, 0x5b } };
+
+// EFI_CERT_X509_SHA512_GUID = {446dbf63-2502-4cda-bcfa-2465d2b0fe9d}
+// X.509 certificate with SHA-512 hash
+static const GUID EFI_CERT_X509_SHA512_GUID =
+{ 0x446dbf63, 0x2502, 0x4cda, { 0xbc, 0xfa, 0x24, 0x65, 0xd2, 0xb0, 0xfe, 0x9d } };
 
 // Structure to hold certificate thumbprint
 typedef struct _cert_thumbprint {
@@ -108,6 +144,175 @@ static void dc_debug_guid(const GUID* guid, const char* label)
 	OutputDebugStringA(msg);
 }
 #endif
+
+int dc_efi_is_sb_setupmode()
+{
+	byte tempBuf = 0;
+	GetFirmwareEnvironmentVariableW(L"SetupMode", efi_var_guid, &tempBuf, sizeof(tempBuf));
+	return tempBuf != 0;
+}
+
+// Calculate SHA1 thumbprint of certificate data
+static int dc_calculate_thumbprint(const BYTE* certData, DWORD certSize, BYTE* thumbprint)
+{
+	HCRYPTPROV hProv = 0;
+	HCRYPTHASH hHash = 0;
+	DWORD hashLen = 20;
+	int result = ST_OK;
+
+	if (!CryptAcquireContext(&hProv, NULL, NULL, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT)) {
+		return ST_ERROR;
+	}
+
+	do {
+		if (!CryptCreateHash(hProv, CALG_SHA1, 0, 0, &hHash)) {
+			result = ST_ERROR;
+			break;
+		}
+
+		if (!CryptHashData(hHash, certData, certSize, 0)) {
+			result = ST_ERROR;
+			break;
+		}
+
+		if (!CryptGetHashParam(hHash, HP_HASHVAL, thumbprint, &hashLen, 0)) {
+			result = ST_ERROR;
+			break;
+		}
+	} while (0);
+
+	if (hHash) CryptDestroyHash(hHash);
+	if (hProv) CryptReleaseContext(hProv, 0);
+
+	return result;
+}
+
+// Enumerate certificate from efi variable
+int dc_efi_enum_var(const wchar_t* name, const wchar_t* guid, int(*cb)(const BYTE* hash, const char* name, PVOID param), PVOID param)
+{
+	DWORD pkSize = 0;
+	BYTE* pkData = NULL;
+	int resl = ST_NF_FILE;
+	const DWORD MAX_PK_SIZE = 65536; // 64KB should be enough
+	char certName[65];
+
+	// Allocate buffer for data
+	pkData = (BYTE*)malloc(MAX_PK_SIZE);
+	if (pkData == NULL) {
+		return ST_NOMEM;
+	}
+
+	// Read the EFI variable
+	pkSize = GetFirmwareEnvironmentVariableW(name, guid, pkData, MAX_PK_SIZE);
+	if (pkSize == 0) {
+		// Failed to read - could be non-UEFI system, access denied, or variable doesn't exist
+		free(pkData);
+		return ST_NF_FILE;
+	}
+
+	// Validate the size is reasonable
+	if (pkSize > MAX_PK_SIZE) {
+		free(pkData);
+		return ST_NOMEM;
+	}
+
+#ifdef _DEBUG
+	char msg[256];
+	sprintf_s(msg, sizeof(msg), "EFI Variable %S size: %u bytes\n", name, pkSize);
+	OutputDebugStringA(msg);
+#endif
+
+	// Parse the EFI signature database
+	// The contains EFI_SIGNATURE_LIST structures (usually just one)
+	DWORD offset = 0;
+	while (offset + sizeof(EFI_SIGNATURE_LIST) <= pkSize) {
+		EFI_SIGNATURE_LIST* sigList = (EFI_SIGNATURE_LIST*)(pkData + offset);
+
+		// Validate signature list size
+		if (sigList->SignatureListSize == 0 ||
+			sigList->SignatureListSize > pkSize - offset ||
+			sigList->SignatureListSize < sizeof(EFI_SIGNATURE_LIST)) {
+			break; // Invalid or end of list
+		}
+
+		// Calculate number of signatures in this list
+		DWORD sigDataSize = sigList->SignatureListSize - sizeof(EFI_SIGNATURE_LIST) - sigList->SignatureHeaderSize;
+		if (sigList->SignatureSize == 0 || sigDataSize % sigList->SignatureSize != 0) {
+			offset += sigList->SignatureListSize;
+			continue; // Skip invalid signature list
+		}
+
+		DWORD numSignatures = sigDataSize / sigList->SignatureSize;
+		DWORD sigOffset = offset + sizeof(EFI_SIGNATURE_LIST) + sigList->SignatureHeaderSize;
+
+		// Process each signature in the list (typically has only one)
+		for (DWORD i = 0; i < numSignatures && sigOffset + sigList->SignatureSize <= pkSize; i++) {
+			EFI_SIGNATURE_DATA* sigData = (EFI_SIGNATURE_DATA*)(pkData + sigOffset);
+			BYTE* certData = (BYTE*)sigData + sizeof(GUID); // Skip SignatureOwner GUID
+			DWORD certSize = sigList->SignatureSize - sizeof(GUID);
+
+			// Process X.509 certificates (all variants)
+			if (dc_compare_efi_guid(&sigList->SignatureType, &EFI_CERT_X509_GUID) ||
+				dc_compare_efi_guid(&sigList->SignatureType, &EFI_CERT_X509_SHA256_GUID) ||
+				dc_compare_efi_guid(&sigList->SignatureType, &EFI_CERT_X509_SHA384_GUID) ||
+				dc_compare_efi_guid(&sigList->SignatureType, &EFI_CERT_X509_SHA512_GUID)) {
+				// This is an X.509 certificate - calculate its thumbprint
+				BYTE thumbprint[20];
+				if (dc_calculate_thumbprint(certData, certSize, thumbprint) == ST_OK) {
+					PCCERT_CONTEXT pCertContext = CertCreateCertificateContext(X509_ASN_ENCODING | PKCS_7_ASN_ENCODING, certData, certSize);
+					if (pCertContext != NULL) {
+						CertGetNameStringA(pCertContext, CERT_NAME_SIMPLE_DISPLAY_TYPE, 0, NULL, certName, sizeof(certName));
+						CertFreeCertificateContext(pCertContext);
+					}
+					else {
+						strcpy_s(certName, _countof(certName), "Unknown");
+					}
+
+					// Call the callback with the certificate info
+					resl = cb(thumbprint, certName, param);
+					if (resl != ST_OK) {
+						free(pkData);
+						return resl;
+					}
+				}
+			}
+			//// Process SHA256 hashes (commonly found in dbx - forbidden signers)
+			//else if (dc_compare_efi_guid(&sigList->SignatureType, &EFI_CERT_SHA256_GUID)) {
+			//
+			//}
+			//// Process SHA1 hashes
+			//else if (dc_compare_efi_guid(&sigList->SignatureType, &EFI_CERT_SHA1_GUID)) {
+			//
+			//}
+			//// Process RSA2048 signatures with SHA256
+			//else if (dc_compare_efi_guid(&sigList->SignatureType, &EFI_CERT_RSA2048_SHA256_GUID) ||
+			//	     dc_compare_efi_guid(&sigList->SignatureType, &EFI_CERT_TYPE_RSA2048_SHA256_GUID)) {
+			//
+			//}
+			//// Process RSA2048 signatures with SHA1
+			//else if (dc_compare_efi_guid(&sigList->SignatureType, &EFI_CERT_RSA2048_SHA1_GUID)) {
+			//
+			//}
+			//// Process bare RSA2048 keys (deprecated format)
+			//else if (dc_compare_efi_guid(&sigList->SignatureType, &EFI_CERT_RSA2048_GUID)) {
+			//
+			//}
+#ifdef _DEBUG
+			else
+			{
+				dc_debug_guid(&sigList->SignatureType, "Unhandled SignatureType");
+			}
+#endif
+
+			sigOffset += sigList->SignatureSize;
+		}
+
+		offset += sigList->SignatureListSize;
+	}
+
+	free(pkData);
+	return resl;
+}
 
 // Helper function to add certificate thumbprint to allowed list
 static int dc_add_allowed_signer(const BYTE* hash, const char* name)
@@ -147,39 +352,23 @@ static void dc_free_allowed_signers()
 	g_allowed_signers = NULL;
 }
 
-// Calculate SHA1 thumbprint of certificate data
-static int dc_calculate_thumbprint(const BYTE* certData, DWORD certSize, BYTE* thumbprint)
+
+
+int dc_process_secureboot_db(const BYTE* thumbprint, const char* name, PVOID param)
 {
-	HCRYPTPROV hProv = 0;
-	HCRYPTHASH hHash = 0;
-	DWORD hashLen = 20;
-	int result = ST_OK;
+#ifdef _DEBUG
+	char msg[512];
+	sprintf_s(msg, sizeof(msg),
+		"Added cert: %s (%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X)\n", name, 
+		thumbprint[0], thumbprint[1], thumbprint[2], thumbprint[3],
+		thumbprint[4], thumbprint[5], thumbprint[6], thumbprint[7],
+		thumbprint[8], thumbprint[9], thumbprint[10], thumbprint[11],
+		thumbprint[12], thumbprint[13], thumbprint[14], thumbprint[15],
+		thumbprint[16], thumbprint[17], thumbprint[18], thumbprint[19]);
+	OutputDebugStringA(msg);
+#endif
 
-	if (!CryptAcquireContext(&hProv, NULL, NULL, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT)) {
-		return ST_ERROR;
-	}
-
-	do {
-		if (!CryptCreateHash(hProv, CALG_SHA1, 0, 0, &hHash)) {
-			result = ST_ERROR;
-			break;
-		}
-
-		if (!CryptHashData(hHash, certData, certSize, 0)) {
-			result = ST_ERROR;
-			break;
-		}
-
-		if (!CryptGetHashParam(hHash, HP_HASHVAL, thumbprint, &hashLen, 0)) {
-			result = ST_ERROR;
-			break;
-		}
-	} while (0);
-
-	if (hHash) CryptDestroyHash(hHash);
-	if (hProv) CryptReleaseContext(hProv, 0);
-
-	return result;
+	return dc_add_allowed_signer(thumbprint, name);
 }
 
 // Initialize the Secure Boot database by reading the UEFI DB variable
@@ -194,122 +383,17 @@ static int dc_calculate_thumbprint(const BYTE* certData, DWORD certSize, BYTE* t
 // the function will fall back to accepting any validly signed file.
 int dc_init_secureboot_db()
 {
-	DWORD dbSize = 0;
-	BYTE* dbData = NULL;
-	int resl = ST_OK;
-	const DWORD MAX_DB_SIZE = 65536; // 64KB should be enough for UEFI DB
-	char certName[65];
-
 	// Only initialize once
 	if (g_secureboot_db_initialized) {
 		return ST_OK;
 	}
 
-	// Allocate buffer for DB data
-	// GetFirmwareEnvironmentVariableW doesn't support querying size with NULL buffer,
-	// so we allocate a reasonably large buffer
-	dbData = (BYTE*)malloc(MAX_DB_SIZE);
-	if (dbData == NULL) {
-		return ST_NOMEM;
-	}
+	int resl = dc_efi_enum_var(L"db", sb_var_guid, dc_process_secureboot_db, NULL);
+	if (resl != ST_OK) return resl;
 
-	// Read the EFI DB variable
-	// Returns number of bytes stored on success, 0 on failure
-	dbSize = GetFirmwareEnvironmentVariableW(L"db", sb_var_guid, dbData, MAX_DB_SIZE);
-	if (dbSize == 0) {
-		// Failed to read DB - could be non-UEFI system, access denied, or variable doesn't exist
-		// Fall back to accepting any validly signed file
-		free(dbData);
-		g_secureboot_db_initialized = 1;
-		return ST_OK;
-	}
-
-	// Validate the size is reasonable
-	if (dbSize > MAX_DB_SIZE) {
-		// This shouldn't happen, but be defensive
-		free(dbData);
-		g_secureboot_db_initialized = 1;
-		return ST_NOMEM;
-	}
-
-	// Parse the EFI signature database
-	// The DB contains EFI_SIGNATURE_LIST structures
-	DWORD offset = 0;
-	while (offset + sizeof(EFI_SIGNATURE_LIST) <= dbSize) {
-		EFI_SIGNATURE_LIST* sigList = (EFI_SIGNATURE_LIST*)(dbData + offset);
-
-#ifdef _DEBUG
-		dc_debug_guid(&sigList->SignatureType, "SignatureType");
-#endif
-
-		// Validate signature list size
-		if (sigList->SignatureListSize == 0 ||
-			sigList->SignatureListSize > dbSize - offset ||
-			sigList->SignatureListSize < sizeof(EFI_SIGNATURE_LIST)) {
-			break; // Invalid or end of list
-		}
-
-		// Calculate number of signatures in this list
-		DWORD sigDataSize = sigList->SignatureListSize - sizeof(EFI_SIGNATURE_LIST) - sigList->SignatureHeaderSize;
-		if (sigList->SignatureSize == 0 || sigDataSize % sigList->SignatureSize != 0) {
-			offset += sigList->SignatureListSize;
-			continue; // Skip invalid signature list
-		}
-
-		DWORD numSignatures = sigDataSize / sigList->SignatureSize;
-		DWORD sigOffset = offset + sizeof(EFI_SIGNATURE_LIST) + sigList->SignatureHeaderSize;
-
-		// Process each signature in the list
-		for (DWORD i = 0; i < numSignatures && sigOffset + sigList->SignatureSize <= dbSize; i++) {
-			EFI_SIGNATURE_DATA* sigData = (EFI_SIGNATURE_DATA*)(dbData + sigOffset);
-			BYTE* certData = (BYTE*)sigData + sizeof(GUID); // Skip SignatureOwner GUID
-			DWORD certSize = sigList->SignatureSize - sizeof(GUID);
-
-			// Process X.509 certificates (check multiple GUID variants)
-			if (dc_compare_efi_guid(&sigList->SignatureType, &EFI_CERT_X509_GUID) ||
-				dc_compare_efi_guid(&sigList->SignatureType, &EFI_CERT_X509_SHA256_GUID) ||
-				dc_compare_efi_guid(&sigList->SignatureType, &EFI_CERT_X509_ALT_GUID)) {
-				// This is an X.509 certificate - calculate its thumbprint
-				BYTE thumbprint[20];
-				if (dc_calculate_thumbprint(certData, certSize, thumbprint) == ST_OK) {
-					PCCERT_CONTEXT pCertContext = CertCreateCertificateContext(X509_ASN_ENCODING | PKCS_7_ASN_ENCODING, certData, certSize);
-					if (pCertContext != NULL) {
-						CertGetNameStringA(pCertContext, CERT_NAME_SIMPLE_DISPLAY_TYPE, 0, NULL, certName, sizeof(certName));
-						CertFreeCertificateContext(pCertContext);
-					}
-					else {
-						strcpy_s(certName, _countof(certName), "Unknown");
-					}
-
-					dc_add_allowed_signer(thumbprint, certName);
-#ifdef _DEBUG
-					char msg[512];
-					sprintf_s(msg, sizeof(msg),
-						"Added cert: %s (%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X)\n", certName, 
-						thumbprint[0], thumbprint[1], thumbprint[2], thumbprint[3],
-						thumbprint[4], thumbprint[5], thumbprint[6], thumbprint[7],
-						thumbprint[8], thumbprint[9], thumbprint[10], thumbprint[11],
-						thumbprint[12], thumbprint[13], thumbprint[14], thumbprint[15],
-						thumbprint[16], thumbprint[17], thumbprint[18], thumbprint[19]);
-					OutputDebugStringA(msg);
-#endif
-				}
-			}
-			// Note: We could also handle SHA256 hashes directly if needed
-			// else if (dc_compare_efi_guid(&sigList->SignatureType, &EFI_CERT_SHA256_GUID)) {
-			//     // This is a SHA256 hash of an EFI binary - could store these separately
-			// }
-
-			sigOffset += sigList->SignatureSize;
-		}
-
-		offset += sigList->SignatureListSize;
-	}
-
-	free(dbData);
 	g_secureboot_db_initialized = 1;
 
-	return resl;
+	return ST_OK;
 }
 
 int dc_efi_enum_allowed_signers(int(*cb)(const BYTE* hash, const char* name, PVOID param), PVOID param)

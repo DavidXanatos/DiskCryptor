@@ -160,6 +160,8 @@ static void print_usage()
 		L"    -shim                        Force adding shim loader for secure boot\n"
 		L"    -noshim                      Don't add shim loader for secure boot, even when needed\n"
 #endif
+		L"    -sb_info                     Show SecureBoot status and whether DCS EFI loader is properly signed\n"
+			
 		);
 }
 

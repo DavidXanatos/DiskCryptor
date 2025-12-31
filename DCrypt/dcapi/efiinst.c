@@ -35,7 +35,7 @@
 #include "misc/zip.h"
 #include "misc/xml.h"
 
-static const wchar_t* efi_var_guid = L"{8BE4DF61-93CA-11D2-AA0D-00E098032B8C}";
+const wchar_t* efi_var_guid = L"{8BE4DF61-93CA-11D2-AA0D-00E098032B8C}";
 
 static GUID efi_sys_partition = { 0xc12a7328, 0xf81f, 0x11d2, { 0xba, 0x4b, 0x00, 0xa0, 0xc9, 0x3e, 0xc9, 0x3b } }; /*c12a7328-f81f-11d2-ba4b-00a0c93ec93b*/
 

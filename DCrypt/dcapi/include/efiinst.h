@@ -3,9 +3,13 @@
 
 #include "dcapi.h"
 
+extern dc_api const wchar_t* efi_var_guid;
+extern dc_api const wchar_t* sb_var_guid;
+
 void dc_api dc_efi_init();
 int dc_api dc_efi_check();
 int dc_api dc_efi_is_secureboot();
+int dc_api dc_efi_is_sb_setupmode();
 
 #ifdef SB_SHIM
 int dc_api dc_mk_efi_rec(const wchar_t *root, int format, int shim);
@@ -55,5 +59,6 @@ int dc_api dc_get_pending_header_nt(const wchar_t* device, wchar_t* path);
 
 int dc_api dc_efi_dcs_is_signed();
 int dc_api dc_efi_enum_allowed_signers(int(*cb)(const BYTE* hash, const char* name, PVOID param), PVOID param);
+int dc_api dc_efi_enum_var(const wchar_t* name, const wchar_t* guid, int(*cb)(const BYTE* hash, const char* name, PVOID param), PVOID param);
 
 #endif

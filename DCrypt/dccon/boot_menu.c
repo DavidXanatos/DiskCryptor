@@ -519,12 +519,12 @@ static int dc_is_disk_ssd(int dsk_num)
 
 int list_signer(const BYTE* hash, const char* name, PVOID param)
 {
-	/*printf("%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X %s\n", 
+	/*printf("%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X %s\n",
 		hash[0], hash[1], hash[2], hash[3],
 		hash[4], hash[5], hash[6], hash[7],
 		hash[8], hash[9], hash[10], hash[11],
 		hash[12], hash[13], hash[14], hash[15],
-		hash[16], hash[17], hash[18], hash[19], 
+		hash[16], hash[17], hash[18], hash[19],
 		name);*/
 
 	int* temp = (int*)param;
@@ -649,21 +649,53 @@ int boot_menu(int argc, wchar_t *argv[])
 			}
 
 			int sb_enabled = dc_efi_is_secureboot();
+			int sb_setup = dc_efi_is_sb_setupmode();
+
+			wprintf(L"Secure Boot is %s\n", sb_setup ? L"in Setup Mode" : (sb_enabled ? L"ENABLED" : L"DISABLED"));
+
+			wprintf(L"\nPlatform Key (PK):\n");
+
+			if (dc_efi_enum_var(L"PK", efi_var_guid, list_signer, NULL) != ST_OK) {
+				wprintf(L"No Platform Key found or unable to read PK variable\n");
+			}
+			wprintf(L"\n");
+
+#ifdef _DEBUG
+			//wprintf(L"-------------------------------------------------------------------------------\n");
+			wprintf(L"Key Exchange Keys (KEK):\n");
+			//wprintf(L"-------------------------------------------------------------------------------\n");
+
+			if (dc_efi_enum_var(L"KEK", efi_var_guid, list_signer, NULL) != ST_OK) {
+				wprintf(L"No Key Exchange Key found or unable to read KEK variable\n");
+			}
+			wprintf(L"\n");
+#endif
+
 			int signer = dc_efi_dcs_is_signed();
 
-			wprintf(L"-------------------------------------------------------------------------------\n");
-			wprintf(L"Allowed Signers                                        Secure Boot is %s\n", sb_enabled ? L"ENABLED" : L"DISABLED");
-			wprintf(L"-------------------------------------------------------------------------------\n");
+			//wprintf(L"-------------------------------------------------------------------------------\n");
+			wprintf(L"Allowed Signers (db):\n");
+			//wprintf(L"-------------------------------------------------------------------------------\n");
 
 			int temp = signer;
 			dc_efi_enum_allowed_signers(list_signer, &temp);
+			//dc_efi_enum_var(L"db", sb_var_guid, list_signer, &temp);
 
-			if (signer) {
-				wprintf(
-					L"\n"
-					L"* used to sign EFI DCS Bootloader for Secure Boot on this system\n"
-				);
-			} 
+			wprintf(L"\n";
+			if (signer) 
+				wprintf(L"* used to sign EFI DCS Bootloader for Secure Boot on this system.\n");
+			else
+				wprintf(L"EFI DCS Bootloader is currently NOT signed for Secure Boot on this system !!!\n");
+
+#ifdef _DEBUG
+			//wprintf(L"-------------------------------------------------------------------------------\n");
+			wprintf(L"\nForbidden Signers (dbx):\n");
+			//wprintf(L"-------------------------------------------------------------------------------\n");
+
+			if (dc_efi_enum_var(L"dbx", sb_var_guid, list_signer, NULL) != ST_OK) {
+				wprintf(L"No Forbidden Signer found or unable to read dbx variable\n");
+			}
+#endif
 
 			resl = ST_OK; break;
 		}
