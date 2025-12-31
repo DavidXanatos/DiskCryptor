@@ -681,7 +681,7 @@ int boot_menu(int argc, wchar_t *argv[])
 			dc_efi_enum_allowed_signers(list_signer, &temp);
 			//dc_efi_enum_var(L"db", sb_var_guid, list_signer, &temp);
 
-			wprintf(L"\n";
+			wprintf(L"\n");
 			if (signer) 
 				wprintf(L"* used to sign EFI DCS Bootloader for Secure Boot on this system.\n");
 			else
