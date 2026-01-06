@@ -478,7 +478,7 @@ int dc_copy_efi_dcs(const wchar_t *root, int recovery)
 	return resl;
 }
 
-int dc_mk_efi_rec(const wchar_t *root, int format, int shim)
+int dc_make_efi_rec(const wchar_t *root, int format, int shim)
 {
 	wchar_t               disk[MAX_PATH];
 	HANDLE                hdisk = NULL;
@@ -570,6 +570,16 @@ int dc_mk_efi_rec(const wchar_t *root, int format, int shim)
 		CloseHandle(hdisk);
 	}
 	return resl;
+}
+
+int dc_make_efi_iso(wchar_t* file, int shim)
+{
+	return ST_ERROR; // not implemented
+}
+
+int dc_make_efi_pxe(wchar_t* file, int shim)
+{
+	return ST_ERROR; // not implemented
 }
 
 int dc_replace_msft_boot(const wchar_t *root)
@@ -1391,12 +1401,39 @@ int dc_efi_config_by_partition(const wchar_t *root, int set_conf, ldr_config *co
 	return resl;
 }
 
-int dc_efi_config(int dsk_num, int set_conf, ldr_config *conf)
+int dc_get_efi_config(int dsk_num, wchar_t *file, ldr_config *conf)
 {
 	int      resl;
 	wchar_t  path[MAX_PATH] = { 0 };
-	if ((resl = dc_efi_get_sys_part(dsk_num, path)) == ST_OK)
-		resl = dc_efi_config_by_partition(path, set_conf, conf);
+
+	if (file) 
+	{
+		resl = ST_ERROR; // not implemented
+	}
+	else
+	{
+		if ((resl = dc_efi_get_sys_part(dsk_num, path)) == ST_OK)
+			resl = dc_efi_config_by_partition(path, FALSE, conf);
+	}
+
+	return resl;
+}
+
+int dc_set_efi_config(int dsk_num, wchar_t* file, ldr_config* conf)
+{
+	int      resl;
+	wchar_t  path[MAX_PATH] = { 0 };
+
+	if (file)
+	{
+		resl = ST_ERROR; // not implemented
+	}
+	else
+	{
+		if ((resl = dc_efi_get_sys_part(dsk_num, path)) == ST_OK)
+			resl = dc_efi_config_by_partition(path, TRUE, conf);
+	}
+
 	return resl;
 }
 

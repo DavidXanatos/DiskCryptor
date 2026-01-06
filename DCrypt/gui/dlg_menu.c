@@ -365,7 +365,7 @@ int _menu_set_loader_efi(
 
 	if (type == CTL_LDR_STICK)
 	{
-		if ( (rlt = dc_mk_efi_rec( vol, FALSE, is_shim )) == ST_FORMAT_NEEDED )
+		if ( (rlt = dc_make_efi_rec( vol, FALSE, is_shim )) == ST_FORMAT_NEEDED )
 		{
 			if ( __msg_q(
 					hwnd,
@@ -373,7 +373,7 @@ int _menu_set_loader_efi(
 					L"Format media?\n")
 					)
 			{
-				rlt = dc_mk_efi_rec( vol, TRUE, is_shim);
+				rlt = dc_make_efi_rec( vol, TRUE, is_shim);
 			}
 		}
 		if (rlt == ST_OK)
@@ -403,7 +403,7 @@ int _menu_set_loader_efi(
 }
 
 
-int _menu_set_loader_file(
+int _menu_set_loader_file_mbr(
 		HWND     hwnd,
 		wchar_t *path,
 		BOOL     iso,
@@ -434,6 +434,39 @@ int _menu_set_loader_file(
 	}
 	return rlt;
 
+}
+
+
+int _menu_set_loader_file_efi(
+		HWND     hwnd,
+		wchar_t *path,
+		BOOL     iso,
+		int      is_shim
+	)
+{
+	ldr_config conf;
+
+	int rlt = ST_ERROR;
+	wchar_t *s_img = iso ? L"ISO" : L"PXE";
+
+	rlt = iso ? dc_make_efi_iso( path, is_shim ) : dc_make_efi_pxe( path, is_shim );
+	if ( rlt == ST_OK )
+	{
+		if ( (rlt = dc_get_efi_config( 0, path, &conf )) == ST_OK )
+		{
+			conf.options   |= LDR_OP_EXTERNAL;
+			conf.boot_type  = LDR_BT_MBR_FIRST;
+
+			rlt = dc_set_efi_config( 0, path, &conf );
+		}			
+	}
+	if ( rlt == ST_OK )
+	{
+		__msg_i( hwnd, L"DCS Bootloader %s image file \"%s\" successfully created", s_img, path );
+	} else {
+		__error_s( hwnd, L"Error creating %s image", rlt, s_img );
+	}
+	return rlt;
 }
 
 

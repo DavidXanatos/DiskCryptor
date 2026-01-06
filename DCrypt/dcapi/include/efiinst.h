@@ -11,7 +11,9 @@ int dc_api dc_efi_check();
 int dc_api dc_efi_is_secureboot();
 int dc_api dc_efi_is_sb_setupmode();
 
-int dc_api dc_mk_efi_rec(const wchar_t *root, int format, int shim);
+int dc_api dc_make_efi_rec(const wchar_t *root, int format, int shim);
+int dc_api dc_make_efi_iso(wchar_t *file, int shim);
+int dc_api dc_make_efi_pxe(wchar_t *file, int shim);
 int dc_api dc_set_efi_boot(int dsk_num, int replace_ms, int shim);
 
 int dc_api dc_efi_is_msft_boot_replaced(int dsk_num);
@@ -25,11 +27,14 @@ int dc_api dc_get_platform_info(int dsk_num, char** infoContent, int *size);
 
 int dc_api dc_is_gpt_disk(int dsk_num);
 
+int dc_api dc_get_efi_config(
+	int dsk_num, wchar_t *file, ldr_config *conf);
+
+int dc_api dc_set_efi_config(
+	int dsk_num, wchar_t *file, ldr_config *conf);
+
 int dc_api dc_efi_config_by_partition(
 	const wchar_t *root, int set_conf, ldr_config *conf);
-
-int dc_api dc_efi_config(
-	int dsk_num, int set_conf, ldr_config *conf);
 
 int dc_api dc_get_dcs_version(const wchar_t *root);
 

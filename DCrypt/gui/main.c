@@ -87,7 +87,7 @@ void _refresh(
 int dc_get_ldr_config(int dsk_num, ldr_config *conf)
 {
 	if (dsk_num == -1 ? __is_efi_boot : dc_is_dcs_on_disk(dsk_num)) {
-		return dc_efi_config(dsk_num, 0, conf);
+		return dc_get_efi_config(dsk_num, NULL, conf);
 	}
 	else {
 		return dc_get_mbr_config(dsk_num, NULL, conf);
@@ -97,7 +97,7 @@ int dc_get_ldr_config(int dsk_num, ldr_config *conf)
 int dc_set_ldr_config(int dsk_num, ldr_config *conf)
 {
 	if (dsk_num == -1 ? __is_efi_boot : dc_is_dcs_on_disk(dsk_num)) {
-		return dc_efi_config(dsk_num, 1, conf);
+		return dc_set_efi_config(dsk_num, NULL, conf);
 	}
 	else {
 		return dc_set_mbr_config(dsk_num, NULL, conf);

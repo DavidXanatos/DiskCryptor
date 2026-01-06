@@ -92,12 +92,19 @@ int _menu_update_loader(
 		int      dsk_num
 	);
 
-int _menu_set_loader_file(
+int _menu_set_loader_file_mbr(
 		HWND     hwnd,
 		wchar_t *path,
 		BOOL     iso,
 		int      is_small
 	);
+
+int _menu_set_loader_file_efi(
+	HWND     hwnd,
+	wchar_t *path,
+	BOOL     iso,
+	int      is_shim
+);
 
 
 int _menu_add_bme(

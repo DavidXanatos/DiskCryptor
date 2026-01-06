@@ -119,7 +119,7 @@ int _init_boot_config(
 		{
 			isefi = dc_is_dcs_on_disk(dsk_num);
 			if (isefi)
-				rlt = dc_efi_config(dsk_num, 0, conf);
+				rlt = dc_get_efi_config(dsk_num, NULL, conf);
 			else
 				rlt = dc_get_mbr_config(dsk_num, NULL, conf);
 		}
@@ -494,7 +494,7 @@ int _save_boot_config(
 		{
 			isefi = dc_is_dcs_on_disk(dsk_num);
 			if (isefi)
-				rlt = dc_efi_config(dsk_num, TRUE, conf);
+				rlt = dc_set_efi_config(dsk_num, NULL, conf);
 			else
 				rlt = dc_set_mbr_config(dsk_num, NULL, conf);
 		}
@@ -683,7 +683,7 @@ _wizard_boot_dlg_proc(
 
 					if ( wcscmp(btn_text, IDS_BOOTINSTALL) == 0 )
 					{
-						if(is_efi)
+						if (is_efi)
 							_menu_set_loader_efi( hwnd, vol, dsk_num, type, is_shim );
 						else
 							_menu_set_loader_mbr( hwnd, vol, dsk_num, type, is_small );
@@ -694,7 +694,10 @@ _wizard_boot_dlg_proc(
 					}
 					if ( wcscmp(btn_text, IDS_BOOTCREATE) == 0 )
 					{
-						_menu_set_loader_file( hwnd, path, type == CTL_LDR_ISO, is_small );
+						if (is_efi)
+							_menu_set_loader_file_efi( hwnd, path, type == CTL_LDR_ISO, is_shim );
+						else
+							_menu_set_loader_file_mbr( hwnd, path, type == CTL_LDR_ISO, is_small );
 
 						SendMessage(
 							bt_sheets[0].hwnd, WM_COMMAND, MAKELONG(IDE_BOOT_PATH, EN_CHANGE), (LPARAM)GetDlgItem(bt_sheets[0].hwnd, IDE_BOOT_PATH)

@@ -103,7 +103,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 		ldr_config conf;
 		
 		if (is_efi_boot) {
-			status = dc_efi_config(-1, 0, &conf);
+			status = dc_get_efi_config(-1, NULL, &conf);
 		}
 		else {
 			status = dc_get_mbr_config(-1, NULL, &conf);

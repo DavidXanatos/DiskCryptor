@@ -598,7 +598,7 @@ int boot_menu(int argc, wchar_t *argv[])
 					is_gpt = (dc_is_gpt_disk(i) == 1);
 					//mbr_ldr = (dc_get_mbr_config(i, NULL, &conf) == ST_OK);
 					mbr_ldr = (dc_has_dc_mbr(i) == ST_OK);
-					efi_ldr = (dc_efi_config(i, 0, &conf) == ST_OK);
+					efi_ldr = (dc_get_efi_config(i, NULL, &conf) == ST_OK);
 
 					if (mbr_ldr && efi_ldr) {
 						wcscpy(str, L"MBR, EFI");
@@ -859,7 +859,7 @@ int boot_menu(int argc, wchar_t *argv[])
 
 			if (isefi) { // EFI
 				if (ispar != 0) { resl = dc_efi_config_by_partition(argv[3], 0, &conf); }
-				else { resl = dc_efi_config(d_num, 0, &conf); }
+				else { resl = dc_get_efi_config(d_num, NULL, &conf); }
 			} else { // MBR
 				if (ispar != 0) { resl = dc_mbr_config_by_partition(argv[3], 0, &conf); }
 				else { resl = dc_get_mbr_config(d_num, file, &conf); }
@@ -874,7 +874,7 @@ int boot_menu(int argc, wchar_t *argv[])
 
 			if (isefi) { // EFI
 				if (ispar != 0) { resl = dc_efi_config_by_partition(argv[3], 1, &conf); }
-				else { resl = dc_efi_config(d_num, 1, &conf); }
+				else { resl = dc_set_efi_config(d_num, NULL, &conf); }
 			} else { // MBR
 				if (ispar != 0) { resl = dc_mbr_config_by_partition(argv[3], 1, &conf); }
 				else { resl = dc_set_mbr_config(d_num, file, &conf); }
@@ -1003,7 +1003,7 @@ int boot_menu(int argc, wchar_t *argv[])
 
 		if ((argc >= 4) && (wcscmp(argv[2], L"-makerec") == 0))
 		{
-			if ( (resl = dc_mk_efi_rec(argv[3], 0, is_shim)) == ST_FORMAT_NEEDED )
+			if ( (resl = dc_make_efi_rec(argv[3], 0, is_shim)) == ST_FORMAT_NEEDED )
 			{
 				wprintf(
 				   L"Removable media not correctly formatted\n"
@@ -1011,7 +1011,7 @@ int boot_menu(int argc, wchar_t *argv[])
 				   );
 
 				if (tolower(_getch()) == 'y') {
-					resl = dc_mk_efi_rec(argv[3], 1, is_shim);
+					resl = dc_make_efi_rec(argv[3], 1, is_shim);
 				} else {
 					resl = ST_OK; break;
 				}
