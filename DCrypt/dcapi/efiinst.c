@@ -1986,7 +1986,7 @@ static int dc_is_signable_file(const wchar_t* filename)
 	return (_wcsicmp(ext, L".efi") == 0 || _wcsicmp(ext, L".dcs") == 0);
 }
 
-static int dc_pkg_is_signed(const wchar_t *path, const efi_file_t* files, int count)
+static int dc_pkg_is_signed(const wchar_t *path, const efi_file_t* files, size_t count)
 {
 	int     resl;
 	int     cur, idx = 0;
@@ -2027,7 +2027,7 @@ static int dc_pkg_is_signed(const wchar_t *path, const efi_file_t* files, int co
 	return idx;
 }
 
-static int dc_zip_is_signed(struct zip_t *zip, const efi_file_t* files, int count)
+static int dc_zip_is_signed(struct zip_t *zip, const efi_file_t* files, size_t count)
 {
 	int     resl;
 	int     cur, idx = 0;
