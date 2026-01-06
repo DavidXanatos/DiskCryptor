@@ -547,16 +547,12 @@ int boot_menu(int argc, wchar_t *argv[])
 	ldr_config conf;
 	int        resl = ST_INVALID_PARAM;
 	int        is_small = 0;
-#ifdef SB_SHIM
 	int        is_shim = -1;
-#endif
 
 	if (is_param(L"-small")) is_small = 1;
 
-#ifdef SB_SHIM
 	if (is_param(L"-shim")) is_shim = 1;
 	else if (is_param(L"-noshim")) is_shim = 0;
-#endif
 
 	do
 	{
@@ -888,11 +884,7 @@ int boot_menu(int argc, wchar_t *argv[])
 				resl = ST_OK; break;
 			}			
 
-#ifdef SB_SHIM
 			if ( (resl = dc_set_efi_boot_interactive(d_num, -1, is_shim)) == ST_OK) {
-#else
-			if ( (resl = dc_set_efi_boot_interactive(d_num, -1)) == ST_OK) {
-#endif
 				wprintf(L"EFI bootloader successfully installed to %s\n", argv[3]);
 			}
 			break;
@@ -1000,11 +992,7 @@ int boot_menu(int argc, wchar_t *argv[])
 
 		if ((argc >= 4) && (wcscmp(argv[2], L"-makerec") == 0))
 		{
-#ifdef SB_SHIM
 			if ( (resl = dc_mk_efi_rec(argv[3], 0, is_shim)) == ST_FORMAT_NEEDED )
-#else
-			if ( (resl = dc_mk_efi_rec(argv[3], 0)) == ST_FORMAT_NEEDED )
-#endif
 			{
 				wprintf(
 				   L"Removable media not correctly formatted\n"
@@ -1012,11 +1000,7 @@ int boot_menu(int argc, wchar_t *argv[])
 				   );
 
 				if (tolower(_getch()) == 'y') {
-#ifdef SB_SHIM
 					resl = dc_mk_efi_rec(argv[3], 1, is_shim);
-#else
-					resl = dc_mk_efi_rec(argv[3], 1);
-#endif
 				} else {
 					resl = ST_OK; break;
 				}

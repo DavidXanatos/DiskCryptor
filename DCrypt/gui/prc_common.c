@@ -391,9 +391,7 @@ _tab_proc(
 					_init_combo( GetDlgItem(hwnd, IDC_COMBO_LOADER_TYPE), is_efi ? loader_type_efi : loader_type_mbr, CTL_LDR_HDD, FALSE, -1 );
 
 					ShowWindow(GetDlgItem(hwnd, IDC_USE_SMALL_BOOT), is_efi ? SW_HIDE : SW_SHOW);
-#ifdef SB_SHIM
 					ShowWindow(GetDlgItem(hwnd, IDC_USE_SHIM_BOOT), is_efi ? SW_SHOW : SW_HIDE);
-#endif
 				}
 				break;
 			}

@@ -1,7 +1,6 @@
 [*.01.2026] - 1.4.0/850.118.205
   [*] Updated driver to build with VS2022
   [*] EFI bootloader now builds with latest edk2-stable202511
-  [-] Removed shim bootloader
   [*] EFI bootloader files are no longer embedded in the binary; they are stored in DcsPkg_[ARCH].zip, or copied from DcsPkg_[ARCH] folder if present
   [+] added dccon commands -replacems and -restorems
   [+] added ARM64 support to driver
@@ -11,6 +10,7 @@
   [+] added secure boot signature check, the ui will not allow setup if secure boot is enabled and the bootloader is not signed
   [*] fixed mbr encryption from dccon on mbr systems broken with 1.3
   [+] added -sb_info command to dccon to display secure boot configuration
+  [*] Updated Secure Boot shim loader to latest version from
 
 [12.08.2023] - 1.3.0/849.118.204 (fully signed release)
   [+] Added safe system volume encryption (bootloader is tested before anything gets encrypted)

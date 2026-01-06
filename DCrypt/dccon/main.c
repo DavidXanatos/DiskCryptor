@@ -156,10 +156,8 @@ static void print_usage()
 		L"    -replacems [hdd]             Replace Windows Boot Manager with DCS loader\n"
 		L"    -restorems [hdd]             Restore Windows Boot Manager file (bootmgfw.efi)\n"
 		L"    -makerec [root par] [opt]    Setup EFI recovery DCS to bootable partition\n"
-#ifdef SB_SHIM
 		L"    -shim                        Force adding shim loader for secure boot\n"
 		L"    -noshim                      Don't add shim loader for secure boot, even when needed\n"
-#endif
 		L"    -sb_info                     Show SecureBoot status and whether DCS EFI loader is properly signed\n"
 			
 		);
@@ -590,18 +588,12 @@ int dc_set_boot_interactive(int d_num, int small_boot)
 	return resl;
 }
 
-#ifdef SB_SHIM
 int dc_set_efi_boot_interactive(int d_num, int add_bme, int shim)
-#else
-int dc_set_efi_boot_interactive(int d_num, int add_bme)
-#endif
 {
 	int        resl;
 	int        replace_ms = 0;
 
-#ifdef SB_SHIM
-	if (shim == -1) shim = dc_efi_is_secureboot();
-#endif
+	if (shim == -1) shim = (dc_efi_is_secureboot() && !dc_efi_dcs_is_signed());
 
 	if (add_bme == -1) {
 		wprintf(L"Do you want to add a DCS loader boot menu entry (recommended). Y/N?\n");
@@ -612,12 +604,10 @@ int dc_set_efi_boot_interactive(int d_num, int add_bme)
 	{
 		wprintf(L"Note: Some EFI implementations are not adhering to the standard and always start the windows bootloader.\n");
 
-#ifdef SB_SHIM
 		if (shim) {
 			wprintf(L"Shim loader is used, hence a workaround for this issue cannot be applied.\n");
 		}
 		else 
-#endif
 		{
 			wprintf(L"Do you want to replace the windows bootloader file (BOOTMGFW.EFI) with a redirection to the DCS loader as a workaround? Y/N?\n");
 			replace_ms = (tolower(_getch()) == 'y');
@@ -626,11 +616,7 @@ int dc_set_efi_boot_interactive(int d_num, int add_bme)
 
 	wprintf(L"Installing EFI Disk Cryptography Services (DCS) bootloader...\n");
 
-#ifdef SB_SHIM
 	resl = dc_set_efi_boot(d_num, replace_ms, shim);
-#else
-	resl = dc_set_efi_boot(d_num, replace_ms);
-#endif
 
 	if (resl == ST_OK && add_bme == 1) {
 		resl = dc_efi_set_bme(L"DiskCrypto (DCS) loader", d_num);
@@ -1132,11 +1118,7 @@ int wmain(int argc, wchar_t *argv[])
 					if (getchr('1', '2') == '1') 
 					{
 						if (is_efi) {
-#ifdef SB_SHIM
 							if ((resl = dc_set_efi_boot_interactive(-1, -1, -1)) != ST_OK) {
-#else
-							if ((resl = dc_set_efi_boot_interactive(-1, -1)) != ST_OK) {
-#endif
 								break;
 							}
 						}

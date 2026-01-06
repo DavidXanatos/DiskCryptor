@@ -77,13 +77,14 @@ if exist SecureBoot\keys\DCS_sign.pfx (
 
 echo %DCS_EXPORT%%BIN_POSTFIX%
 mkdir %DCS_EXPORT%%BIN_POSTFIX%
-copy /y %WORKSPACE%\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsBml.efi        %DCS_EXPORT%%BIN_POSTFIX%\DcsBml.efi
-copy /y %WORKSPACE%\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsBoot.efi       %DCS_EXPORT%%BIN_POSTFIX%\DcsBoot.efi
-copy /y %WORKSPACE%\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsCfg.efi        %DCS_EXPORT%%BIN_POSTFIX%\DcsCfg.dcs
-copy /y %WORKSPACE%\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsInfo.efi       %DCS_EXPORT%%BIN_POSTFIX%\DcsInfo.dcs
-copy /y %WORKSPACE%\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsInt.efi        %DCS_EXPORT%%BIN_POSTFIX%\DcsInt.dcs
-copy /y %WORKSPACE%\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsRe.efi         %DCS_EXPORT%%BIN_POSTFIX%\DcsRe.efi
-copy /y %WORKSPACE%\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\LegacySpeaker.efi %DCS_EXPORT%%BIN_POSTFIX%\LegacySpeaker.dcs
+
+call FinishFile.cmd %WORKSPACE%\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsBml.efi        %DCS_EXPORT%%BIN_POSTFIX%\DcsBml.efi
+call FinishFile.cmd %WORKSPACE%\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsBoot.efi       %DCS_EXPORT%%BIN_POSTFIX%\DcsBoot.efi
+call FinishFile.cmd %WORKSPACE%\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsCfg.efi        %DCS_EXPORT%%BIN_POSTFIX%\DcsCfg.dcs
+call FinishFile.cmd %WORKSPACE%\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsInfo.efi       %DCS_EXPORT%%BIN_POSTFIX%\DcsInfo.dcs
+call FinishFile.cmd %WORKSPACE%\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsInt.efi        %DCS_EXPORT%%BIN_POSTFIX%\DcsInt.dcs
+call FinishFile.cmd %WORKSPACE%\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsRe.efi         %DCS_EXPORT%%BIN_POSTFIX%\DcsRe.efi
+call FinishFile.cmd %WORKSPACE%\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\LegacySpeaker.efi %DCS_EXPORT%%BIN_POSTFIX%\LegacySpeaker.dcs
 
 :exit
 

@@ -71,7 +71,6 @@ int _menu_set_loader_mbr(
 		int      is_small
 	);
 
-#ifdef SB_SHIM
 int _menu_set_loader_efi(
 		HWND     hwnd,
 		wchar_t *vol,
@@ -79,14 +78,6 @@ int _menu_set_loader_efi(
 		int      type,
 		int      is_shim
 	);
-#else
-int _menu_set_loader_efi(
-		HWND     hwnd,
-		wchar_t *vol,
-		int      dsk_num,
-		int      type
-	);
-#endif
 
 int _menu_unset_loader(
 		HWND     hwnd,

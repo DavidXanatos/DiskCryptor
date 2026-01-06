@@ -32,24 +32,6 @@ IDR_MBR                 EXEFILE                 "..\\boot\\bin\\mbr_boot.bin"
 IDR_DCLDR               EXEFILE                 "..\\boot\\bin\\dcldr"
 IDR_DCLDR_SMALL         EXEFILE                 "..\\boot\\bin\\dcldr_small"
 
-#if 0 // USE_DCS_ZIP
-#ifdef _M_IX86
-IDR_EFI_BOOT            EXEFILE                 "..\\boot_efi\\bin\\DcsBoot32.efi"
-IDR_EFI_INT             EXEFILE                 "..\\boot_efi\\bin\\DcsInt32.dcs"
-IDR_EFI_INFO            EXEFILE                 "..\\boot_efi\\bin\\DcsInfo32.dcs"
-//IDR_EFI_CFG             EXEFILE                 "..\\boot_efi\\bin\\DcsCfg32.dcs"
-IDR_EFI_BEEP            EXEFILE                 "..\\boot_efi\\bin\\LegacySpeaker32.dcs"
-IDR_EFI_REC             EXEFILE                 "..\\boot_efi\\bin\\DcsRe32.efi"
-#else
-IDR_EFI_BOOT            EXEFILE                 "..\\boot_efi\\bin\\DcsBoot.efi"
-IDR_EFI_INT             EXEFILE                 "..\\boot_efi\\bin\\DcsInt.dcs"
-IDR_EFI_INFO            EXEFILE                 "..\\boot_efi\\bin\\DcsInfo.dcs"
-//IDR_EFI_CFG             EXEFILE                 "..\\boot_efi\\bin\\DcsCfg.dcs"
-IDR_EFI_BEEP            EXEFILE                 "..\\boot_efi\\bin\\LegacySpeaker.dcs"
-IDR_EFI_REC             EXEFILE                 "..\\boot_efi\\bin\\DcsRe.efi"
-#endif
-#endif // USE_DCS_ZIP
-
    
 VS_VERSION_INFO VERSIONINFO
  FILEVERSION    DC_MAJOR_VER,DC_MINOR_VER,DC_DRIVER_VER,DC_BOOT_VER

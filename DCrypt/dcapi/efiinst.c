@@ -50,33 +50,12 @@ static const wchar_t* efi_boot_file = L"\\EFI\\Boot\\BOOTx64.efi";
 static const wchar_t* efi_boot_bak = L"\\EFI\\Boot\\original_BOOTx64.bin";
 #endif
 
-#define USE_DCS_ZIP
-
 typedef struct
 {
 	wchar_t* source;
 	wchar_t* target;
 } efi_file_t;
 
-#ifndef USE_DCS_ZIP
-
-typedef struct
-{
-	int resource;
-	wchar_t* target;
-} efi_resource_t;
-
-static const efi_resource_t dcs_files[] = {
-	{IDR_EFI_BOOT,			L"\\EFI\\DCS\\DcsBoot.efi"}, // boot file must be first
-	{IDR_EFI_INT,			L"\\EFI\\DCS\\DcsInt.dcs"}, // implementation file must be second
-	{IDR_EFI_INFO,			L"\\EFI\\DCS\\DcsInfo.dcs"},
-	//{IDR_EFI_CFG,			L"\\EFI\\DCS\\DcsCfg.dcs"},
-	{IDR_EFI_BEEP,			L"\\EFI\\DCS\\LegacySpeaker.dcs"}
-};
-static const int dcs_re_res = IDR_EFI_REC;
-static const int dcs_boot_res = IDR_EFI_BOOT;
-
-#else
 
 #ifdef _M_IX86
 static const wchar_t* dcs_zip_file = L"DcsPkg_IA32";
@@ -85,10 +64,9 @@ static const efi_file_t dcs_files[] = {
 	{L"DcsInt32.dcs",		L"\\EFI\\DCS\\DcsInt.dcs"},
 	{L"DcsInfo32.dcs",		L"\\EFI\\DCS\\DcsInfo.dcs"},
 	//{L"DcsCfg32.dcs",		L"\\EFI\\DCS\\DcsCfg.dcs"},
-	{L"LegacySpeaker32.dcs",L"\\EFI\\DCS\\LegacySpeaker.dcs"}
+	{L"LegacySpeaker32.dcs",L"\\EFI\\DCS\\LegacySpeaker.dcs"},
+	{L"DcsRe32.efi",		L"\\EFI\\DCS\\DcsRe32.efi"}, // recovery menu file must be last
 };
-static const wchar_t* dcs_re_file = L"DcsRe32.efi";
-static const wchar_t* dcs_boot_file = L"DcsBoot32.efi";
 #else
 #ifdef _M_ARM64
 static const wchar_t* dcs_zip_file = L"DcsPkg_AA64";
@@ -100,42 +78,47 @@ static const efi_file_t dcs_files[] = {
 	{L"DcsInt.dcs",			L"\\EFI\\DCS\\DcsInt.dcs"},
 	{L"DcsInfo.dcs",		L"\\EFI\\DCS\\DcsInfo.dcs"},
 	//{L"DcsCfg.dcs",			L"\\EFI\\DCS\\DcsCfg.dcs"},
-	{L"LegacySpeaker.dcs",	L"\\EFI\\DCS\\LegacySpeaker.dcs"}
+	{L"LegacySpeaker.dcs",	L"\\EFI\\DCS\\LegacySpeaker.dcs"},
+	{L"DcsRe.efi",			L"\\EFI\\DCS\\DcsRe.efi"}, // recovery menu file must be last
 };
-static const wchar_t* dcs_re_file = L"DcsRe.efi";
-static const wchar_t* dcs_boot_file = L"DcsBoot.efi";
 #endif
-
-#endif
+static const size_t dcs_files_count = _countof(dcs_files);
+static const size_t dcs_re_index = _countof(dcs_files) - 1;
 
 static const wchar_t* dcs_conf_file = L"\\EFI\\DCS\\DcsProp";
 static const wchar_t* dcs_info_file = L"\\EFI\\DCS\\PlatformInfo";
 static const wchar_t* dcs_test_file = L"\\EFI\\DCS\\TestHeader";
 
-#ifdef SB_SHIM
 // shim for secure boot
 #ifdef _M_IX86
 static const wchar_t* shim_zip_file = L"Shim_IA32.zip";
 static const efi_file_t shim_files[] = {
-	{L"BOOTIA32.EFI",		L"\\EFI\\Boot\\BOOTIA32.EFI"}, // shim
+	{L"shimia32.efi",		L"\\EFI\\Boot\\shimia32.efi"}, // shim
 	{L"grubia32.efi",		L"\\EFI\\Boot\\grubia32.efi"}, // preloader
 	{L"mmia32.efi",			L"\\EFI\\Boot\\mmia32.efi"},
-	{L"PreLoader.cer",		L"\\EFI\\Boot\\PreLoader.cer"}
+	{L"MOK.der",			L"\\EFI\\Boot\\MOK.der"}
 };
 static const wchar_t* shim_boot_file = L"\\EFI\\Boot\\grubia32_real.efi";
-static const wchar_t* shim_boot_aux = L"\\EFI\\Boot\\shimia32.efi";
+#elifdef _M_ARM64
+static const wchar_t* shim_zip_file = L"Shim_AA64.zip";
+static const efi_file_t shim_files[] = {
+	{L"shimaa64.efi",		L"\\EFI\\Boot\\shimaa64.efi"}, // shim
+	{L"grubaa64.efi",		L"\\EFI\\Boot\\grubaa64.efi"}, // preloader
+	{L"mmaa64.efi",			L"\\EFI\\Boot\\mmaa64.efi"},
+	{L"MOK.der",			L"\\EFI\\Boot\\MOK.der"}
+};
+static const wchar_t* shim_boot_file = L"\\EFI\\Boot\\grubaa64_real.efi";
 #else
 static const wchar_t* shim_zip_file = L"Shim_X64.zip";
 static const efi_file_t shim_files[] = {
-	{L"BOOTX64.EFI",			L"\\EFI\\Boot\\BOOTX64.EFI"}, // shim
-	{L"grubx64.efi",			L"\\EFI\\Boot\\grubx64.efi"}, // preloader
-	{L"MokManager.efi",		L"\\EFI\\Boot\\MokManager.efi"},
-	{L"PreLoader.cer",		L"\\EFI\\Boot\\PreLoader.cer"}
+	{L"shimx64.efi",		L"\\EFI\\Boot\\shimx64.efi"}, // shim
+	{L"grubx64.efi",		L"\\EFI\\Boot\\grubx64.efi"}, // preloader
+	{L"mmx64.efi",			L"\\EFI\\Boot\\mmx64.efi"},
+	{L"MOK.der",			L"\\EFI\\Boot\\MOK.der"}
 };
 static const wchar_t* shim_boot_file = L"\\EFI\\Boot\\grubx64_real.efi";
-static const wchar_t* shim_boot_aux = L"\\EFI\\Boot\\shimx64.efi";
 #endif
-#endif SB_SHIM
+static const size_t shim_files_count = _countof(shim_files);
 
 static const wchar_t* msft_boot_file = L"\\EFI\\Microsoft\\Boot\\bootmgfw.efi";
 static const wchar_t* msft_boot_aux = L"\\EFI\\Microsoft\\Boot\\bootmgfw_ms.vc";
@@ -375,10 +358,10 @@ int dc_copy_zip_to_efi_file(const wchar_t *root, struct zip_t *zip, const wchar_
 	return resl;
 }
 
-int dc_copy_zip_to_efi_files(const wchar_t *root, struct zip_t *zip, const efi_file_t* files, int count)
+int dc_copy_zip_to_efi_files(const wchar_t *root, struct zip_t *zip, const efi_file_t* files, size_t count)
 {
 	int     resl = ST_OK;
-	for (int i = 0; i < count && resl == ST_OK; i++){
+	for (size_t i = 0; i < count && resl == ST_OK; i++){
 		resl = dc_copy_zip_to_efi_file(root, zip, files[i].source, files[i].target);
 	}
 	return resl;
@@ -409,56 +392,16 @@ int dc_copy_file(const wchar_t *path, const wchar_t *root, const wchar_t* source
 	return ST_OK;
 }
 
-int dc_copy_pkg_to_efi_files(const wchar_t *path, const wchar_t *root, const efi_file_t* files, int count)
+int dc_copy_pkg_to_efi_files(const wchar_t *path, const wchar_t *root, const efi_file_t* files, size_t count)
 {
 	int     resl = ST_OK;
-	for (int i = 0; i < count && resl == ST_OK; i++){
+	for (size_t i = 0; i < count && resl == ST_OK; i++){
 		resl = dc_copy_file(path, root, files[i].source, files[i].target);
 	}
 	return resl;
 }
 
-#ifdef SB_SHIM
-int dc_copy_efi_shim(const wchar_t *root)
-{
-	int      resl;
-	struct zip_t *zip = NULL;
-	TCHAR	source_path[MAX_PATH], *p;
-	DWORD	length;
-
-	if (g_inst_dll == NULL || (length = GetModuleFileName(g_inst_dll, source_path, _countof(source_path))) == 0) return ST_NF_FILE;
-	if (length >= _countof(source_path) - 1 || (p = wcsrchr(source_path, '\\')) == NULL) return ST_NF_FILE;
-	if (wcscpy_s(p + 1, _countof(source_path) - (p - source_path) - 1, shim_zip_file) != 0) return ST_NOMEM;
-
-	do
-	{
-		resl = dc_open_zip(source_path, &zip);
-		if (resl != ST_OK) break;
-
-		resl = dc_copy_zip_to_efi_files(root, zip, shim_files, _countof(shim_files));
-
-		// create a baclup copy of the shim loader we can relaibly reference when creating a dedicated boot menu entry
-		if (resl == ST_OK) {
-			resl = dc_copy_efi_file(root, efi_boot_file, shim_boot_aux);
-		}
-
-	} while (0);
-
-	if (zip != NULL) {
-		zip_close(zip);
-	}
-
-	return resl;
-}
-#endif 
-
-#ifdef USE_DCS_ZIP
-
-#ifdef SB_SHIM
-int dc_copy_efi_dcs(const wchar_t *root, int recovery, int shim)
-#else
-int dc_copy_efi_dcs(const wchar_t *root, int recovery)
-#endif
+int dc_copy_efi_files(const wchar_t *root, const wchar_t* zip_file, const efi_file_t* files, size_t count)
 {
 	int     resl;
 	struct zip_t *zip = NULL;
@@ -468,7 +411,7 @@ int dc_copy_efi_dcs(const wchar_t *root, int recovery)
 
 	if (g_inst_dll == NULL || (length = GetModuleFileName(g_inst_dll, source_path, _countof(source_path))) == 0) return ST_NF_FILE;
 	if (length >= _countof(source_path) - 1 || (p = wcsrchr(source_path, '\\')) == NULL) return ST_NF_FILE;
-	if (wcscpy_s(p + 1, _countof(source_path) - (p - source_path) - 1, dcs_zip_file) != 0) return ST_NOMEM;
+	if (wcscpy_s(p + 1, _countof(source_path) - (p - source_path) - 1, zip_file) != 0) return ST_NOMEM;
 	use_pkg = dc_efi_file_exists(source_path, L"");
 	if (use_pkg) {
 		if (wcscat_s(source_path, _countof(source_path), L"\\") != 0) return ST_NOMEM;
@@ -476,19 +419,11 @@ int dc_copy_efi_dcs(const wchar_t *root, int recovery)
 		if (wcscat_s(source_path, _countof(source_path), L".zip") != 0) return ST_NOMEM;
 	}
 
-
 	do
 	{
-		resl = dc_efi_mkdir(root, L"\\EFI");
-		if (resl != ST_OK) break;
-		resl = dc_efi_mkdir(root, L"\\EFI\\Boot");
-		if (resl != ST_OK) break;
-		resl = dc_efi_mkdir(root, L"\\EFI\\DCS");
-		if (resl != ST_OK) break;
-
 		if (use_pkg) 
 		{
-			resl = dc_copy_pkg_to_efi_files(source_path, root, dcs_files, _countof(dcs_files));
+			resl = dc_copy_pkg_to_efi_files(source_path, root, files, count);
 			if (resl != ST_OK) break;
 		}
 		else
@@ -496,44 +431,8 @@ int dc_copy_efi_dcs(const wchar_t *root, int recovery)
 			resl = dc_open_zip(source_path, &zip);
 			if (resl != ST_OK) break;
 
-			resl = dc_copy_zip_to_efi_files(root, zip, dcs_files, _countof(dcs_files));
+			resl = dc_copy_zip_to_efi_files(root, zip, files, count);
 			if (resl != ST_OK) break;
-		}
-
-		if (dc_efi_file_exists(root, efi_boot_file)) { // if there is a original boot file
-			if (!dc_efi_file_exists(root, efi_boot_bak)) { // and there is no boot file backup already
-				dc_copy_efi_file(root, efi_boot_file, efi_boot_bak); // backup the boot file
-			}
-		}
-
-#ifdef SB_SHIM
-		if (shim)
-		{
-			resl = dc_copy_efi_shim(root);
-			if (resl != ST_OK) break;
-
-			if (recovery)
-				resl = dc_copy_zip_to_efi_file(root, zip, dcs_re_file, shim_boot_file);
-			else
-				resl = dc_copy_zip_to_efi_file(root, zip, dcs_boot_file, shim_boot_file);
-		}
-		else
-#endif
-		{
-			if (use_pkg)
-			{
-				if (recovery)
-					resl = dc_copy_file(source_path, root, dcs_re_file, efi_boot_file);
-				else
-					resl = dc_copy_file(source_path, root, dcs_boot_file, efi_boot_file);
-			}
-			else
-			{
-				if (recovery)
-					resl = dc_copy_zip_to_efi_file(root, zip, dcs_re_file, efi_boot_file);
-				else
-					resl = dc_copy_zip_to_efi_file(root, zip, dcs_boot_file, efi_boot_file);
-			}
 		}
 
 	} while (0);
@@ -544,37 +443,23 @@ int dc_copy_efi_dcs(const wchar_t *root, int recovery)
 	return resl;
 }
 
-#else
-
-int dc_copy_res_to_efi_file(const wchar_t *root, int resource, const wchar_t* target)
+int dc_copy_efi_shim(const wchar_t *root)
 {
-	void       *data;
-	int         size;
-	wchar_t     fileName[MAX_PATH];
-	swprintf_s(fileName, MAX_PATH, L"%s%s", root, target);
+	int      resl;
 
-	data = dc_extract_rsrc(&size, resource);
-	if (data == NULL)  return ST_NF_FILE;
+	do
+	{
+		resl = dc_copy_efi_files(root, shim_zip_file, shim_files, _countof(shim_files));
+		if (resl != ST_OK) break;
 
-	return save_file(fileName, data, size);
-}
+	} while (0);
 
-int dc_copy_res_to_efi_files(const wchar_t *root, const efi_resource_t* files, int count)
-{
-	int     resl = ST_OK;
-	for (int i = 0; i < count && resl == ST_OK; i++) {
-		resl = dc_copy_res_to_efi_file(root, files[i].resource, files[i].target);
-	}
 	return resl;
 }
 
-#ifdef SB_SHIM
-int dc_copy_efi_dcs(const wchar_t *root, int recovery, int shim)
-#else
 int dc_copy_efi_dcs(const wchar_t *root, int recovery)
-#endif
 {
-	int      resl;
+	int     resl;
 
 	do
 	{
@@ -585,47 +470,15 @@ int dc_copy_efi_dcs(const wchar_t *root, int recovery)
 		resl = dc_efi_mkdir(root, L"\\EFI\\DCS");
 		if (resl != ST_OK) break;
 
-		resl = dc_copy_res_to_efi_files(root, dcs_files, _countof(dcs_files));
+		resl = dc_copy_efi_files(root, dcs_zip_file, dcs_files, recovery ? dcs_files_count : dcs_re_index);
 		if (resl != ST_OK) break;
-
-		if (dc_efi_file_exists(root, efi_boot_file)) { // if there is a original boot file
-			if (!dc_efi_file_exists(root, efi_boot_bak)) { // and there is no boot file backup already
-				dc_copy_efi_file(root, efi_boot_file, efi_boot_bak); // backup the boot file
-			}
-		}
-
-#ifdef SB_SHIM
-		if (shim)
-		{
-			resl = dc_copy_efi_shim(root);
-			if (resl != ST_OK) break;
-
-			if (recovery)
-				resl = dc_copy_res_to_efi_file(root, dcs_re_res, shim_boot_file);
-			else
-				resl = dc_copy_res_to_efi_file(root, dcs_boot_res, shim_boot_file);
-		}
-		else
-#endif
-		{
-			if (recovery)
-				resl = dc_copy_res_to_efi_file(root, dcs_re_res, efi_boot_file);
-			else
-				resl = dc_copy_res_to_efi_file(root, dcs_boot_res, efi_boot_file);
-		}
 
 	} while (0);
 
 	return resl;
 }
 
-#endif
-
-#ifdef SB_SHIM
 int dc_mk_efi_rec(const wchar_t *root, int format, int shim)
-#else
-int dc_mk_efi_rec(const wchar_t *root, int format)
-#endif
 {
 	wchar_t               disk[MAX_PATH];
 	HANDLE                hdisk = NULL;
@@ -635,9 +488,7 @@ int dc_mk_efi_rec(const wchar_t *root, int format)
 	PARTITION_INFORMATION pti;
 	//STORAGE_DEVICE_NUMBER d_num;
 
-#ifdef SB_SHIM
-	if (shim == -1) shim = dc_efi_is_secureboot();
-#endif
+	if (shim == -1) shim = (dc_efi_is_secureboot() && !dc_efi_dcs_is_signed());
 
 	if (root[0] != L'\\')
 		_snwprintf(disk, countof(disk), L"\\\\.\\%c:", root[0]);
@@ -666,8 +517,8 @@ int dc_mk_efi_rec(const wchar_t *root, int format)
 		//	resl = ST_ERROR; break;
 		//}
 
-		if (format == 0)
-		{
+		if (format == 0) {
+
 			succs = DeviceIoControl(hdisk, IOCTL_DISK_GET_PARTITION_INFO, NULL, 0, &pti, sizeof(pti), &bytes, NULL);
 			if (succs == 0) {
 				resl = ST_ERROR; break;
@@ -679,27 +530,31 @@ int dc_mk_efi_rec(const wchar_t *root, int format)
 			) {
 				resl = ST_FORMAT_NEEDED; break;
 			}
-
-#ifdef SB_SHIM
-			resl = dc_copy_efi_dcs(root, 1, shim);
-#else
-			resl = dc_copy_efi_dcs(root, 1);
-#endif
 		}
-		else
-		{
+		else {
+
 			CloseHandle(hdisk); // close befoer formating
 			hdisk = NULL;
 
 			if ((resl = dc_format_fs((wchar_t*)root, L"FAT32")) != ST_OK) {
 				break;
 			}
+		}
 
-#ifdef SB_SHIM
-			resl = dc_copy_efi_dcs(root, 1, shim);
-#else
-			resl = dc_copy_efi_dcs(root, 1);
-#endif
+		resl = dc_copy_efi_dcs(root, 1);
+		if (resl != ST_OK) break;
+
+		if (shim) {
+			resl = dc_copy_efi_shim(root); // this overwrites efi_boot_file with the shim loader
+			if (resl != ST_OK) break;
+
+			resl = dc_copy_efi_file(root, shim_files[0].target, efi_boot_file);
+			if (resl != ST_OK) break;
+
+			resl = dc_copy_file(root, root, dcs_files[dcs_re_index].target, shim_boot_file); // L"\\EFI\\DCS\\DcsRe.efi" -> L"\\EFI\\Boot\\grubx64_real.efi"
+		}
+		else {
+			resl = dc_copy_file(root, root, dcs_files[dcs_re_index].target, efi_boot_file); // L"\\EFI\\DCS\\DcsRe.efi" -> L"\\EFI\\Boot\\BOOTx64.efi"
 		}
 		if (resl != ST_OK) break;
 
@@ -825,9 +680,6 @@ int dc_efi_replace_msft_boot(int dsk_num)
 {
 	int      resl;
 	wchar_t  root[MAX_PATH] = { 0 };
-#ifdef SB_SHIM
-	int      shim;
-#endif
 
 	do
 	{
@@ -855,9 +707,6 @@ int dc_efi_restore_msft_boot(int dsk_num)
 {
 	int      resl;
 	wchar_t  root[MAX_PATH] = { 0 };
-#ifdef SB_SHIM
-	int      shim;
-#endif
 
 	do
 	{
@@ -876,25 +725,16 @@ int dc_efi_restore_msft_boot(int dsk_num)
 	return resl;
 }
 
-#ifdef SB_SHIM
 int dc_set_efi_boot(int dsk_num, int replace_ms, int shim)
-#else
-int dc_set_efi_boot(int dsk_num, int replace_ms)
-#endif
 {
 	int      resl;
 	wchar_t  root[MAX_PATH] = { 0 };
 
-#ifdef SB_SHIM
-	if (shim == -1) shim = dc_efi_is_secureboot();
-#else
-	if (dc_efi_is_secureboot()) {
-		// when secure boto is enablet don't allow to install DCS if its not signed with a certificate from the current "db" variable
-		if (!dc_efi_dcs_is_signed()) {
-			return ST_SB_NO_PASS;
-		}
+	shim = (dc_efi_is_secureboot() && !dc_efi_dcs_is_signed());
+	if (shim && replace_ms) {
+		// when secure boot is enablet don't allow to install DCS if its not signed with a certificate from the current "db" variable
+		return ST_SB_NO_PASS;
 	}
-#endif
 
 	do
 	{
@@ -906,11 +746,27 @@ int dc_set_efi_boot(int dsk_num, int replace_ms)
 			resl = ST_BLDR_INSTALLED; break;
 		}
 
-#ifdef SB_SHIM
-		resl = dc_copy_efi_dcs(root, 0, shim);
-#else
 		resl = dc_copy_efi_dcs(root, 0);
-#endif
+		if (resl != ST_OK) break;
+
+		if (dc_efi_file_exists(root, efi_boot_file)) { // if there is a original boot file
+			if (!dc_efi_file_exists(root, efi_boot_bak)) { // and there is no boot file backup already
+				dc_copy_efi_file(root, efi_boot_file, efi_boot_bak); // backup the boot file
+			}
+		}
+
+		if (shim) {
+			resl = dc_copy_efi_shim(root); // this overwrites efi_boot_file with the shim loader
+			if (resl != ST_OK) break;
+			
+			resl = dc_copy_efi_file(root, shim_files[0].target, efi_boot_file);
+			if (resl != ST_OK) break;
+
+			resl = dc_copy_file(root, root, dcs_files[0].target, shim_boot_file); // L"\\EFI\\DCS\\DcsBoot.efi" -> L"\\EFI\\Boot\\grubx64_real.efi"
+		}
+		else {
+			resl = dc_copy_file(root, root, dcs_files[0].target, efi_boot_file); // L"\\EFI\\DCS\\DcsBoot.efi" -> L"\\EFI\\Boot\\BOOTx64.efi"
+		}
 		if (resl != ST_OK) break;
 
 		ldr_config conf;
@@ -931,9 +787,7 @@ int dc_update_efi_boot(int dsk_num)
 {
 	int      resl;
 	wchar_t  root[MAX_PATH] = { 0 };
-#ifdef SB_SHIM
-	int      shim;
-#endif
+	int 	 shim;
 
 	do
 	{
@@ -945,15 +799,24 @@ int dc_update_efi_boot(int dsk_num)
 			resl = ST_BLDR_NOTINST; break;
 		}
 
-#ifdef SB_SHIM
-		// check if shim is installed
-		shim = dc_is_shim_on_partition(root);
-
-		resl = dc_copy_efi_dcs(root, 0, shim);
-#else
 		resl = dc_copy_efi_dcs(root, 0);
-#endif
 		if (resl != ST_OK) break;
+
+		shim = dc_is_shim_on_partition(root); // check if shim is installed
+
+		if (shim) {
+			resl = dc_copy_efi_shim(root); // this overwrites efi_boot_file with the shim loader
+			if (resl != ST_OK) break;
+
+			resl = dc_copy_efi_file(root, shim_files[0].target, efi_boot_file);
+			if (resl != ST_OK) break;
+
+			resl = dc_copy_file(root, root, dcs_files[0].target, shim_boot_file); // L"\\EFI\\DCS\\DcsBoot.efi" -> L"\\EFI\\Boot\\grubx64_real.efi"
+		}
+		else {
+			resl = dc_copy_file(root, root, dcs_files[0].target, efi_boot_file); // L"\\EFI\\DCS\\DcsBoot.efi" -> L"\\EFI\\Boot\\BOOTx64.efi"
+		}
+			if (resl != ST_OK) break;
 
 		if (dc_is_msft_boot_replaced(root)) {
 			resl = dc_replace_msft_boot(root);
@@ -968,9 +831,6 @@ int dc_unset_efi_boot(int dsk_num)
 {
 	int      resl;
 	wchar_t  root[MAX_PATH] = { 0 };
-#ifdef SB_SHIM
-	int      shim;
-#endif
 
 	do
 	{
@@ -990,20 +850,15 @@ int dc_unset_efi_boot(int dsk_num)
 		// delete the entire \\EFI\\DCS directory
 		resl = dc_delete_efi_dir(root, L"\\EFI\\DCS", 1, 0);
 
-#ifdef SB_SHIM
 		// check if shim is installed
-		shim = dc_is_shim_on_partition(root);
-
-		if (shim) { // remove shim and boot file
-			for (int i = 0; i < _countof(shim_files); i++) {
+		if (dc_is_shim_on_partition(root)) { // remove shim and boot file
+			for (int i = 0; i < shim_files_count; i++) {
 				dc_delete_efi_file(root, shim_files[i].target);
 			}
 
 			dc_delete_efi_file(root, shim_boot_file);
 		}
-		else 
-#endif
-		{ // remove boot file
+		else { // remove boot file
 			dc_delete_efi_file(root, efi_boot_file);
 		}
 		
@@ -1609,7 +1464,6 @@ void dc_efi_config_init(ldr_config *conf)
 	memcpy(conf, &def_conf, sizeof(ldr_config));
 }
 
-#ifdef SB_SHIM
 int dc_efi_shim_available()
 {
 	TCHAR	source_path[MAX_PATH], *p;
@@ -1620,7 +1474,12 @@ int dc_efi_shim_available()
 	if (wcscpy_s(p + 1, _countof(source_path) - (p - source_path) - 1, shim_zip_file) != 0) return 0;
 
 	if (_waccess(source_path, 0) != -1)
-		return 1;
+		return 1; // unpacked shim avaialble
+
+	if (wcscat_s(source_path, _countof(source_path), L".zip") != 0) return 0;
+	if (_waccess(source_path, 0) != -1)
+		return 1; // packed shim avaialble
+
 	return 0;
 }
 
@@ -1628,7 +1487,6 @@ int dc_is_shim_on_partition(const wchar_t *root)
 {
 	return dc_efi_file_exists(root, shim_boot_file);
 }
-#endif
 
 int dc_is_dcs_on_partition(const wchar_t *root)
 {
@@ -1883,9 +1741,6 @@ int dc_efi_set_bme_ex(wchar_t* description, int dsk_num, int setBootEntry, int f
 	wchar_t  root[MAX_PATH] = { 0 };
 	PARTITION_INFORMATION_EX ptix;
 	wchar_t  execPath[MAX_PATH];
-#ifdef SB_SHIM
-	int      shim;
-#endif
 
 	do
 	{
@@ -1900,15 +1755,10 @@ int dc_efi_set_bme_ex(wchar_t* description, int dsk_num, int setBootEntry, int f
 		resl = dc_get_part_info(root, &ptix);
 		if (resl != ST_OK) break;
 
-#ifdef SB_SHIM
-		shim = dc_is_shim_on_partition(root);
-
-		if (shim) { // if shim is installed point the boot entry to the backup file as the original may get overwriten by windows updates
-			wsprintf(execPath, L"%s", shim_boot_aux);
+		if (dc_is_shim_on_partition(root)) { // if shim is installed point the boot entry to the backup file as the original may get overwriten by windows updates
+			wsprintf(execPath, L"%s", shim_files[0].target);
 		}
-		else 
-#endif
-		{ // point the boot entry to "\\EFI\\DCS\\DcsBoot.efi"
+		else { // point the boot entry to "\\EFI\\DCS\\DcsBoot.efi"
 			wsprintf(execPath, L"%s", dcs_files[0].target);
 		}
 
@@ -2117,8 +1967,6 @@ int dc_api dc_get_pending_header_nt(const wchar_t* device, wchar_t* path)
 	return ST_NF_FILE;
 }
 
-#ifdef USE_DCS_ZIP
-
 //
 // Note: we only check if the dcs files have the right signer attached, not if the sugnature is actually valid
 // we want to check if the files should be trusted according to UEFI Secure Boot DB, not if thay are not corrupted.
@@ -2272,14 +2120,3 @@ int dc_efi_dcs_is_signed()
 
 	return resl;
 }
-
-#else
-
-int dc_efi_dcs_is_signed()
-{
-	int dcs_signed; 
-	// 0 or 1 depanding on if the embedded resources are signed or not
-	return dcs_signed;
-}
-
-#endif
