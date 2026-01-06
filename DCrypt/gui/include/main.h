@@ -66,7 +66,6 @@ int _set_boot_loader_mbr(
 int _set_boot_loader_efi(
 		HWND  hwnd,
 		int   dsk_num,
-		int   add_bme,
 		int  is_shim
 	);
 

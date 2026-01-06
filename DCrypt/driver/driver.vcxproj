@@ -182,6 +182,7 @@
       </BaseAddress>
       <AdditionalOptions>/pdbaltpath:%_PDB% %(AdditionalOptions)</AdditionalOptions>
       <AdditionalDependencies>$(SolutionDir)Bin\$(Configuration)_i386\crypto_fast_km.lib;ntoskrnl.lib;hal.lib;fltmgr.lib;BufferOverflowK.lib</AdditionalDependencies>
+      <ProgramDatabaseFile>$(OutDir)$(TargetName)_sys.pdb</ProgramDatabaseFile>
     </Link>
     <PostBuildEvent />
     <ResourceCompile>
@@ -220,6 +221,7 @@
       </BaseAddress>
       <AdditionalOptions>/pdbaltpath:%_PDB% %(AdditionalOptions)</AdditionalOptions>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+      <ProgramDatabaseFile>$(OutDir)$(TargetName)_sys.pdb</ProgramDatabaseFile>
     </Link>
     <PostBuildEvent />
     <ResourceCompile>
@@ -261,6 +263,7 @@
       <AdditionalOptions>/pdbaltpath:%_PDB% %(AdditionalOptions)</AdditionalOptions>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+      <ProgramDatabaseFile>$(OutDir)$(TargetName)_sys.pdb</ProgramDatabaseFile>
     </Link>
     <PostBuildEvent />
     <ResourceCompile>

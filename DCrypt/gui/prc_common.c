@@ -92,11 +92,15 @@ _tab_proc(
 						int is_efi = _get_check(hwnd, IDC_EFI_BOOT);
 						int type = _get_combo_val( GetDlgItem(hwnd, IDC_COMBO_LOADER_TYPE), is_efi ? loader_type_efi : loader_type_mbr );
 						int is_small = _get_check( hwnd, IDC_USE_SMALL_BOOT );
+						int is_shim  = _get_check( hwnd, IDC_USE_SHIM_BOOT );
 
 						_get_item_text( __lists[HBOT_WIZARD_BOOT_DEVS], msg_info->iItem, 0, vol, countof(vol) );
 						dsk_num = _ext_disk_num( __lists[HBOT_WIZARD_BOOT_DEVS] );
 
-						_menu_set_loader_mbr( hwnd, vol, dsk_num, type, is_small );
+						if(is_efi)
+							_menu_set_loader_efi( hwnd, vol, dsk_num, type, is_shim );
+						else
+							_menu_set_loader_mbr( hwnd, vol, dsk_num, type, is_small );
 
 						_list_devices( __lists[HBOT_WIZARD_BOOT_DEVS], type == CTL_LDR_HDD, -1 );
 						_refresh_boot_buttons( hwnd, msg_hdr->hwndFrom, msg_info->iItem );
@@ -118,9 +122,10 @@ _tab_proc(
 					HMENU popup       = CreatePopupMenu( );
 					BOOL  item_update = FALSE;
 
-					int is_efi = _get_check(hwnd, IDC_EFI_BOOT);
+					int is_efi   = _get_check(hwnd, IDC_EFI_BOOT);
 					int type     = _get_combo_val( GetDlgItem(hwnd, IDC_COMBO_LOADER_TYPE), is_efi ? loader_type_efi : loader_type_mbr );
 					int is_small = _get_check( hwnd, IDC_USE_SMALL_BOOT );
+					int is_shim  = _get_check( hwnd, IDC_USE_SHIM_BOOT );
 
 					ldr_config conf;
 
@@ -152,8 +157,24 @@ _tab_proc(
 								}
 							}
 
+							if ( wcsstr(tmpb, L"EFI") != NULL )
+							{
+								AppendMenu(popup, MF_SEPARATOR, 0, NULL);
+
+								if ( wcsstr(tmpb, L", bme") != NULL )
+									AppendMenu(popup, MF_STRING, ID_BOOT_DEL_BME, IDS_BOOTDELBME);
+								else
+									AppendMenu(popup, MF_STRING, ID_BOOT_ADD_BME, IDS_BOOTADDBME);
+
+								if ( wcsstr(tmpb, L", ms") != NULL )
+									AppendMenu(popup, MF_STRING, ID_BOOT_RESTORE_MS, IDS_BOOTRESTOREMS);
+								else
+									AppendMenu(popup, MF_STRING, ID_BOOT_REPLACE_MS, IDS_BOOTREPLACEMS);
+							}
+
 							AppendMenu(popup, MF_SEPARATOR, 0, NULL);
 							AppendMenu(popup, MF_STRING, ID_BOOT_CHANGE_CONFIG, IDS_BOOTCHANGECGF);
+
 						} else {
 							AppendMenu(popup, MF_STRING, ID_BOOT_INSTALL, IDS_BOOTINSTALL);
 						}
@@ -171,17 +192,28 @@ _tab_proc(
 					DestroyMenu( popup );
 					switch ( item )
 					{
-						case ID_BOOT_INSTALL: _menu_set_loader_mbr( hwnd, vol, dsk_num, type, is_small ); break;
-						case ID_BOOT_REMOVE:  _menu_unset_loader(hwnd, vol, dsk_num, type ); break;
+						case ID_BOOT_INSTALL:
+							if(is_efi)				_menu_set_loader_efi( hwnd, vol, dsk_num, type, is_shim );
+							else					_menu_set_loader_mbr( hwnd, vol, dsk_num, type, is_small ); 
+							break;
 
-						case ID_BOOT_UPDATE: _menu_update_loader( hwnd, vol, dsk_num ); break;
+						case ID_BOOT_REMOVE:		_menu_unset_loader(hwnd, vol, dsk_num, type ); break;
+
+						case ID_BOOT_UPDATE:		_menu_update_loader( hwnd, vol, dsk_num ); break;
+
+						case ID_BOOT_ADD_BME:		_menu_add_bme( hwnd, vol, dsk_num ); break;
+						case ID_BOOT_DEL_BME:		_menu_del_bme( hwnd, vol, dsk_num ); break;
+						case ID_BOOT_REPLACE_MS:	_menu_repalce_msldr( hwnd, vol, dsk_num ); break;
+						case ID_BOOT_RESTORE_MS:	_menu_restore_msldr( hwnd, vol, dsk_num ); break;
+
 						case ID_BOOT_CHANGE_CONFIG: 
-						{
 							SendMessage(GetParent(GetParent(hwnd)), WM_COMMAND, MAKELONG(IDC_BTN_CHANGE_CONF, 0), 0);
-						}
-						break;
+							break;
 					}
-					if ( ( item == ID_BOOT_INSTALL ) || ( item == ID_BOOT_REMOVE ) )
+
+					if ( ( item == ID_BOOT_INSTALL ) || ( item == ID_BOOT_REMOVE )
+					  || ( item == ID_BOOT_ADD_BME ) || ( item == ID_BOOT_DEL_BME ) 
+					  || ( item == ID_BOOT_REPLACE_MS ) || ( item == ID_BOOT_RESTORE_MS ) )
 					{
 						_list_devices( __lists[HBOT_WIZARD_BOOT_DEVS], type == CTL_LDR_HDD, -1 );
 						_refresh_boot_buttons( hwnd, msg_hdr->hwndFrom, msg_info->iItem );

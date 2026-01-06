@@ -361,7 +361,6 @@ int _menu_set_loader_efi(
 	)
 {
 	ldr_config conf;
-	int add_bme = 0;
 	int rlt = ST_ERROR;
 
 	if (type == CTL_LDR_STICK)
@@ -390,28 +389,7 @@ int _menu_set_loader_efi(
 	}
 	else {
 
-		if (!is_shim && dc_efi_is_secureboot()) {
-			if (__msg_w(hwnd, L"This machine's EFI firmware is configured for secure boot.\n"
-				L"Without the shim loader, or YOU manually signing the bootloader files, it won't be able to boot.\n"
-				L"Do you want to install the shim loader?")
-				) {
-				is_shim = 1;
-			}
-		}
-
-		if (__msg_w(hwnd, L"Do you want to add a DCS loader boot menu entry (recommended).")) {
-			add_bme = 1;
-
-			if (!is_shim && dc_efi_is_msft_on_disk(dsk_num))
-			{
-				if (__msg_w(hwnd, L"Note: Some EFI implementations are not adhering to the standard and always start the windows bootloader.\n"
-					L"Do you want to replace the windows bootloader file (BOOTMGFW.EFI) with a redirection to the DCS loader as a workaround?")) {
-					add_bme = 2;
-				}
-			}
-		}
-
-		rlt = _set_boot_loader_efi( hwnd, dsk_num, add_bme, is_shim );
+		rlt = _set_boot_loader_efi( hwnd, dsk_num, is_shim );
 	}
 
 	if (rlt == ST_OK)
@@ -532,17 +510,27 @@ int _set_boot_loader_mbr(
 int _set_boot_loader_efi(
 		HWND hwnd,
 		int  dsk_num,
-		int  add_bme,
 		int  is_shim
 	)
 {
-	if (is_shim && !dc_efi_shim_available()) {
+	int add_bme = 0;
+	int sb_no_pass = (dc_efi_is_secureboot() && !dc_efi_dcs_is_signed());
+
+	if (sb_no_pass && !dc_efi_shim_available()) {
 		__msg_e(hwnd, 
-		L"For compatibility with secure boot a shim loader must be installed,"
-		L"however the required archive is missing from the application directory.\n"
-		L"Bootloader installation therefore cannot continue, please reboot and disable secure boot in your firmware settings to resolve this issue.\n"
+			L"For compatibility with secure boot a shim loader must be installed, however the required archive is missing from the application directory.\n"
+			L"Bootloader installation therefore cannot continue, please reboot and disable secure boot in your firmware settings to resolve this issue.\n"
 		);
 		return ST_CANCEL;
+	}
+
+	if (!is_shim && sb_no_pass) {
+		if (__msg_w(hwnd, L"This machine's EFI firmware is configured for secure boot.\n"
+			L"Without the shim loader, or YOU manually signing the bootloader files, it won't be able to boot.\n"
+			L"Do you want to install the shim loader?")
+			) {
+			is_shim = 1;
+		}
 	}
 
 	if (is_shim && !__msg_w(hwnd, 
@@ -555,7 +543,21 @@ int _set_boot_loader_efi(
 		return ST_CANCEL;
 	}
 
-	//if (dc_efi_is_secureboot()) {
+	if (__msg_w(hwnd, L"Do you want to add a DCS loader boot menu entry (recommended).")) {
+		add_bme = 1;
+
+#ifndef _M_ARM64
+		if (!sb_no_pass && dc_efi_is_msft_on_disk(dsk_num))
+		{
+			if (__msg_w(hwnd, L"Note: Some EFI implementations are not adhering to the standard and always start the windows bootloader.\n"
+				L"Do you want to replace the windows bootloader file (BOOTMGFW.EFI) with a redirection to the DCS loader as a workaround?")) {
+				add_bme = 2;
+			}
+		}
+#endif
+	}
+
+	//if (sb_no_pass) {
 	//	if (!__msg_w(hwnd, 
 	//		L"This system's UEFI firmware has Secure Boot enabled. "
 	//		L"You must manually sign the DCS bootloader files or disable Secure Boot, "
@@ -574,6 +576,87 @@ int _set_boot_loader_efi(
 		rlt = dc_efi_set_bme(L"DiskCrypto (DCS) loader", dsk_num);
 	}
 
+	return rlt;
+
+}
+
+
+int _menu_add_bme(
+	HWND     hwnd,
+	wchar_t *vol,
+	int      dsk_num
+)
+{
+	int rlt = ST_ERROR;
+
+	rlt = dc_efi_set_bme(L"DiskCrypto (DCS) loader", dsk_num);
+
+	if ( rlt == ST_OK )
+	{
+		__msg_i( hwnd, L"DCS Boot Menu Entry successfully added\n");
+	} else {
+		__error_s( hwnd, L"Error adding DCS Boot Menu Entry\n", rlt );
+	}
+	return rlt;
+
+}
+
+int _menu_del_bme(
+	HWND     hwnd,
+	wchar_t *vol,
+	int      dsk_num
+)
+{
+	int rlt = ST_ERROR;
+
+	rlt = dc_efi_del_bme();
+
+	if ( rlt == ST_OK )
+	{
+		__msg_i( hwnd, L"DCS Boot Menu Entry successfully removed\n");
+	} else {
+		__error_s( hwnd, L"Error removing DCS Boot Menu Entry\n", rlt );
+	}
+	return rlt;
+
+}
+
+int _menu_repalce_msldr(
+	HWND     hwnd,
+	wchar_t *vol,
+	int      dsk_num
+)
+{
+	int rlt = ST_ERROR;
+
+	rlt = dc_efi_replace_msft_boot(dsk_num);
+
+	if ( rlt == ST_OK )
+	{
+		__msg_i( hwnd, L"Microsoft Boot Manager successfully replaced on [%s]\n", vol );
+	} else {
+		__error_s( hwnd, L"Error replacing Microsoft Boot Manager on [%s]\n", rlt, vol );
+	}
+	return rlt;
+
+}
+
+int _menu_restore_msldr(
+	HWND     hwnd,
+	wchar_t *vol,
+	int      dsk_num
+)
+{
+	int rlt = ST_ERROR;
+
+	rlt = dc_efi_restore_msft_boot(dsk_num);
+
+	if ( rlt == ST_OK )
+	{
+		__msg_i( hwnd, L"Microsoft Boot Manager successfully restored on [%s]\n", vol );
+	} else {
+		__error_s( hwnd, L"Error restoring Microsoft Boot Manager on [%s]\n", rlt, vol );
+	}
 	return rlt;
 
 }

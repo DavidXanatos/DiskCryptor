@@ -21,6 +21,12 @@
 #define IDS_BOOTUPDATE		L"&Update Loader"
 #define IDS_BOOTCHANGECGF	L"C&hange Config"
 
+#define IDS_BOOTADDBME		L"&Add to EFI Boot Menu"
+#define IDS_BOOTDELBME		L"&Delete from EFI Boot Menu"
+
+#define IDS_BOOTREPLACEMS	L"Re&place bootmgfw.efi"
+#define IDS_BOOTRESTOREMS	L"R&estore bootmgfw.efi"
+
 #define IDS_MOUNTALL		L"Mount &All"
 #define IDS_UNMOUNTALL		L"U&nmount All"
 

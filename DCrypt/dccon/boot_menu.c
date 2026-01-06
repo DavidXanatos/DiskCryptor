@@ -199,7 +199,7 @@ static void menu_0_2(ldr_config *conf)
 		}
 
 		if (conf->error_type & LDR_ET_MBR_BOOT) {
-			action = L"load boot disk MBR";
+			action = L"load boot disk";
 		}
 
 		for (i = 0, j = 0; i < sizeof(conf->err_msg); i++) {
@@ -232,7 +232,7 @@ static void menu_0_2(ldr_config *conf)
 				L"1 - halt system\n"
 				L"2 - reboot system\n"
 				L"3 - boot from active partition\n"
-				L"4 - load boot disk MBR\n"
+				L"4 - load boot disk\n"
 				L"5 - exit to BIOS\n"
 				L"6 - retry authentication\n");
 
@@ -316,8 +316,8 @@ static void menu_0_3(ldr_config *conf)
 
 		switch (conf->boot_type)
 		{
-			case LDR_BT_MBR_BOOT: methd = L"load boot disk MBR"; break;
-			case LDR_BT_MBR_FIRST: methd = L"load first disk MBR"; break;
+			case LDR_BT_MBR_BOOT: methd = L"load boot disk"; break;
+			case LDR_BT_MBR_FIRST: methd = L"load first disk"; break;
 			case LDR_BT_ACTIVE: methd = L"load OS from active partition"; break;
 			case LDR_BT_AP_PASSWORD: methd = L"boot from first partition with appropriate password"; break;
 			case LDR_BT_DISK_ID:
@@ -354,7 +354,7 @@ static void menu_0_3(ldr_config *conf)
 		{
 			wprintf(
 				L"Current booting method: %s\n\n"
-				L"1 - Set \"load first disk MBR\"\n"
+				L"1 - Set \"load first disk\"\n"
 				L"2 - Set \"boot from first partition with appropriate password\"\n"
 				L"3 - Set \"boot from specified partition\"\n"
 				L"4 - Return to main menu\n\n",
@@ -363,8 +363,8 @@ static void menu_0_3(ldr_config *conf)
 		{
 			wprintf(
 				L"Current booting method: %s\n\n"
-				L"1 - Set \"load boot disk MBR\"\n"
-				L"2 - Set \"load first disk MBR\"\n"
+				L"1 - Set \"load boot disk\"\n"
+				L"2 - Set \"load first disk\"\n"
 				L"3 - Set \"load OS from active partition\"\n"
 				L"4 - Set \"boot from first partition with appropriate password\"\n"
 				L"5 - Set \"boot from specified partition\"\n"
@@ -574,7 +574,7 @@ int boot_menu(int argc, wchar_t *argv[])
 			u64      size;
 			int      i, bd_1, bd_2;
 			int      is_gpt;
-			int      mbr_ldr, efi_ldr, has_bme;
+			int      mbr_ldr, efi_ldr, has_bme, replaced_ms, has_shim;
 
 			wprintf(
 				L"-------------------------------------------------------------------\n"
@@ -611,14 +611,17 @@ int boot_menu(int argc, wchar_t *argv[])
 					}
 
 					if (efi_ldr) {
-						wcscat(str, L" ");
 						has_bme = dc_efi_is_bme_set(i);
+						has_shim = dc_efi_is_shim_set(i);
+						replaced_ms = dc_efi_is_msft_boot_replaced(i);
 						if (has_bme)
 							wcscat(str, L"<");
-						if (dc_efi_is_msft_boot_replaced(i))
+						else
+							wcscat(str, L" ");
+						if (has_shim)
+							wcscat(str, L"~");
+						if (replaced_ms)
 							wcscat(str, L"+");
-						else if(has_bme)
-							wcscat(str, L"-");
 					}
 
 					wprintf(
@@ -633,8 +636,10 @@ int boot_menu(int argc, wchar_t *argv[])
 			//	L"* - SSD detected\n"
 			//	L"< - EFI Boot Menu Entry present\n"
 			//	L"+ - Windows bootloader replaced to load DCS loader\n"
-			//	L"- - Windows bootloader not replaced\n"
+			//	L"~ - Secure Boot Shim installed\n"
 			//);
+
+			resl = ST_OK; break;
 		}
 
 		if ( (argc == 3) && (wcscmp(argv[2], L"-sb_info") == 0) )
@@ -680,8 +685,14 @@ int boot_menu(int argc, wchar_t *argv[])
 			wprintf(L"\n");
 			if (signer) 
 				wprintf(L"* used to sign EFI DCS Bootloader for Secure Boot on this system.\n");
-			else
+			else {
 				wprintf(L"EFI DCS Bootloader is currently NOT signed for Secure Boot on this system !!!\n");
+
+				if(dc_efi_shim_available())
+					wprintf(L"A shim loader is available to use for Secure Boot.\n");
+				else
+					wprintf(L"No shim loader is available in this installation!\n");
+			}
 
 #ifdef _DEBUG
 			//wprintf(L"-------------------------------------------------------------------------------\n");

@@ -43,10 +43,11 @@ void _set_device_item(
 
 	int lvsub = 0;
 	__int64 size;	
+	int  has_bme, replaced_ms, has_shim;
 
 	wchar_t s_size[MAX_PATH];
 	wchar_t s_hdd[MAX_PATH];
-	wchar_t* s_ldr;
+	wchar_t s_ldr[128];
 	wchar_t s_type[128];
 
 	lvitem.mask		= LVIF_TEXT | LVIF_PARAM;
@@ -62,10 +63,23 @@ void _set_device_item(
 
 	_snwprintf( s_hdd, countof(s_hdd), L"HardDisk %d", num );
 
-	if (mbr_ldr && efi_ldr) s_ldr = L"EFI + MBR installed";
-	else if (mbr_ldr)		s_ldr = L"MBR installed";
-	else if (efi_ldr)		s_ldr = L"EFI installed";
-	else					s_ldr = L"none";
+	if (mbr_ldr && efi_ldr) wcscpy(s_ldr, L"MBR + EFI installed)");
+	else if (mbr_ldr)		wcscpy(s_ldr, L"MBR installed");
+	else if (efi_ldr)		wcscpy(s_ldr, L"EFI installed");
+	else					wcscpy(s_ldr, L"none");
+
+	if (efi_ldr)
+	{
+		has_bme = dc_efi_is_bme_set(num);
+		has_shim = dc_efi_is_shim_set(num);
+		replaced_ms = dc_efi_is_msft_boot_replaced(num);
+		if (has_shim)
+			wcscat(s_ldr, L", shim");
+		if (has_bme)
+			wcscat(s_ldr, L", bme");
+		if (replaced_ms)
+			wcscat(s_ldr, L", ms");
+	}
 
 	_snwprintf(s_type, countof(s_type), L"%s%s", is_gpt ? L"GPT" : L"MBR", boot ? L", boot" : L"");
 
@@ -73,7 +87,7 @@ void _set_device_item(
 	ListView_SetItemText( h_list, lvcount, lvsub++, s_size );
 
 	ListView_SetItemText( h_list, lvcount, lvsub++, s_ldr);
-	ListView_SetItemText(h_list, lvcount, lvsub++, s_type);
+	ListView_SetItemText( h_list, lvcount, lvsub++, s_type);
 
 }
 

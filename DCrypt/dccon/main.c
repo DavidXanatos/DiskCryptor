@@ -148,6 +148,8 @@ static void print_usage()
 		L"    -small                       Use small bootloader, only with AES\n"
 		L"  EFI boot:\n"
 		L"    -setefi  [hdd] [opt]         Setup DCS bootloader to HDD EFI partition\n"
+		L"		-shim                      Force adding shim loader for secure boot\n"
+		L"		-noshim                    Don't add shim loader for secure boot, even when needed\n"
 		L"    -updefi  [hdd]               Update DCS bootloader on HDD EFI partition\n"
 		L"    -delefi  [hdd]               Delete DCS bootloader from HDD EFI partition\n"
 		L"    -getinfo [hdd]               Print collected PlatformInfo file to console\n"
@@ -156,8 +158,6 @@ static void print_usage()
 		L"    -replacems [hdd]             Replace Windows Boot Manager with DCS loader\n"
 		L"    -restorems [hdd]             Restore Windows Boot Manager file (bootmgfw.efi)\n"
 		L"    -makerec [root par] [opt]    Setup EFI recovery DCS to bootable partition\n"
-		L"    -shim                        Force adding shim loader for secure boot\n"
-		L"    -noshim                      Don't add shim loader for secure boot, even when needed\n"
 		L"    -sb_info                     Show SecureBoot status and whether DCS EFI loader is properly signed\n"
 			
 		);
@@ -592,8 +592,10 @@ int dc_set_efi_boot_interactive(int d_num, int add_bme, int shim)
 {
 	int        resl;
 	int        replace_ms = 0;
+	int		   sb_no_pass;
 
-	if (shim == -1) shim = (dc_efi_is_secureboot() && !dc_efi_dcs_is_signed());
+	sb_no_pass = (dc_efi_is_secureboot() && !dc_efi_dcs_is_signed());
+	if (shim == -1) shim = sb_no_pass;
 
 	if (add_bme == -1) {
 		wprintf(L"Do you want to add a DCS loader boot menu entry (recommended). Y/N?\n");
@@ -604,8 +606,8 @@ int dc_set_efi_boot_interactive(int d_num, int add_bme, int shim)
 	{
 		wprintf(L"Note: Some EFI implementations are not adhering to the standard and always start the windows bootloader.\n");
 
-		if (shim) {
-			wprintf(L"Shim loader is used, hence a workaround for this issue cannot be applied.\n");
+		if (sb_no_pass) {
+			wprintf(L"Secure Boot is enabled, hence the workaround for this issue cannot be applied.\n");
 		}
 		else 
 		{

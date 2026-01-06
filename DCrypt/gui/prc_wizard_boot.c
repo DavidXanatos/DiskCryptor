@@ -46,7 +46,7 @@ void _refresh_boot_buttons(
 	BOOL	   enable      = FALSE;
 	BOOL       boot_device = FALSE;
 	BOOL       force_small = FALSE;
-	BOOL       force_shim = FALSE;
+	BOOL       force_shim  = FALSE;
 	HWND       h_parent    = GetParent( GetParent( hwnd ) );
 
 	int        sel_disk    = _ext_disk_num(h_list);
@@ -519,9 +519,10 @@ int _save_boot_config(
 	if ( rlt != ST_OK )
 	{
 		__error_s( hwnd, L"Error set %sbootloader configuration", rlt, (isefi == 1 ? L"EFI " : (isefi == 0 ? L"MBR " : L"")) );
-		return rlt;				
+		return rlt;
 	}
-	EndDialog( GetParent(GetParent(hwnd)), IDOK );
+	// EndDialog removed - caller now handles window flow (return to overview instead of closing)
+	// EndDialog( GetParent(GetParent(hwnd)), IDOK );
 
 	return rlt;
 
@@ -703,6 +704,39 @@ _wizard_boot_dlg_proc(
 					if ( wcscmp(btn_text, IDS_SAVECHANGES) == 0 )
 					{
 						_save_boot_config(bt_sheets[1].hwnd, type, dsk_num, vol, path, &conf);
+
+						// Cleanup config page resources
+						HWND h_tab = GetDlgItem(bt_sheets[1].hwnd, IDT_BOOT_TAB);
+						_wnd_data *wnd = wnd_get_long(h_tab, GWL_USERDATA);
+						_tab_data *d_tab = wnd_get_long(bt_sheets[1].hwnd, GWL_USERDATA);
+
+						if (wnd) {
+							// Destroy all tab child dialogs
+							for (int i = 0; i < 20 && wnd->dlg[i] != NULL; i++) {
+								DestroyWindow(wnd->dlg[i]);
+							}
+							free(wnd);
+							wnd_set_long(h_tab, GWL_USERDATA, NULL);
+						}
+
+						if (d_tab) {
+							free(d_tab);
+							wnd_set_long(bt_sheets[1].hwnd, GWL_USERDATA, NULL);
+						}
+
+						// Remove all tabs from the tab control
+						TabCtrl_DeleteAllItems(h_tab);
+
+						// Switch back to overview page
+						ShowWindow( bt_sheets[1].hwnd, SW_HIDE );
+						ShowWindow( bt_sheets[0].hwnd, SW_SHOW );
+
+						ShowWindow( GetDlgItem(hwnd, IDC_BTN_CHANGE_CONF), TRUE );
+						ShowWindow( GetDlgItem(hwnd, IDC_BTN_UPDATE), TRUE );
+
+						_list_devices( __lists[HBOT_WIZARD_BOOT_DEVS], type == CTL_LDR_HDD, -1 );
+						_refresh_boot_buttons( bt_sheets[0].hwnd, __lists[HBOT_WIZARD_BOOT_DEVS], -1 );
+
 						return 0L;
 					}
 					_list_devices( __lists[HBOT_WIZARD_BOOT_DEVS], type == CTL_LDR_HDD, -1 );
@@ -734,9 +768,48 @@ _wizard_boot_dlg_proc(
 				}
 				break;
 
-				case IDCANCEL: 
+				case IDCANCEL:
 				{
-					EndDialog( hwnd, IDCANCEL );
+					// Check if we're on the config page
+					if ( IsWindowVisible(bt_sheets[1].hwnd) )
+					{
+						// Cleanup config page resources
+						HWND h_tab = GetDlgItem(bt_sheets[1].hwnd, IDT_BOOT_TAB);
+						_wnd_data *wnd = wnd_get_long(h_tab, GWL_USERDATA);
+						_tab_data *d_tab = wnd_get_long(bt_sheets[1].hwnd, GWL_USERDATA);
+
+						if (wnd) {
+							// Destroy all tab child dialogs
+							for (int i = 0; i < 20 && wnd->dlg[i] != NULL; i++) {
+								DestroyWindow(wnd->dlg[i]);
+							}
+							free(wnd);
+							wnd_set_long(h_tab, GWL_USERDATA, NULL);
+						}
+
+						if (d_tab) {
+							free(d_tab);
+							wnd_set_long(bt_sheets[1].hwnd, GWL_USERDATA, NULL);
+						}
+
+						// Remove all tabs from the tab control
+						TabCtrl_DeleteAllItems(h_tab);
+
+						// Switch back to overview page instead of closing dialog
+						ShowWindow( bt_sheets[1].hwnd, SW_HIDE );
+						ShowWindow( bt_sheets[0].hwnd, SW_SHOW );
+
+						ShowWindow( GetDlgItem(hwnd, IDC_BTN_CHANGE_CONF), TRUE );
+						ShowWindow( GetDlgItem(hwnd, IDC_BTN_UPDATE), TRUE );
+
+						_list_devices( __lists[HBOT_WIZARD_BOOT_DEVS], type == CTL_LDR_HDD, -1 );
+						_refresh_boot_buttons( bt_sheets[0].hwnd, __lists[HBOT_WIZARD_BOOT_DEVS], -1 );
+					}
+					else
+					{
+						// We're on the overview page, close the dialog
+						EndDialog( hwnd, IDCANCEL );
+					}
 				}
 				break;
 			}

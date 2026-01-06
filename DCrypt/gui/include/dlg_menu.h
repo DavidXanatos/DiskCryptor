@@ -99,4 +99,29 @@ int _menu_set_loader_file(
 		int      is_small
 	);
 
+
+int _menu_add_bme(
+	HWND     hwnd,
+	wchar_t *vol,
+	int      dsk_num
+);
+
+int _menu_del_bme(
+	HWND     hwnd,
+	wchar_t *vol,
+	int      dsk_num
+);
+
+int _menu_repalce_msldr(
+	HWND     hwnd,
+	wchar_t *vol,
+	int      dsk_num
+);
+
+int _menu_restore_msldr(
+	HWND     hwnd,
+	wchar_t *vol,
+	int      dsk_num
+);
+
 #endif

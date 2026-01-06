@@ -424,6 +424,10 @@
 #define ID_TAB                          40075
 #define ID_TAB_BACK                     40077
 #define ID_SHIFT_TAB                    40077
+#define ID_BOOT_ADD_BME					40078
+#define ID_BOOT_DEL_BME					40079
+#define ID_BOOT_REPLACE_MS				40080
+#define ID_BOOT_RESTORE_MS				40081
 
 // Next default values for new objects
 // 

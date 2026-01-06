@@ -91,7 +91,7 @@ static const wchar_t* dcs_test_file = L"\\EFI\\DCS\\TestHeader";
 
 // shim for secure boot
 #ifdef _M_IX86
-static const wchar_t* shim_zip_file = L"Shim_IA32.zip";
+static const wchar_t* shim_zip_file = L"Shim_IA32";
 static const efi_file_t shim_files[] = {
 	{L"shimia32.efi",		L"\\EFI\\Boot\\shimia32.efi"}, // shim
 	{L"grubia32.efi",		L"\\EFI\\Boot\\grubia32.efi"}, // preloader
@@ -100,7 +100,7 @@ static const efi_file_t shim_files[] = {
 };
 static const wchar_t* shim_boot_file = L"\\EFI\\Boot\\grubia32_real.efi";
 #elifdef _M_ARM64
-static const wchar_t* shim_zip_file = L"Shim_AA64.zip";
+static const wchar_t* shim_zip_file = L"Shim_AA64";
 static const efi_file_t shim_files[] = {
 	{L"shimaa64.efi",		L"\\EFI\\Boot\\shimaa64.efi"}, // shim
 	{L"grubaa64.efi",		L"\\EFI\\Boot\\grubaa64.efi"}, // preloader
@@ -109,7 +109,7 @@ static const efi_file_t shim_files[] = {
 };
 static const wchar_t* shim_boot_file = L"\\EFI\\Boot\\grubaa64_real.efi";
 #else
-static const wchar_t* shim_zip_file = L"Shim_X64.zip";
+static const wchar_t* shim_zip_file = L"Shim_X64";
 static const efi_file_t shim_files[] = {
 	{L"shimx64.efi",		L"\\EFI\\Boot\\shimx64.efi"}, // shim
 	{L"grubx64.efi",		L"\\EFI\\Boot\\grubx64.efi"}, // preloader
@@ -487,8 +487,10 @@ int dc_mk_efi_rec(const wchar_t *root, int format, int shim)
 	DISK_GEOMETRY         dg;
 	PARTITION_INFORMATION pti;
 	//STORAGE_DEVICE_NUMBER d_num;
+	int                   sb_no_pass;
 
-	if (shim == -1) shim = (dc_efi_is_secureboot() && !dc_efi_dcs_is_signed());
+	sb_no_pass = (dc_efi_is_secureboot() && !dc_efi_dcs_is_signed());
+	if (shim == -1) shim = sb_no_pass;
 
 	if (root[0] != L'\\')
 		_snwprintf(disk, countof(disk), L"\\\\.\\%c:", root[0]);
@@ -729,9 +731,11 @@ int dc_set_efi_boot(int dsk_num, int replace_ms, int shim)
 {
 	int      resl;
 	wchar_t  root[MAX_PATH] = { 0 };
+	int		 sb_no_pass;
 
-	shim = (dc_efi_is_secureboot() && !dc_efi_dcs_is_signed());
-	if (shim && replace_ms) {
+	sb_no_pass = (dc_efi_is_secureboot() && !dc_efi_dcs_is_signed());
+	if (shim == -1) shim = sb_no_pass;
+	if (sb_no_pass && replace_ms) {
 		// when secure boot is enablet don't allow to install DCS if its not signed with a certificate from the current "db" variable
 		return ST_SB_NO_PASS;
 	}
@@ -1486,6 +1490,14 @@ int dc_efi_shim_available()
 int dc_is_shim_on_partition(const wchar_t *root)
 {
 	return dc_efi_file_exists(root, shim_boot_file);
+}
+
+int dc_efi_is_shim_set(int dsk_num)
+{
+	wchar_t  root[MAX_PATH] = { 0 };
+	if(dc_efi_get_sys_part(dsk_num, root) == ST_OK)
+		return dc_is_shim_on_partition(root);
+	return 0;
 }
 
 int dc_is_dcs_on_partition(const wchar_t *root)

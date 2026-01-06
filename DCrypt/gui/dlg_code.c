@@ -43,8 +43,8 @@ _colinfo _boot_headers[ ] =
 {
 	{ L"Device ",		115,	LVCFMT_LEFT,	TRUE	},
 	{ L"Size",			60,		LVCFMT_RIGHT,	FALSE	},
-	{ L"Bootloader",	75,		LVCFMT_RIGHT,	FALSE	},
-	{ L"Disk type",		75,		LVCFMT_RIGHT,	FALSE	},
+	{ L"Bootloader",	125,	LVCFMT_RIGHT,	FALSE	},
+	{ L"Disk type",		70,		LVCFMT_RIGHT,	FALSE	},
 	{ STR_NULL }
 };
 
@@ -164,9 +164,9 @@ _init_list auth_tmount[ ] =
 	{ 0,STR_NULL }
 };
 
-_init_list boot_type_ext[ ] =
+_init_list boot_type_ext[ ] = // external
 {
-	{ LDR_BT_MBR_FIRST,		L"First disk MBR"								},
+	{ LDR_BT_MBR_FIRST,		L"First disk"									},
 	{ LDR_BT_AP_PASSWORD,	L"First partition with appropriate password"	},
 	{ LDR_BT_DISK_ID,		L"Specified partition"							},
 	{ 0, STR_NULL }
@@ -174,22 +174,22 @@ _init_list boot_type_ext[ ] =
 
 _init_list boot_type_all[ ] =
 {
-	{ LDR_BT_MBR_FIRST,		L"First disk MBR"								},
+	{ LDR_BT_MBR_FIRST,		L"First disk"									},
 	{ LDR_BT_AP_PASSWORD,	L"First partition with appropriate password"	},
 	{ LDR_BT_DISK_ID,		L"Specified partition"							},
-	{ LDR_BT_MBR_BOOT,		L"Boot disk MBR"								},
+	{ LDR_BT_MBR_BOOT,		L"Boot disk"									},
 	{ LDR_BT_ACTIVE,		L"Active partition"								},
 	{ 0, STR_NULL }
 };
 
 _init_list bad_pass_act[ ] =
 {
-	{ FALSE,			L"Halt system"					},
+	{ FALSE,				L"Halt system"					},
 	{ LDR_ET_REBOOT,		L"Reboot system"				},
 	{ LDR_ET_BOOT_ACTIVE,	L"Boot from active partition"	},
 	{ LDR_ET_EXIT_TO_BIOS,	L"Exit to BIOS"					},
 	{ LDR_ET_RETRY,			L"Retry authentication"			},
-	{ LDR_ET_MBR_BOOT,		L"Load Boot Disk MBR"			},
+	{ LDR_ET_MBR_BOOT,		L"Load Boot Disk"				},
 	{ 0, STR_NULL }
 };
 

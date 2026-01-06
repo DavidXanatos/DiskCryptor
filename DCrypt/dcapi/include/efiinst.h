@@ -37,6 +37,7 @@ void dc_api dc_efi_config_init(ldr_config *conf);
 
 int dc_api dc_efi_shim_available();
 int dc_api dc_is_shim_on_partition(const wchar_t *root);
+int dc_api dc_efi_is_shim_set(int dsk_num);
 
 int dc_api dc_is_dcs_on_partition(const wchar_t *root);
 int dc_api dc_is_dcs_on_disk(int dsk_num);

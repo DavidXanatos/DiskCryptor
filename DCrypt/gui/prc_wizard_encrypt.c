@@ -212,7 +212,7 @@ void _run_wizard_action(
 			if ( set_loader )
 			{
 				if ( __is_efi_boot ) // add boot menu entry and replace windows loader
-					node->dlg.rlt = _set_boot_loader_efi( hwnd, -1, 2, is_shim);
+					node->dlg.rlt = _set_boot_loader_efi( hwnd, -1, is_shim);
 				else
 					node->dlg.rlt = _set_boot_loader_mbr( hwnd, -1, is_small );
 			}
@@ -427,12 +427,23 @@ int _init_wizard_encrypt_pages(
 			if (dc_efi_is_secureboot() && !dc_efi_dcs_is_signed())
 			{
 				SendMessage(GetDlgItem(hwnd, IDC_WIZ_CONF_WARNING), (UINT)WM_SETFONT, (WPARAM)__font_bold, 0);
-				SetWindowText(GetDlgItem(hwnd, IDC_WIZ_CONF_WARNING),
-					L"Your EFI firmware is configured for secure boot. "
-					L"You will need to use a shim loader, otherwise THE SYSTEM WILL NOT BOOT!!! "
-					L"It is strongly recommended to disable secure boot in your firmware settings.");
 
-				EnableWindow(GetDlgItem(parent, IDOK), FALSE);
+				if (dc_efi_shim_available()) {
+					SetWindowText(GetDlgItem(hwnd, IDC_WIZ_CONF_WARNING),
+						L"Your EFI firmware is configured for secure boot. "
+						L"You will need to use a shim loader, otherwise THE SYSTEM WILL NOT BOOT!!! "
+						L"It is recommended to disable secure boot in your firmware settings.");
+				} 
+				else {
+					SetWindowText(GetDlgItem(hwnd, IDC_WIZ_CONF_WARNING),
+						L"Your EFI firmware is configured for secure boot. "
+						L"The DCS EFI bootloader is not signed with a certificate trusted by your firmware. "
+						L"No compatible shim loader was found in the the application directory. "
+						L"The DCS EFI bootloader MUST be signed using a certificate present in the EFI DB variable, or Secure Boot MUST be disabled, "
+						L"otherwise, THIS SYSTEM WILL NOT BOOT!!!");
+
+					EnableWindow(GetDlgItem(parent, IDOK), FALSE);
+				}
 			}
 		}
 		else
