@@ -548,7 +548,7 @@ int _set_boot_loader_efi(
 	if (is_shim && !__msg_w(hwnd, 
 		L"For compatibility with secure boot the shim loader will be installed.\n"
 		L"Upon first boot you will be encounter an 'Access denied' error message, "
-		L"to resolve this, you will need to start the 'MOK Manager' and enroll a certificate located at \\EFI\\Boot\\MOK.cer\n"
+		L"to resolve this, you will need to start the 'MOK Manager' and enroll a certificate located at \\EFI\\Boot\\MOK.der\n"
 		L"After one more reboot the DCS loader should boot and show you a password prompt.\n"
 		L"Do you want to continue?")
 		) {

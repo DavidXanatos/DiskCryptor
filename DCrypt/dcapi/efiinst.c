@@ -449,7 +449,7 @@ int dc_copy_efi_shim(const wchar_t *root)
 
 	do
 	{
-		resl = dc_copy_efi_files(root, shim_zip_file, shim_files, _countof(shim_files));
+		resl = dc_copy_efi_files(root, shim_zip_file, shim_files, shim_files_count);
 		if (resl != ST_OK) break;
 
 	} while (0);
@@ -2109,11 +2109,11 @@ int dc_efi_dcs_is_signed()
 
 	if (use_pkg) 
 	{
-		resl = dc_pkg_is_signed(source_path, dcs_files, _countof(dcs_files));
+		resl = dc_pkg_is_signed(source_path, dcs_files, dcs_files_count);
 	}
 	else if (dc_open_zip(source_path, &zip) == ST_OK) 
 	{
-		resl = dc_zip_is_signed(zip, dcs_files, _countof(dcs_files));
+		resl = dc_zip_is_signed(zip, dcs_files, dcs_files_count);
 
 		zip_close(zip);
 	}
