@@ -583,6 +583,7 @@ _wizard_boot_dlg_proc(
 	switch ( message )
 	{
 		case WM_CLOSE:
+			EndDialog( hwnd, IDCANCEL );
 		case WM_DESTROY:
 		{
 			_keyfiles_wipe(KEYLIST_EMBEDDED);
@@ -819,7 +820,7 @@ _wizard_boot_dlg_proc(
 		default:
 		{
 			int rlt = _draw_proc(message, lparam);
-			if ( rlt != -1 ) 
+			if ( rlt != -1 )
 			{
 				return rlt;
 			}
