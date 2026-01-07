@@ -27,16 +27,25 @@ char *XmlQuoteText (const char *textSrc, char *textDst, int textDstMaxSize);
 
 #if !defined(_UEFI)
 wchar_t *XmlQuoteTextW(const wchar_t *textSrc, wchar_t *textDst, int textDstMaxSize);
-int XmlWriteHeader (FILE *file);
-int XmlWriteFooter(FILE *file);
+
+typedef struct {
+	char *str;
+	int   len; // used length
+	int   size; // allocated size
+} STRING;
+
+int StrAppend(STRING* file, const char* str);
+
+int XmlWriteHeader (STRING *file);
+int XmlWriteFooter(STRING *file);
 
 BOOL ReadConfigValue(char* configContent, const char *configKey, char *configValue, int maxValueSize);
 int ReadConfigInteger(char* configContent, const char *configKey, int defaultValue);
 __int64 ReadConfigInteger64(char* configContent, const char *configKey, __int64 defaultValue);
 char *ReadConfigString(char* configContent, const char *configKey, char *defaultValue, char *str, int maxLen);
-BOOL WriteConfigString(FILE* configFile, char* configContent, const char *configKey, const char *configValue);
-BOOL WriteConfigInteger(FILE* configFile, char* configContent, const char *configKey, int configValue);
-BOOL WriteConfigInteger64(FILE* configFile, char* configContent, const char *configKey, __int64 configValue);
+BOOL WriteConfigString(STRING* configFile, char* configContent, const char *configKey, const char *configValue);
+BOOL WriteConfigInteger(STRING* configFile, char* configContent, const char *configKey, int configValue);
+BOOL WriteConfigInteger64(STRING* configFile, char* configContent, const char *configKey, __int64 configValue);
 
 #endif !defined(_UEFI)*/
 

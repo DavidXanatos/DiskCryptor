@@ -56,6 +56,12 @@
     <ClCompile Include="sb_sup.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="misc\iso_sup.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="misc\fat_sup.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="dcres.rc">
@@ -109,6 +115,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\w10.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="misc\fs_sup.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

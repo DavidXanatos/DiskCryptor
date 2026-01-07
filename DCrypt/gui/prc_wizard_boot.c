@@ -138,7 +138,11 @@ int _init_boot_config(
 		case CTL_LDR_ISO:
 		case CTL_LDR_PXE:   
 		{
-			rlt = dc_get_mbr_config(0, path, conf);
+			isefi = dc_is_dcs_in_file(path);
+			if (isefi)
+				rlt = dc_get_efi_config(0, path, conf);
+			else
+				rlt = dc_get_mbr_config(0, path, conf);
 		}
 		break;
 	}
@@ -512,7 +516,11 @@ int _save_boot_config(
 		case CTL_LDR_ISO:
 		case CTL_LDR_PXE:
 		{
-			rlt = dc_set_mbr_config(0, path, conf);
+			isefi = dc_is_dcs_in_file(path);
+			if (isefi)
+				rlt = dc_set_efi_config(0, path, conf);
+			else
+				rlt = dc_set_mbr_config(0, path, conf);
 		}
 		break;
 	}

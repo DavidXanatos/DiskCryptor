@@ -47,6 +47,7 @@ int dc_api dc_efi_is_shim_set(int dsk_num);
 int dc_api dc_is_dcs_on_partition(const wchar_t *root);
 int dc_api dc_is_dcs_on_disk(int dsk_num);
 int dc_api dc_efi_is_msft_on_disk(int dsk_num);
+int dc_api dc_is_dcs_in_file(wchar_t *file);
 
 int dc_api dc_efi_set_bme(wchar_t* description, int dsk_num);
 int dc_api dc_efi_del_bme();

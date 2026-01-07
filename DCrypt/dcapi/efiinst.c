@@ -34,6 +34,7 @@
 #include "drv_ioctl.h"
 #include "misc/zip.h"
 #include "misc/xml.h"
+#include "misc/fs_sup.h"
 
 const wchar_t* efi_var_guid = L"{8BE4DF61-93CA-11D2-AA0D-00E098032B8C}";
 
@@ -65,7 +66,7 @@ static const efi_file_t dcs_files[] = {
 	{L"DcsInfo32.dcs",		L"\\EFI\\DCS\\DcsInfo.dcs"},
 	//{L"DcsCfg32.dcs",		L"\\EFI\\DCS\\DcsCfg.dcs"},
 	{L"LegacySpeaker32.dcs",L"\\EFI\\DCS\\LegacySpeaker.dcs"},
-	{L"DcsRe32.efi",		L"\\EFI\\DCS\\DcsRe32.efi"}, // recovery menu file must be last
+	{L"DcsRe32.efi",		L"\\EFI\\DCS\\DcsRe32.efi"},
 };
 #else
 #ifdef _M_ARM64
@@ -79,7 +80,7 @@ static const efi_file_t dcs_files[] = {
 	{L"DcsInfo.dcs",		L"\\EFI\\DCS\\DcsInfo.dcs"},
 	//{L"DcsCfg.dcs",			L"\\EFI\\DCS\\DcsCfg.dcs"},
 	{L"LegacySpeaker.dcs",	L"\\EFI\\DCS\\LegacySpeaker.dcs"},
-	{L"DcsRe.efi",			L"\\EFI\\DCS\\DcsRe.efi"}, // recovery menu file must be last
+	{L"DcsRe.efi",			L"\\EFI\\DCS\\DcsRe.efi"},
 };
 #endif
 static const size_t dcs_files_count = _countof(dcs_files);
@@ -88,6 +89,22 @@ static const size_t dcs_re_index = _countof(dcs_files) - 1;
 static const wchar_t* dcs_conf_file = L"\\EFI\\DCS\\DcsProp";
 static const wchar_t* dcs_info_file = L"\\EFI\\DCS\\PlatformInfo";
 static const wchar_t* dcs_test_file = L"\\EFI\\DCS\\TestHeader";
+
+#define DCS_EMBEDDED_PROP_SIZE 0x7FFF
+
+static const char dcs_efi_config_header[] = 
+	"<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<DiskCrypto>\n"
+	"\t<configuration>\n";
+
+static const char dcs_efi_dummy_info[] = 
+	"<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<PlatformInfo>\n"
+	"</PlatformInfo>\n";
+
+static const char* dc_dcs_iso_label = "DCS Boot Disk";
+static const char* dc_dcs_img_label = "EFI_BOOT";
+
+static const wchar_t* dc_dcs_img_file = L"\\EFIBOOT.IMG";
+
 
 // shim for secure boot
 #ifdef _M_IX86
@@ -378,6 +395,33 @@ int dc_open_zip(const wchar_t* fileName, struct zip_t **zip)
 	return ST_OK;
 }
 
+static int dc_zip_load_file(struct zip_t* zip, const wchar_t* fileName, void** buffer, size_t* bufsize)
+{
+	int     resl;
+	char    entryName[MAX_PATH];
+	ssize_t bytes_read;
+	sprintf_s(entryName, MAX_PATH, "%S", fileName);
+
+	do
+	{
+		if (zip_entry_open(zip, entryName) != 0) {
+			resl = ST_NF_FILE;
+			break;
+		}
+
+		bytes_read = zip_entry_read(zip, buffer, bufsize);
+		zip_entry_close(zip);
+
+		if (bytes_read < 0 || buffer == NULL) {
+			resl = ST_RW_ERR;
+			break;
+		}
+
+	} while (0);
+
+	return resl;
+}
+
 int dc_copy_file(const wchar_t *path, const wchar_t *root, const wchar_t* source, const wchar_t* target)
 {
 	wchar_t src_path[MAX_PATH];
@@ -572,14 +616,204 @@ int dc_make_efi_rec(const wchar_t *root, int format, int shim)
 	return resl;
 }
 
+static int dc_load_efi_files(file_entry_t* image_files, size_t* image_file_count, const wchar_t* zip_file, const efi_file_t* files, size_t count)
+{
+	int     resl = ST_OK;
+	char*   data = NULL;
+	struct zip_t *zip = NULL;
+	TCHAR	source_path[MAX_PATH], *p;
+	DWORD	length;
+	int 	use_pkg;
+	wchar_t src_path[MAX_PATH];
+
+	if (g_inst_dll == NULL || (length = GetModuleFileName(g_inst_dll, source_path, _countof(source_path))) == 0) return ST_NF_FILE;
+	if (length >= _countof(source_path) - 1 || (p = wcsrchr(source_path, '\\')) == NULL) return ST_NF_FILE;
+	if (wcscpy_s(p + 1, _countof(source_path) - (p - source_path) - 1, zip_file) != 0) return ST_NOMEM;
+	use_pkg = dc_efi_file_exists(source_path, L"");
+	if (use_pkg) {
+		if (wcscat_s(source_path, _countof(source_path), L"\\") != 0) return ST_NOMEM;
+	} else {
+		if (wcscat_s(source_path, _countof(source_path), L".zip") != 0) return ST_NOMEM;
+	}
+
+	do
+	{
+		if (use_pkg) 
+		{
+			int size;
+
+			for (size_t i = 0; i < count && resl == ST_OK; i++){
+
+				swprintf_s(src_path, MAX_PATH, L"%s%s", source_path, files[i].source);
+				resl = load_file(src_path, &data, &size);
+				if (resl != ST_OK) break;
+
+				file_entry_t* iso_file = &image_files[(*image_file_count)++];
+				wcscpy(iso_file->path, files[i].target);
+				iso_file->size = (size_t)size;
+				iso_file->data = data;
+			}
+		}
+		else
+		{
+			size_t size;
+
+			for (size_t i = 0; i < count && resl == ST_OK; i++) {
+				
+				resl = dc_zip_load_file(zip, files[i].source, &data, &size);
+				if (resl != ST_OK) break;
+
+				file_entry_t* iso_file = &image_files[(*image_file_count)++];
+				wcscpy(iso_file->path, files[i].target);
+				iso_file->size = size;
+				iso_file->data = data;
+			}
+		}
+
+	} while (0);
+
+	if (zip != NULL) {
+		zip_close(zip);
+	}
+	return resl;
+}
+
 int dc_make_efi_iso(wchar_t* file, int shim)
 {
-	return ST_ERROR; // not implemented
+	int        resl;
+	const int  img_file_max = 32;
+	file_entry_t* img_files;
+	size_t     img_file_count = 0;
+	const int  iso_file_max = 8;
+	file_entry_t* iso_files;
+	size_t     iso_file_count = 0;
+	void*      fat_data = NULL;
+	size_t     fat_size = 0;
+	void*      iso_data = NULL;
+	size_t     iso_size = 0;
+
+	// Create an EFI bootable ISO image with FAT file system image inside containing DCS EFI files
+
+	do
+	{
+		img_files = (file_entry_t*)malloc(sizeof(file_entry_t) * img_file_max); // max 32 files
+		if (img_files == NULL) {
+			resl = ST_NOMEM; break;
+		}
+		memset(img_files, 0, sizeof(file_entry_t) * img_file_max);
+
+		iso_files = (file_entry_t*)malloc(sizeof(file_entry_t) * iso_file_max); // max 8 files
+		if (iso_files == NULL) {
+			resl = ST_NOMEM; break;
+		}
+		memset(iso_files, 0, sizeof(file_entry_t) * iso_file_max);
+
+		if (shim) 
+		{
+			resl = dc_load_efi_files(img_files, &img_file_count, shim_zip_file, shim_files, shim_files_count);
+			if (resl != ST_OK) break;
+
+			// fill \EFI\Boot\BOOTxxx.efi
+			wcscpy(img_files->path, efi_boot_file);
+
+			// fill \EFI\Boot\grubx64_real.efi
+			file_entry_t* boot_file = &img_files[img_file_count++];
+
+			resl = dc_load_efi_files(img_files, &img_file_count, dcs_zip_file, dcs_files, dcs_files_count);
+			if (resl != ST_OK) break;
+
+			file_entry_t* re_file = &img_files[shim_files_count + 1 + dcs_re_index];
+			wcscpy(boot_file->path, shim_boot_file);
+			boot_file->size = re_file->size;
+			boot_file->data = malloc(re_file->size);
+			if (boot_file->data) memcpy(boot_file->data, re_file->data, re_file->size);
+		}
+		else 
+		{
+			// reserver \EFI\Boot\BOOTxxx.efi
+			img_file_count = 1;
+
+			resl = dc_load_efi_files(img_files, &img_file_count, dcs_zip_file, dcs_files, dcs_files_count);
+			if (resl != ST_OK) break;
+
+			// fill \EFI\Boot\BOOTxxx.efi
+			file_entry_t* re_file = &img_files[1 + dcs_re_index];
+			wcscpy(img_files->path, efi_boot_file);
+			img_files->size = re_file->size;
+			img_files->data = malloc(re_file->size);
+			if (img_files->data) memcpy(img_files->data, re_file->data, re_file->size);
+		}
+
+		// add dummy \EFI\DCS\PlatformInfo
+		file_entry_t* info_file = &img_files[img_file_count++];
+		wcscpy(info_file->path, dcs_info_file);
+		info_file->size = strlen(dcs_efi_dummy_info);
+		info_file->data = malloc(info_file->size + 1);
+		strcpy(info_file->data, dcs_efi_dummy_info);
+
+		// add \EFI\DCS\DcsProp
+		file_entry_t* prop_file = &img_files[img_file_count++];
+		wcscpy(prop_file->path, dcs_conf_file);
+		prop_file->size = DCS_EMBEDDED_PROP_SIZE;
+		prop_file->data = malloc(prop_file->size);
+		memset(prop_file->data, '    ', prop_file->size);
+		strcpy(prop_file->data, dcs_efi_config_header);
+
+		assert(img_file_count <= img_file_max);
+		
+		// create FAT image
+		resl = create_fat_image(dc_dcs_img_label, img_files, img_file_count, &fat_data, &fat_size);
+		if (resl != ST_OK) {
+			break;
+		}
+
+		file_entry_t* image_file = &iso_files[iso_file_count++];
+		wcscpy(image_file->path, dc_dcs_img_file);
+		image_file->data = fat_data;
+		image_file->size = fat_size;
+		fat_data = NULL;
+
+		assert(iso_file_count <= iso_file_max);
+
+		// create ISO image
+		resl = create_iso_image(dc_dcs_iso_label, iso_files, iso_file_count, image_file, &iso_data, &iso_size);
+		if (resl != ST_OK) {
+			break;
+		}
+
+		// save ISO image to file
+		resl = save_file(file, iso_data, (int)iso_size);
+
+	} while (0);
+
+	if (img_files) {
+		for (size_t i = 0; i < img_file_max; i++) {
+			if (img_files[i].data) free(img_files[i].data);
+		}
+		free(img_files);
+	}
+
+	if(iso_files) {
+		for (size_t i = 0; i < iso_file_max; i++) {
+			if (iso_files[i].data) free(iso_files[i].data);
+		}
+		free(iso_files);
+	}
+	
+	if (fat_data != NULL) {
+		free(fat_data);
+	}
+
+	if (iso_data != NULL) {
+		free(iso_data);
+	}
+
+	return resl;
 }
 
 int dc_make_efi_pxe(wchar_t* file, int shim)
 {
-	return ST_ERROR; // not implemented
+	return ST_ERROR; // x-todo: not implemented
 }
 
 int dc_replace_msft_boot(const wchar_t *root)
@@ -1041,6 +1275,140 @@ int dc_get_disk_id_by_guid(char* guid, unsigned long *disk_id)
 	return resl;
 }*/
 
+void dc_efi_config_store(STRING* newConfig, char* configContent, DWORD size, ldr_config* conf)
+{
+	XmlWriteHeader(newConfig);
+	StrAppend(newConfig, "\n\t<configuration>");
+
+	// Set the DCS Module in case we use a build that supports multiple methods
+	WriteConfigString(newConfig, configContent, "DcsModule", "DiskCryptor"); 
+
+// Main:
+	// Keyboard Layout
+		// QWERTY	0
+		// QWERTZ	1
+		// AZERTY	2
+	WriteConfigInteger(newConfig, configContent, "KeyboardLayout", conf->kbd_layout);
+
+	// Booting Method
+		// First disk MBR								// BT_MBR_FIRST    2
+		// First partition with appropriate password	// BT_AP_PASSWORD  4
+		// Specified partition							// BT_DISK_ID      5
+		// (Boot disk MBR)								// BT_MBR_BOOT     1 // default
+		// (Active partition)							// BT_ACTIVE       3 // not supported in EFI mode
+	WriteConfigInteger(newConfig, configContent, "BootMode", conf->boot_type);
+	if (conf->boot_type == LDR_BT_DISK_ID) {
+		WriteConfigInteger64(newConfig, configContent, "BootDiskID", conf->disk_id);
+	}
+	/*char disk_guid[36 + 1] = { 0 };
+	resl = dc_get_disk_guid_by_id(conf->disk_id, disk_guid);
+	if (resl != ST_OK) break;
+	WriteConfigString(newConfig, configContent, "BootPartition", disk_guid); // boot partition guid without brackets*/
+
+// Authentication:
+	// Authenticaltion Method
+		// Password and bootauth keyfile 3
+		// Password request 1
+		// Embedded bootauth keyfile 2
+	WriteConfigInteger(newConfig, configContent, "AutoLogin", (conf->logon_type & LDR_LT_GET_PASS) ? 0 : 1);
+	//WriteConfigString(newConfig, configContent, "AutoPassword", "");
+	/*if ((conf->logon_type & LDR_LT_EMBED_KEY) == 0)
+		WriteConfigString(newConfig, configContent, "KeyFilePath", ""); // empty string -> no key file
+	else 
+	{
+		const char keyPath[] = "\\EFI\\DCS\\key.bin";
+		WriteConfigString(newConfig, configContent, "KeyFilePath", keyPath);
+
+		wchar_t fullPath[MAX_PATH];
+		swprintf_s(fullPath, MAX_PATH, L"%s%S", root, keyPath);
+
+		resl = save_file(fullPath, conf->emb_key, sizeof(conf->emb_key)); // todo: allow for arbitrary sized key files
+		if (resl != ST_OK) break;
+	}*/
+	
+	// Picture Password
+	WriteConfigInteger(newConfig, configContent, "TouchInput", (conf->logon_type & LDR_LT_PIC_PASS) ? 1 : 0);
+	WriteConfigString(newConfig, configContent, "PasswordPicture", "\\EFI\\DCS\\login.bmp"); // h1630 v1090
+	//WriteConfigString(newConfig, configContent, "PictureChars", ); // leave default
+	//WriteConfigInteger(newConfig, configContent, "AuthorizeVisible", 0);		// show chars
+	//WriteConfigInteger(newConfig, configContent, "PasswordHideLetters", 1);	// always show letters in touch points
+	//WriteConfigInteger(newConfig, configContent, "AuthorizeMarkTouch", 1);	// show touch points
+
+	// Password Prompt Message
+	WriteConfigString(newConfig, configContent, "PasswordMsg", (conf->logon_type & LDR_LT_MESSAGE) ? conf->eps_msg  : "");
+
+	// Display Entered Password * or hide completly
+	WriteConfigInteger(newConfig, configContent, "AuthorizeProgress", (conf->logon_type & LDR_LT_DSP_PASS) ? 1 : 0);
+
+	// Authentication TimeOut
+	WriteConfigInteger(newConfig, configContent, "PasswordTimeout", conf->timeout); // s, 0 -> no timeout
+	//																 (conf->options & LDR_OP_EPS_TMO) // timeout enabled
+	//																 (conf->options & LDR_OP_TMO_STOP) // DCS always behaves this way
+		
+	// Trying password message
+	WriteConfigString(newConfig, configContent, "AuthStartMsg", (conf->options & LDR_OP_AUTH_MSG) ? conf->ago_msg : "");
+
+	// Success message
+	WriteConfigString(newConfig, configContent, "AuthSuccessMsg", (conf->options & LDR_OP_OK_MSG) ? conf->aok_msg : "");
+
+// Invalid Password:
+	// use incorrect action if no password entered [ ]
+	WriteConfigInteger(newConfig, configContent, "FailOnTimeout", (conf->options & LDR_OP_NOPASS_ERROR) ? 1 : 0);
+
+	// Invalid Password message
+	WriteConfigString(newConfig, configContent, "AuthFailedMsg", (conf->error_type & LDR_ET_MESSAGE) ? conf->err_msg : "");
+
+	// Invalid Password action			ConfigReadString("ActionFailed", ...
+		// Halt system					"halt"      EFI_DCS_HALT_REQUESTED
+		// Reboot system				"reboot"    EFI_DCS_REBOOT_REQUESTED
+		// Boot from active partition	"cancel"	EFI_DCS_USER_CANCELED
+		// Exit to BIOS
+		// Retry authentication			"exit"  &&  gDCryptAuthRetry > 0; else gDCryptAuthRetry == 0;
+		// Load Boot Disk MBR			"cancel"	EFI_DCS_USER_CANCELED
+		//								"shutdown"  EFI_DCS_SHUTDOWN_REQUESTED
+	if (conf->error_type & LDR_ET_REBOOT) 
+		WriteConfigString(newConfig, configContent, "ActionFailed", "Reboot");
+	else if (conf->error_type & LDR_ET_BOOT_ACTIVE) 
+		WriteConfigString(newConfig, configContent, "ActionFailed", "Cancel");
+	//else if (conf->error_type & LDR_ET_EXIT_TO_BIOS)
+	//	; // todo: not supported
+	else if (conf->error_type & LDR_ET_MBR_BOOT) 
+		WriteConfigString(newConfig, configContent, "ActionFailed", "Cancel");
+	else //if (conf->error_type & LDR_ET_RETRY)
+		WriteConfigString(newConfig, configContent, "ActionFailed", "Exit");
+
+	// Authentication Tries
+	WriteConfigInteger(newConfig, configContent, "AuthorizeRetry", (conf->error_type & LDR_ET_RETRY) ? 100 : 0);
+
+// Other
+
+	WriteConfigInteger(newConfig, configContent, "UseHardwareCrypto", (conf->options & LDR_OP_HW_CRYPTO) ? 1 : 0);
+
+	WriteConfigInteger(newConfig, configContent, "VerboseDebug", (conf->options & LDR_OP_DEBUG) ? 1 : 0);
+
+//
+
+	// Write unmodified values
+	char* xml = configContent;
+	char key[128], value[2048];
+	while (xml && (xml = XmlFindElement(xml, "config")))
+	{
+		XmlGetAttributeText(xml, "key", key, sizeof(key));
+		XmlGetNodeText(xml, value, sizeof(value));
+
+		StrAppend(newConfig, "\n\t\t<config key=\"");
+		StrAppend(newConfig, key);
+		StrAppend(newConfig, "\">");
+		StrAppend(newConfig, value);
+		StrAppend(newConfig, "</config>");
+
+		xml++;
+	}
+
+	StrAppend(newConfig, "\n\t</configuration>");
+	XmlWriteFooter(newConfig);
+}
+
 int dc_efi_config_write(const wchar_t* root, ldr_config *conf)
 {
 	int      resl = ST_OK;
@@ -1048,7 +1416,7 @@ int dc_efi_config_write(const wchar_t* root, ldr_config *conf)
 	wchar_t  tempName[MAX_PATH];
 	DWORD    size = 0;
 	char*    configContent = NULL;
-	FILE*    configFile;
+	STRING   newConfig = {0};
 
 	swprintf_s(fileName, MAX_PATH, L"%s%s", root, dcs_conf_file);
 	swprintf_s(tempName, MAX_PATH, L"%s%s.tmp", root, dcs_conf_file);
@@ -1057,147 +1425,18 @@ int dc_efi_config_write(const wchar_t* root, ldr_config *conf)
 	{
 		load_file(fileName, &configContent, &size);
 
-		configFile = _wfopen(tempName, L"w,ccs=UTF-8");
-		if (configFile == NULL) {
-			resl = ST_NO_OPEN_FILE; break;
-		}
+		dc_efi_config_store(&newConfig, configContent, size, conf);
 
-		XmlWriteHeader(configFile);
-		fputws(L"\n\t<configuration>", configFile);
-
-		// Set the DCS Module in case we use a build that supports multiple methods
-		WriteConfigString(configFile, configContent, "DcsModule", "DiskCryptor"); 
-
-	// Main:
-		// Keyboard Layout
-			// QWERTY	0
-			// QWERTZ	1
-			// AZERTY	2
-		WriteConfigInteger(configFile, configContent, "KeyboardLayout", conf->kbd_layout);
-
-		// Booting Method
-			// First disk MBR								// BT_MBR_FIRST    2
-			// First partition with appropriate password	// BT_AP_PASSWORD  4
-			// Specified partition							// BT_DISK_ID      5
-			// (Boot disk MBR)								// BT_MBR_BOOT     1 // default
-			// (Active partition)							// BT_ACTIVE       3 // not supported in EFI mode
-		WriteConfigInteger(configFile, configContent, "BootMode", conf->boot_type);
-		if (conf->boot_type == LDR_BT_DISK_ID) {
-			WriteConfigInteger64(configFile, configContent, "BootDiskID", conf->disk_id);
-		}
-		/*char disk_guid[36 + 1] = { 0 };
-		resl = dc_get_disk_guid_by_id(conf->disk_id, disk_guid);
-		if (resl != ST_OK) break;
-		WriteConfigString(configFile, configContent, "BootPartition", disk_guid); // boot partition guid without brackets*/
-
-	// Authentication:
-		// Authenticaltion Method
-			// Password and bootauth keyfile 3
-			// Password request 1
-			// Embedded bootauth keyfile 2
-		WriteConfigInteger(configFile, configContent, "AutoLogin", (conf->logon_type & LDR_LT_GET_PASS) ? 0 : 1);
-		//WriteConfigString(configFile, configContent, "AutoPassword", "");
-		if ((conf->logon_type & LDR_LT_EMBED_KEY) == 0)
-			WriteConfigString(configFile, configContent, "KeyFilePath", ""); // empty string -> no key file
-		else 
-		{
-			const char keyPath[] = "\\EFI\\DCS\\key.bin";
-			WriteConfigString(configFile, configContent, "KeyFilePath", keyPath);
-
-			wchar_t fullPath[MAX_PATH];
-			swprintf_s(fullPath, MAX_PATH, L"%s%S", root, keyPath);
-
-			resl = save_file(fullPath, conf->emb_key, sizeof(conf->emb_key)); // todo: allow for arbitrary sized key files
-			if (resl != ST_OK) break;
-		}
-	
-		// Picture Password
-		WriteConfigInteger(configFile, configContent, "TouchInput", (conf->logon_type & LDR_LT_PIC_PASS) ? 1 : 0);
-		WriteConfigString(configFile, configContent, "PasswordPicture", "\\EFI\\DCS\\login.bmp"); // h1630 v1090
-		//WriteConfigString(configFile, configContent, "PictureChars", ); // leave default
-		//WriteConfigInteger(configFile, configContent, "AuthorizeVisible", 0);		// show chars
-		//WriteConfigInteger(configFile, configContent, "PasswordHideLetters", 1);	// always show letters in touch points
-		//WriteConfigInteger(configFile, configContent, "AuthorizeMarkTouch", 1);	// show touch points
-
-		// Password Prompt Message
-		WriteConfigString(configFile, configContent, "PasswordMsg", (conf->logon_type & LDR_LT_MESSAGE) ? conf->eps_msg  : "");
-
-		// Display Entered Password * or hide completly
-		WriteConfigInteger(configFile, configContent, "AuthorizeProgress", (conf->logon_type & LDR_LT_DSP_PASS) ? 1 : 0);
-
-		// Authentication TimeOut
-		WriteConfigInteger(configFile, configContent, "PasswordTimeout", conf->timeout); // s, 0 -> no timeout
-		//																 (conf->options & LDR_OP_EPS_TMO) // timeout enabled
-		//																 (conf->options & LDR_OP_TMO_STOP) // DCS always behaves this way
-		
-		// Trying password message
-		WriteConfigString(configFile, configContent, "AuthStartMsg", (conf->options & LDR_OP_AUTH_MSG) ? conf->ago_msg : "");
-
-		// Success message
-		WriteConfigString(configFile, configContent, "AuthSuccessMsg", (conf->options & LDR_OP_OK_MSG) ? conf->aok_msg : "");
-
-	// Invalid Password:
-		// use incorrect action if no password entered [ ]
-		WriteConfigInteger(configFile, configContent, "FailOnTimeout", (conf->options & LDR_OP_NOPASS_ERROR) ? 1 : 0);
-
-		// Invalid Password message
-		WriteConfigString(configFile, configContent, "AuthFailedMsg", (conf->error_type & LDR_ET_MESSAGE) ? conf->err_msg : "");
-
-		// Invalid Password action			ConfigReadString("ActionFailed", ...
-			// Halt system					"halt"      EFI_DCS_HALT_REQUESTED
-			// Reboot system				"reboot"    EFI_DCS_REBOOT_REQUESTED
-			// Boot from active partition	"cancel"	EFI_DCS_USER_CANCELED
-			// Exit to BIOS
-			// Retry authentication			"exit"  &&  gDCryptAuthRetry > 0; else gDCryptAuthRetry == 0;
-			// Load Boot Disk MBR			"cancel"	EFI_DCS_USER_CANCELED
-			//								"shutdown"  EFI_DCS_SHUTDOWN_REQUESTED
-		if (conf->error_type & LDR_ET_REBOOT) 
-			WriteConfigString(configFile, configContent, "ActionFailed", "Reboot");
-		else if (conf->error_type & LDR_ET_BOOT_ACTIVE) 
-			WriteConfigString(configFile, configContent, "ActionFailed", "Cancel");
-		//else if (conf->error_type & LDR_ET_EXIT_TO_BIOS)
-		//	; // todo: not supported
-		else if (conf->error_type & LDR_ET_MBR_BOOT) 
-			WriteConfigString(configFile, configContent, "ActionFailed", "Cancel");
-		else //if (conf->error_type & LDR_ET_RETRY)
-			WriteConfigString(configFile, configContent, "ActionFailed", "Exit");
-
-		// Authentication Tries
-		WriteConfigInteger(configFile, configContent, "AuthorizeRetry", (conf->error_type & LDR_ET_RETRY) ? 100 : 0);
-
-	// Other
-
-		WriteConfigInteger(configFile, configContent, "UseHardwareCrypto", (conf->options & LDR_OP_HW_CRYPTO) ? 1 : 0);
-
-		WriteConfigInteger(configFile, configContent, "VerboseDebug", (conf->options & LDR_OP_DEBUG) ? 1 : 0);
-
-	//
-
-		// Write unmodified values
-		char* xml = configContent;
-		char key[128], value[2048];
-		while (xml && (xml = XmlFindElement(xml, "config")))
-		{
-			XmlGetAttributeText(xml, "key", key, sizeof(key));
-			XmlGetNodeText(xml, value, sizeof(value));
-
-			fwprintf(configFile, L"\n\t\t<config key=\"%hs\">%hs</config>", key, value);
-			xml++;
-		}
-
-		fputws(L"\n\t</configuration>", configFile);
-		XmlWriteFooter(configFile);
-
-		fflush(configFile);
-
-		if (ferror(configFile))
-			resl = ST_RW_ERR;
+		resl = save_file(tempName, newConfig.str, newConfig.len);
 
 	} while (0);
 
-	fclose(configFile);
 	if (configContent != NULL){
 		free(configContent);
+	}
+
+	if (newConfig.str != NULL){
+		free(newConfig.str);
 	}
 
 	// only commite the file when all changed were writen successfully
@@ -1211,13 +1450,164 @@ int dc_efi_config_write(const wchar_t* root, ldr_config *conf)
 	return resl;
 }
 
+void dc_efi_config_load(char* configContent, DWORD size, ldr_config* conf)
+{
+	char     buffer[1024];
+
+// Main:
+	// Keyboard Layout
+		// QWERTY	0
+		// QWERTZ	1
+		// AZERTY	2
+	conf->kbd_layout = ReadConfigInteger(configContent, "KeyboardLayout", 0);
+
+	// Booting Method
+		// First disk MBR								// BT_MBR_FIRST    2
+		// First partition with appropriate password	// BT_AP_PASSWORD  4
+		// Specified partition							// BT_DISK_ID      5
+		// (Boot disk MBR)								// BT_MBR_BOOT     1 // default
+		// (Active partition)							// BT_ACTIVE       3 // not supported in EFI mode
+	conf->boot_type = ReadConfigInteger(configContent, "BootMode", 1);
+	conf->disk_id = (ULONG)ReadConfigInteger64(configContent, "BootDiskID", 0);
+	/*char disk_guid[36 + 1] = { 0 };
+	ReadConfigString(configContent, "BootPartition", "", disk_guid, sizeof(disk_guid));
+	resl = dc_get_disk_id_by_guid(disk_guid, &conf->disk_id);
+	if (resl != ST_OK) break;*/
+
+// Authentication:
+	// Authenticaltion Method
+		// Password and bootauth keyfile 3
+		// Password request 1
+		// Embedded bootauth keyfile 2
+	if (ReadConfigInteger(configContent, "AutoLogin", 0) == 0) {
+		conf->logon_type |= LDR_LT_GET_PASS;
+	}
+	//ReadConfigString(configContent, "AutoPassword", "", buffer, sizeof(buffer));
+	/*ReadConfigString(configContent, "KeyFilePath", "", buffer, sizeof(buffer));
+	if (strlen(buffer) > 0) {
+		conf->logon_type |= LDR_LT_EMBED_KEY;
+
+		wchar_t fullPath[MAX_PATH];
+		swprintf_s(fullPath, MAX_PATH, L"%s%S", root, buffer);
+
+		u8* keyfile;
+		u32 keysize;
+		resl = load_file(fullPath, &keyfile, &keysize);
+		if (resl == ST_OK)
+		{
+			if (keysize == sizeof(conf->emb_key)) {  // todo: allow for arbitrary sized key files
+				memcpy(conf->emb_key, keyfile, sizeof(conf->emb_key));
+			}
+			else {
+				resl = ST_INV_DATA_SIZE;
+			}
+
+			burn(keyfile, keysize);
+			free(keyfile);
+		}
+
+		if (resl != ST_OK) break;
+	}*/
+
+	// Picture Password
+	if (ReadConfigInteger(configContent, "TouchInput", 0)) {
+		conf->logon_type |= LDR_LT_PIC_PASS;
+	}
+	//WriteConfigString(configFile, configContent, "PasswordPicture", "\\EFI\\DCS\\login.bmp"); // h1630 v1090
+	//WriteConfigString(configFile, configContent, "PictureChars", ); // leave default
+	//WriteConfigInteger(configFile, configContent, "AuthorizeVisible", 0);		// show chars
+	//WriteConfigInteger(configFile, configContent, "PasswordHideLetters", 0);	// always show letters in touch points
+	//WriteConfigInteger(configFile, configContent, "AuthorizeMarkTouch", 0);		// show touch points
+
+	// Password Prompt Message
+	ReadConfigString(configContent, "PasswordMsg", "Enter password:", buffer, sizeof(buffer));
+	if (strlen(buffer) > 0) {
+		strcpy(conf->eps_msg, buffer);
+		conf->logon_type |= LDR_LT_MESSAGE;
+	}
+
+	// Display Entered Password * or hide completly
+	if (ReadConfigInteger(configContent, "AuthorizeProgress", 0)) {
+		conf->logon_type |= LDR_LT_DSP_PASS;
+	}
+
+	// Authentication TimeOut
+	conf->timeout = ReadConfigInteger(configContent, "PasswordTimeout", 180);
+	if (conf->timeout != 0) {
+		conf->options |= LDR_OP_EPS_TMO; // timeout enabled
+		conf->options |= LDR_OP_TMO_STOP; // DCS always behaves this way
+	}
+
+	// Trying password message
+	ReadConfigString(configContent, "AuthStartMsg", "Authorizing...", buffer, sizeof(buffer));
+	if (strlen(buffer) > 0) {
+		strcpy(conf->ago_msg, buffer);
+		conf->options |= LDR_OP_AUTH_MSG;
+	}
+
+	// Success message
+	ReadConfigString(configContent, "AuthSuccessMsg", "Password correct", buffer, sizeof(buffer));
+	if (strlen(buffer) > 0) {
+		strcpy(conf->aok_msg, buffer);
+		conf->options |= LDR_OP_OK_MSG;
+	}
+
+// Invalid Password:
+	// use incorrect action if no password entered [ ]
+	if (ReadConfigInteger(configContent, "FailOnTimeout", 0)) {
+		conf->options |= LDR_OP_NOPASS_ERROR;
+	}
+
+	// Invalid Password message
+	ReadConfigString(configContent, "AuthFailedMsg", "Password incorrect", buffer, sizeof(buffer));
+	if (strlen(buffer) > 0) {
+		strcpy(conf->err_msg, buffer);
+		conf->error_type |= LDR_ET_MESSAGE;
+	}
+
+	// Invalid Password action			ConfigReadString("ActionFailed", ...
+		// Halt system					"halt"      EFI_DCS_HALT_REQUESTED
+		// Reboot system				"reboot"    EFI_DCS_REBOOT_REQUESTED
+		// Boot from active partition	"cancel"	EFI_DCS_USER_CANCELED
+		// Exit to BIOS
+		// Retry authentication			"exit"  &&  gDCryptAuthRetry > 0; else gDCryptAuthRetry == 0;
+		// Load Boot Disk MBR			"cancel"	EFI_DCS_USER_CANCELED
+		//								"shutdown"  EFI_DCS_SHUTDOWN_REQUESTED
+	ReadConfigString(configContent, "ActionFailed", "exit", buffer, sizeof(buffer));
+	if (_strcmpi(buffer, "Reboot") == 0)
+		conf->error_type |= LDR_ET_REBOOT;
+	else if (_strcmpi(buffer, "Cancel") == 0)
+		//conf->error_type |= LDR_ET_BOOT_ACTIVE;
+		conf->error_type |= LDR_ET_MBR_BOOT;
+	//else if(_strcmpi(buffer, "Exit") == 0)
+	//	conf->error_type |= LDR_ET_RETRY;
+
+	// Authentication Tries
+	if (ReadConfigInteger(configContent, "AuthorizeRetry", 100)) {
+		conf->error_type |= LDR_ET_RETRY;
+	}
+
+// Other
+
+	if (ReadConfigInteger(configContent, "UseHardwareCrypto", 1)) {
+		conf->options |= LDR_OP_HW_CRYPTO;
+	}
+
+	if (ReadConfigInteger(configContent, "VerboseDebug", 0)) {
+		conf->options |= LDR_OP_DEBUG;
+	}
+		
+//
+}
+
 int dc_efi_config_read(const wchar_t* root, ldr_config *conf)
 {
 	int      resl = ST_OK;
 	wchar_t  fileName[MAX_PATH];
 	DWORD    size = 0;
 	char*    configContent = NULL;
-	char     buffer[1024];
+
+	memset(conf, 0, sizeof(*conf));
 
 	swprintf_s(fileName, MAX_PATH, L"%s%s", root, dcs_conf_file);
 
@@ -1226,154 +1616,9 @@ int dc_efi_config_read(const wchar_t* root, ldr_config *conf)
 		resl = load_file(fileName, &configContent, &size);
 		if (resl != ST_OK) break;
 
-		memset(conf, 0, sizeof(*conf));
-
 		conf->ldr_ver = dc_get_dcs_version(root);
-
-		// Main:
-			// Keyboard Layout
-				// QWERTY	0
-				// QWERTZ	1
-				// AZERTY	2
-		conf->kbd_layout = ReadConfigInteger(configContent, "KeyboardLayout", 0);
-
-		// Booting Method
-			// First disk MBR								// BT_MBR_FIRST    2
-			// First partition with appropriate password	// BT_AP_PASSWORD  4
-			// Specified partition							// BT_DISK_ID      5
-			// (Boot disk MBR)								// BT_MBR_BOOT     1 // default
-			// (Active partition)							// BT_ACTIVE       3 // not supported in EFI mode
-		conf->boot_type = ReadConfigInteger(configContent, "BootMode", 1);
-		conf->disk_id = (ULONG)ReadConfigInteger64(configContent, "BootDiskID", 0);
-		/*char disk_guid[36 + 1] = { 0 };
-		ReadConfigString(configContent, "BootPartition", "", disk_guid, sizeof(disk_guid));
-		resl = dc_get_disk_id_by_guid(disk_guid, &conf->disk_id);
-		if (resl != ST_OK) break;*/
-
-		// Authentication:
-			// Authenticaltion Method
-				// Password and bootauth keyfile 3
-				// Password request 1
-				// Embedded bootauth keyfile 2
-		if (ReadConfigInteger(configContent, "AutoLogin", 0) == 0) {
-			conf->logon_type |= LDR_LT_GET_PASS;
-		}
-		//ReadConfigString(configContent, "AutoPassword", "", buffer, sizeof(buffer));
-		ReadConfigString(configContent, "KeyFilePath", "", buffer, sizeof(buffer));
-		if (strlen(buffer) > 0) {
-			conf->logon_type |= LDR_LT_EMBED_KEY;
-
-			wchar_t fullPath[MAX_PATH];
-			swprintf_s(fullPath, MAX_PATH, L"%s%S", root, buffer);
-
-			u8* keyfile;
-			u32 keysize;
-			resl = load_file(fullPath, &keyfile, &keysize);
-			if (resl == ST_OK)
-			{
-				if (keysize == sizeof(conf->emb_key)) {  // todo: allow for arbitrary sized key files
-					memcpy(conf->emb_key, keyfile, sizeof(conf->emb_key));
-				}
-				else {
-					resl = ST_INV_DATA_SIZE;
-				}
-
-				burn(keyfile, keysize);
-				free(keyfile);
-			}
-
-			if (resl != ST_OK) break;
-		}
-
-		// Picture Password
-		if (ReadConfigInteger(configContent, "TouchInput", 0)) {
-			conf->logon_type |= LDR_LT_PIC_PASS;
-		}
-		//WriteConfigString(configFile, configContent, "PasswordPicture", "\\EFI\\DCS\\login.bmp"); // h1630 v1090
-		//WriteConfigString(configFile, configContent, "PictureChars", ); // leave default
-		//WriteConfigInteger(configFile, configContent, "AuthorizeVisible", 0);		// show chars
-		//WriteConfigInteger(configFile, configContent, "PasswordHideLetters", 0);	// always show letters in touch points
-		//WriteConfigInteger(configFile, configContent, "AuthorizeMarkTouch", 0);		// show touch points
-
-		// Password Prompt Message
-		ReadConfigString(configContent, "PasswordMsg", "Enter password:", buffer, sizeof(buffer));
-		if (strlen(buffer) > 0) {
-			strcpy(conf->eps_msg, buffer);
-			conf->logon_type |= LDR_LT_MESSAGE;
-		}
-
-		// Display Entered Password * or hide completly
-		if (ReadConfigInteger(configContent, "AuthorizeProgress", 0)) {
-			conf->logon_type |= LDR_LT_DSP_PASS;
-		}
-
-		// Authentication TimeOut
-		conf->timeout = ReadConfigInteger(configContent, "PasswordTimeout", 180);
-		if (conf->timeout != 0) {
-			conf->options |= LDR_OP_EPS_TMO; // timeout enabled
-			conf->options |= LDR_OP_TMO_STOP; // DCS always behaves this way
-		}
-
-		// Trying password message
-		ReadConfigString(configContent, "AuthStartMsg", "Authorizing...", buffer, sizeof(buffer));
-		if (strlen(buffer) > 0) {
-			strcpy(conf->ago_msg, buffer);
-			conf->options |= LDR_OP_AUTH_MSG;
-		}
-
-		// Success message
-		ReadConfigString(configContent, "AuthSuccessMsg", "Password correct", buffer, sizeof(buffer));
-		if (strlen(buffer) > 0) {
-			strcpy(conf->aok_msg, buffer);
-			conf->options |= LDR_OP_OK_MSG;
-		}
-
-	// Invalid Password:
-		// use incorrect action if no password entered [ ]
-		if (ReadConfigInteger(configContent, "FailOnTimeout", 0)) {
-			conf->options |= LDR_OP_NOPASS_ERROR;
-		}
-
-		// Invalid Password message
-		ReadConfigString(configContent, "AuthFailedMsg", "Password incorrect", buffer, sizeof(buffer));
-		if (strlen(buffer) > 0) {
-			strcpy(conf->err_msg, buffer);
-			conf->error_type |= LDR_ET_MESSAGE;
-		}
-
-		// Invalid Password action			ConfigReadString("ActionFailed", ...
-			// Halt system					"halt"      EFI_DCS_HALT_REQUESTED
-			// Reboot system				"reboot"    EFI_DCS_REBOOT_REQUESTED
-			// Boot from active partition	"cancel"	EFI_DCS_USER_CANCELED
-			// Exit to BIOS
-			// Retry authentication			"exit"  &&  gDCryptAuthRetry > 0; else gDCryptAuthRetry == 0;
-			// Load Boot Disk MBR			"cancel"	EFI_DCS_USER_CANCELED
-			//								"shutdown"  EFI_DCS_SHUTDOWN_REQUESTED
-		ReadConfigString(configContent, "ActionFailed", "exit", buffer, sizeof(buffer));
-		if (_strcmpi(buffer, "Reboot") == 0)
-			conf->error_type |= LDR_ET_REBOOT;
-		else if (_strcmpi(buffer, "Cancel") == 0)
-			//conf->error_type |= LDR_ET_BOOT_ACTIVE;
-			conf->error_type |= LDR_ET_MBR_BOOT;
-		//else if(_strcmpi(buffer, "Exit") == 0)
-		//	conf->error_type |= LDR_ET_RETRY;
-
-		// Authentication Tries
-		if (ReadConfigInteger(configContent, "AuthorizeRetry", 100)) {
-			conf->error_type |= LDR_ET_RETRY;
-		}
-
-	// Other
-
-		if (ReadConfigInteger(configContent, "UseHardwareCrypto", 1)) {
-			conf->options |= LDR_OP_HW_CRYPTO;
-		}
-
-		if (ReadConfigInteger(configContent, "VerboseDebug", 0)) {
-			conf->options |= LDR_OP_DEBUG;
-		}
 		
-	//
+		dc_efi_config_load(configContent, size, conf);
 
 	} while (0);
 
@@ -1401,20 +1646,135 @@ int dc_efi_config_by_partition(const wchar_t *root, int set_conf, ldr_config *co
 	return resl;
 }
 
+typedef struct _ldr_version {
+	unsigned long sign1;         // signature to search for bootloader in memory
+	unsigned long sign2;         // signature to search for bootloader in memory
+	unsigned long ldr_ver;       // bootloader version
+} ldr_version;
+
+static ldr_version *dc_find_efi_ver(char *data, int size)
+{
+	ldr_version *cnf;
+	ldr_version *conf = NULL;
+
+	for (; size > sizeof(ldr_version); size--, data++)
+	{
+		cnf = pv(data);
+
+		if ( (cnf->sign1 == LDR_CFG_SIGN1) && (cnf->sign2 == LDR_CFG_SIGN2) ) {
+			conf = cnf;	
+			break;
+		}
+	}
+
+	return conf;
+}
+
+static char *dc_find_in_memory(char *data, int size, const void* str, int len)
+{
+	char* temp;
+	char* conf = NULL;
+
+	for (; size > len; size--, data++)
+	{
+		temp = pv(data);
+
+		if ( memcmp(temp, str, len) == 0 ) {
+			conf = temp;
+			break;
+		}
+	}
+
+	return conf;
+}
+
+static int dc_get_embedded_config(wchar_t* file, ldr_config* conf)
+{
+	int      resl;
+	int      ver = 0;
+	int      size = 0;
+	char*    data = NULL;
+	size_t   img_size = 0;
+	char*    img_data = NULL;
+	size_t   prop_size = 0;
+	char*    prop_data = NULL;
+	ldr_version *cnf = NULL;
+
+	memset(conf, 0, sizeof(*conf));
+
+	do
+	{
+		resl = load_file(file, &data, &size);
+		if (resl != ST_OK) break;
+
+		resl = get_iso_file(data, size, dc_dcs_img_file, &img_data, &img_size);
+		if (resl != ST_OK) break;
+
+		if ((cnf = dc_find_efi_ver(img_data, (int)img_size)) != NULL)
+			conf->ldr_ver = cnf->ldr_ver;
+
+		resl = get_fat_file(img_data, img_size, dcs_conf_file, &prop_data, &prop_size);
+		if (resl != ST_OK) break;
+
+		dc_efi_config_load(prop_data, (DWORD)prop_size, conf);
+	}
+	while(0);
+
+	if (data) {
+		free(data);
+	}
+
+	return resl;
+}
+
+static int dc_set_embedded_config(wchar_t* file, ldr_config* conf)
+{
+	int      resl;
+	int      ver = 0;
+	int      size = 0;
+	char*    data = NULL;
+	size_t   img_size = 0;
+	char*    img_data = NULL;
+	size_t   prop_size = 0;
+	char*    prop_data = NULL;
+	STRING   newConfig = {0};
+
+	do
+	{
+		resl = load_file(file, &data, &size);
+		if (resl != ST_OK) break;
+
+		resl = get_iso_file(data, size, dc_dcs_img_file, &img_data, &img_size);
+		if (resl != ST_OK) break;
+
+		resl = get_fat_file(img_data, img_size, dcs_conf_file, &prop_data, &prop_size);
+		if (resl != ST_OK) break;
+
+		dc_efi_config_store(&newConfig, prop_data, (DWORD)prop_size, conf);
+
+		memset(prop_data, '    ', prop_size);
+		strcpy(prop_data, newConfig.str);
+
+		resl = save_file(file, data, size);
+	}
+	while(0);
+
+	if (data) {
+		free(data);
+	}
+
+	return resl;
+}
+
 int dc_get_efi_config(int dsk_num, wchar_t *file, ldr_config *conf)
 {
 	int      resl;
 	wchar_t  path[MAX_PATH] = { 0 };
 
 	if (file) 
-	{
-		resl = ST_ERROR; // not implemented
-	}
-	else
-	{
-		if ((resl = dc_efi_get_sys_part(dsk_num, path)) == ST_OK)
-			resl = dc_efi_config_by_partition(path, FALSE, conf);
-	}
+		resl = dc_get_embedded_config(file, conf);
+	else if ((resl = dc_efi_get_sys_part(dsk_num, path)) == ST_OK)
+		resl = dc_efi_config_by_partition(path, FALSE, conf);
 
 	return resl;
 }
@@ -1425,40 +1785,11 @@ int dc_set_efi_config(int dsk_num, wchar_t* file, ldr_config* conf)
 	wchar_t  path[MAX_PATH] = { 0 };
 
 	if (file)
-	{
-		resl = ST_ERROR; // not implemented
-	}
-	else
-	{
-		if ((resl = dc_efi_get_sys_part(dsk_num, path)) == ST_OK)
-			resl = dc_efi_config_by_partition(path, TRUE, conf);
-	}
+		resl = dc_set_embedded_config(file, conf);
+	else if ((resl = dc_efi_get_sys_part(dsk_num, path)) == ST_OK)
+		resl = dc_efi_config_by_partition(path, TRUE, conf);
 
 	return resl;
-}
-
-typedef struct _ldr_version {
-	unsigned long sign1;         // signature to search for bootloader in memory
-	unsigned long sign2;         // signature to search for bootloader in memory
-	unsigned long ldr_ver;       // bootloader version
-} ldr_version;
-
-static
-ldr_version *dc_find_efi_ver(char *data, u32 size)
-{
-	ldr_version *cnf;
-	ldr_version *conf = NULL;
-
-	for (; size > sizeof(ldr_version); size--, data++)
-	{
-		cnf = pv(data);
-
-		if ( (cnf->sign1 == LDR_CFG_SIGN1) && (cnf->sign2 == LDR_CFG_SIGN2) ) {
-			conf = cnf;	break;
-		}
-	}
-
-	return conf;
 }
 
 int dc_get_dcs_version(const wchar_t *root)
@@ -1556,6 +1887,26 @@ int dc_efi_is_msft_on_disk(int dsk_num)
 	if (dc_efi_get_sys_part(dsk_num, root) == ST_OK)
 		return dc_efi_file_exists(root, msft_boot_file);
 	return 0;
+}
+
+int dc_is_dcs_in_file(wchar_t* file)
+{
+	int      resl;
+	DWORD    size = 0;
+	char*    data = NULL;
+	size_t    lbl_size = 0;
+	char*    lbl_data = NULL;
+
+	resl = load_file(file, &data, &size);
+	if (resl != ST_OK) return 0;
+	
+	resl = get_iso_label(data, size, &lbl_data, &lbl_size);
+	if (resl != ST_OK) return 0;
+
+	resl = _memicmp(lbl_data, dc_dcs_iso_label, lbl_size) ? 0 : 1;
+
+	free(data);
+	return resl;
 }
 
 int dc_efi_set_bme_impl(wchar_t* description, PPARTITION_INFORMATION_EX partInfo, wchar_t* execPath, int setBootEntry, int forceFirstBootEntry, int setBootNext, UINT16 statrtOrderNum, wchar_t* type, UINT32 attr)
@@ -2080,10 +2431,8 @@ static int dc_zip_is_signed(struct zip_t *zip, const efi_file_t* files, size_t c
 {
 	int     resl;
 	int     cur, idx = 0;
-	char    entryName[MAX_PATH];
 	void*   buffer = NULL;
 	size_t  bufsize = 0;
-	ssize_t bytes_read;
 	BYTE	thumbprint[20];
 
 	resl = dc_init_secureboot_db();
@@ -2095,23 +2444,8 @@ static int dc_zip_is_signed(struct zip_t *zip, const efi_file_t* files, size_t c
 			continue;
 		}
 
-		if (sprintf_s(entryName, MAX_PATH, "%S", files[i].source) < 0) {
-			resl = ST_NOMEM;
-			break;
-		}
-
-		if (zip_entry_open(zip, entryName) != 0) {
-			resl = ST_NF_FILE;
-			break;
-		}
-
-		bytes_read = zip_entry_read(zip, &buffer, &bufsize);
-		zip_entry_close(zip);
-
-		if (bytes_read < 0 || buffer == NULL) {
-			resl = ST_RW_ERR;
-			break;
-		}
+		dc_zip_load_file(zip, files[i].source, &buffer, &bufsize);
+		if (resl != ST_OK) break;
 
 		if (dc_extract_cert_from_memory(buffer, bufsize, thumbprint) == ST_OK) {
 			cur = dc_is_signer_allowed(thumbprint);
@@ -2126,7 +2460,6 @@ static int dc_zip_is_signed(struct zip_t *zip, const efi_file_t* files, size_t c
 		//resl = dc_verify_memory_signature(buffer, bufsize);
 
 		free(buffer);
-		buffer = NULL;
 
 		if (resl != ST_OK) {
 			break;

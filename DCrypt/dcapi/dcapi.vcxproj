@@ -278,6 +278,8 @@
     <ClCompile Include="keyfiles.c" />
     <ClCompile Include="mbrinst.c" />
     <ClCompile Include="misc.c" />
+    <ClCompile Include="misc\fat_sup.c" />
+    <ClCompile Include="misc\iso_sup.c" />
     <ClCompile Include="misc\xml.c" />
     <ClCompile Include="misc\zip.c" />
     <ClCompile Include="rand.c" />
@@ -301,6 +303,7 @@
     <ClInclude Include="include\rand.h" />
     <ClInclude Include="include\w10.h" />
     <ClInclude Include="misc\dirent.h" />
+    <ClInclude Include="misc\fs_sup.h" />
     <ClInclude Include="misc\miniz.h" />
     <ClInclude Include="misc\xml.h" />
     <ClInclude Include="misc\zip.h" />

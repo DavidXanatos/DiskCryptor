@@ -277,16 +277,34 @@ wchar_t *XmlQuoteTextW (const wchar_t *textSrc, wchar_t *textDst, int textDstMax
 	return textDst;
 }
 
-#if !defined(_UEFI)
-#pragma warning( default : 4706 )
-int XmlWriteHeader (FILE *file)
+int StrAppend(STRING* file, const char* str)
 {
-	return fputws (L"<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<DiskCrypto>", file);
+	int len = (int)strlen(str);
+
+	if(file->len + len + 1 > file->size)
+	{
+		int newSize = file->size * 2;
+		if (file->len + len + 1 > newSize)
+			newSize = file->len + len + 1;
+		file->str = (char*)realloc(file->str, newSize);
+		file->size = newSize;
+	}
+
+	memcpy(&file->str[file->len], str, len + 1);
+	file->len += len;
+	return len;
 }
 
-int XmlWriteFooter(FILE *file)
+#if !defined(_UEFI)
+#pragma warning( default : 4706 )
+int XmlWriteHeader (STRING *file)
 {
-	return fputws(L"\n</DiskCrypto>", file);
+	return StrAppend(file, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<DiskCrypto>");
+}
+
+int XmlWriteFooter(STRING *file)
+{
+	return StrAppend(file, "\n</DiskCrypto>");
 }
 
 BOOL ReadConfigValue(char* configContent, const char *configKey, char *configValue, int maxValueSize)
@@ -345,7 +363,7 @@ char* ReadConfigString(char* configContent, const char *configKey, char *default
 	}
 }
 
-BOOL WriteConfigString(FILE* configFile, char* configContent, const char *configKey, const char *configValue)
+BOOL WriteConfigString(STRING* configFile, char* configContent, const char *configKey, const char *configValue)
 {
 
 	BOOL bRet = FALSE;
@@ -360,17 +378,17 @@ BOOL WriteConfigString(FILE* configFile, char* configContent, const char *config
 				c[1] = '!';
 		}
 
-		if (0 != fwprintf(
-			configFile, L"\n\t\t<config key=\"%hs\">%hs</config>",
-			configKey, configValue))
-		{
-			bRet = TRUE;
-		}
+		StrAppend(configFile, "\n\t\t<config key=\"");
+		StrAppend(configFile, configKey);
+		StrAppend(configFile, "\">");
+		StrAppend(configFile, configValue);
+		StrAppend(configFile, "</config>");
+		bRet = TRUE;
 	}
 	return bRet;
 }
 
-BOOL WriteConfigInteger(FILE* configFile, char* configContent, const char *configKey, int configValue)
+BOOL WriteConfigInteger(STRING* configFile, char* configContent, const char *configKey, int configValue)
 {
 	BOOL bRet = FALSE;
 	if (configFile)
@@ -383,7 +401,7 @@ BOOL WriteConfigInteger(FILE* configFile, char* configContent, const char *confi
 	return bRet;
 }
 
-BOOL WriteConfigInteger64(FILE* configFile, char* configContent, const char *configKey, __int64 configValue)
+BOOL WriteConfigInteger64(STRING* configFile, char* configContent, const char *configKey, __int64 configValue)
 {
 	BOOL bRet = FALSE;
 	if (configFile)
