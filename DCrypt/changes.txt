@@ -14,6 +14,7 @@
   [+] added bootloader gui context menu options to add/remove Boot Menu Entry and replace/restore bootmgfw.efi
   [*] fixed bootloader gui context menu "Install Loader" always installed MBR not EFI
   [+] added EFI bootable ISO creation
+  [+] added -offline_install and -offline_remove commands to dccon allowing to install/remove dc to/from a mounted boot.wim WinPE image (also works for install.wim)
 
 [12.08.2023] - 1.3.0/849.118.204 (fully signed release)
   [+] Added safe system volume encryption (bootloader is tested before anything gets encrypted)

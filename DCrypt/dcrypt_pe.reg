@@ -1,0 +1,42 @@
+Windows Registry Editor Version 5.00
+
+; ============================================================
+; DiskCryptor offline SYSTEM hive entries for WinPE image
+; This file is meant to be imported AFTER:
+;   reg load HKLM\PE_SYSTEM <Mount>\Windows\System32\Config\SYSTEM
+; ============================================================
+
+[HKEY_LOCAL_MACHINE\PE_SYSTEM\ControlSet001\Services\dcrypt]
+"Type"=dword:00000001
+"Start"=dword:00000000
+"ErrorControl"=dword:00000003
+"ImagePath"=hex(2):5c,00,53,00,79,00,73,00,74,00,65,00,6d,00,52,00,6f,00,6f,00,74,00,5c,00,53,00,79,00,73,00,74,00,65,00,6d,00,33,00,32,00,5c,00,64,00,72,00,69,00,76,00,65,00,72,00,73,00,5c,00,64,00,63,00,72,00,79,00,70,00,74,00,2e,00,73,00,79,00,73,00,00,00
+"DisplayName"="DiskCryptor driver"
+"Description"="DiskCryptor driver"
+"Group"="Filter"
+"DependOnService"=hex(7):46,00,6c,00,74,00,4d,00,67,00,72,00,00,00,00,00
+
+[HKEY_LOCAL_MACHINE\PE_SYSTEM\ControlSet001\Services\dcrypt\Instances]
+"DefaultInstance"="dcrypt"
+
+[HKEY_LOCAL_MACHINE\PE_SYSTEM\ControlSet001\Services\dcrypt\Instances\dcrypt]
+"Altitude"="87150"
+"Flags"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\PE_SYSTEM\ControlSet001\Services\dcrypt\config]
+"Flags"=dword:00000580
+"Hotkeys"=hex:00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00
+"sysBuild"=dword:00000350
+
+; LowerFilters list from your INF: dcrypt, fvevol, iorate, rdyboost
+[HKEY_LOCAL_MACHINE\PE_SYSTEM\ControlSet001\Control\Class\{71A27CDD-812A-11D0-BEC7-08002BE2092F}]
+"LowerFilters"=hex(7):64,00,63,00,72,00,79,00,70,00,74,00,00,00,66,00,76,00,65,00,76,00,6f,00,6c,00,00,00,00,00
+;"LowerFilters"=hex(7):64,00,63,00,72,00,79,00,70,00,74,00,00,00,66,00,76,00,65,00,76,00,6f,00,6c,00,00,00,69,00,6f,00,72,00,61,00,74,00,65,00,00,00,72,00,64,00,79,00,62,00,6f,00,6f,00,73,00,74,00,00,00,00,00
+
+; UpperFilters = dcrypt for DiskDrive class
+;[HKEY_LOCAL_MACHINE\PE_SYSTEM\ControlSet001\Control\Class\{4D36E967-E325-11CE-BFC1-08002BE10318}]
+;"UpperFilters"=hex(7):64,00,63,00,72,00,79,00,70,00,74,00,00,00,00,00
+
+; CrashControl DumpFilters list: dcrypt.sys, dumpfve.sys
+;[HKEY_LOCAL_MACHINE\PE_SYSTEM\ControlSet001\Control\CrashControl]
+;"DumpFilters"=hex(7):64,00,63,00,72,00,79,00,70,00,74,00,2e,00,73,00,79,00,73,00,00,00,64,00,75,00,6d,00,70,00,66,00,76,00,65,00,2e,00,73,00,79,00,73,00,00,00,00,00

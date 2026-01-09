@@ -42,6 +42,12 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	DWORD status = ERROR_INVALID_FUNCTION;
 	int is_efi_boot;
 
+	//int argc = 0;
+	//wchar_t **argv = CommandLineToArgvW(GetCommandLineW(), &argc);
+	//if (!argv) {
+	//	return -1;
+	//}
+
 	dc_efi_init();
 	is_efi_boot = dc_efi_check();
 
@@ -135,6 +141,8 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 
 		dc_update_efi_boot(-1); // Note: this will fail and do nothing if the bootloader is not installed on the default EFI partition
 	}
+
+	//LocalFree(argv);
 
 	return status;
 }

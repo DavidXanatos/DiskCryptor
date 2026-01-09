@@ -372,7 +372,7 @@ static size_t build_directory(
 }
 
 /*
- * Creates an ISO 9660 filesystem image with the given files.
+ * Creates an ISO 9660 filesystem image.
  *
  * If boot_file is provided, creates an El Torito bootable ISO.
  * The boot_file must be present in the files array.

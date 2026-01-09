@@ -36,6 +36,7 @@
 #include "cd_enc.h"
 #include "bootloader.h"
 #include "console.h"
+#include "w10.h"
 
 typedef struct _bench_item {
 	wchar_t *alg;
@@ -792,6 +793,24 @@ int wmain(int argc, wchar_t *argv[])
 			resl = boot_menu(argc, argv);
 			break;
 		}	
+
+		if ( (argc >= 3) && (wcscmp(argv[1], L"-offline_instal") == 0) ) {
+			resl = install_dc_offline(argv[2]); 
+			if (resl == ST_OK) 
+				wprintf(L"DiskCryptor driver installed successfully\n");
+			else
+				wprintf(L"Error installing DiskCryptor driver\n");
+			break;
+		}
+
+		if ( (argc >= 3) && (wcscmp(argv[1], L"-offline_remove") == 0) ) {
+			resl = remove_dc_offline(argv[2]); 
+			if (resl == ST_OK) 
+				wprintf(L"DiskCryptor driver removed successfully\n");
+			else
+				wprintf(L"Error removing DiskCryptor driver\n");
+			break;
+		}
 
 		if (dc_is_driver_works() == FALSE) 
 		{

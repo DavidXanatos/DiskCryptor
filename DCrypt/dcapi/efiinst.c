@@ -92,9 +92,11 @@ static const wchar_t* dcs_test_file = L"\\EFI\\DCS\\TestHeader";
 
 #define DCS_EMBEDDED_PROP_SIZE 0x7FFF
 
-static const char dcs_efi_config_header[] = 
+static const char dcs_efi_empty_config[] = 
 	"<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<DiskCrypto>\n"
-	"\t<configuration>\n";
+	"\t<configuration>\n"
+	"\t</configuration>\n"
+	"</DiskCrypto>\n";
 
 static const char dcs_efi_dummy_info[] = 
 	"<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<PlatformInfo>\n"
@@ -757,7 +759,7 @@ int dc_make_efi_iso(wchar_t* file, int shim)
 		prop_file->size = DCS_EMBEDDED_PROP_SIZE;
 		prop_file->data = malloc(prop_file->size);
 		memset(prop_file->data, '    ', prop_file->size);
-		strcpy(prop_file->data, dcs_efi_config_header);
+		strcpy(prop_file->data, dcs_efi_empty_config);
 
 		assert(img_file_count <= img_file_max);
 		
