@@ -511,8 +511,6 @@ int dc_copy_efi_dcs(const wchar_t *root, int recovery)
 	{
 		resl = dc_efi_mkdir(root, L"\\EFI");
 		if (resl != ST_OK) break;
-		resl = dc_efi_mkdir(root, L"\\EFI\\Boot");
-		if (resl != ST_OK) break;
 		resl = dc_efi_mkdir(root, L"\\EFI\\DCS");
 		if (resl != ST_OK) break;
 
@@ -590,6 +588,9 @@ int dc_make_efi_rec(const wchar_t *root, int format, int shim)
 		}
 
 		resl = dc_copy_efi_dcs(root, 1);
+		if (resl != ST_OK) break;
+
+		resl = dc_efi_mkdir(root, L"\\EFI\\Boot");
 		if (resl != ST_OK) break;
 
 		if (shim) {
@@ -813,9 +814,28 @@ int dc_make_efi_iso(wchar_t* file, int shim)
 	return resl;
 }
 
-int dc_make_efi_pxe(wchar_t* file, int shim)
+int dc_make_efi_pxe(wchar_t* root, int shim)
 {
-	return ST_ERROR; // x-todo: not implemented
+	int      resl;
+
+	do
+	{
+		resl = dc_copy_efi_dcs(root, 1);
+		if (resl != ST_OK) break;
+
+		if (shim) {
+			resl = dc_efi_mkdir(root, L"\\EFI\\Boot");
+			if (resl != ST_OK) break;
+
+			resl = dc_copy_efi_shim(root);
+			if (resl != ST_OK) break;
+
+			resl = dc_copy_file(root, root, dcs_files[dcs_re_index].target, shim_boot_file); // L"\\EFI\\DCS\\DcsRe.efi" -> L"\\EFI\\Boot\\grubx64_real.efi"
+		}
+
+	} while (0);
+
+	return resl;
 }
 
 int dc_replace_msft_boot(const wchar_t *root)
@@ -898,7 +918,7 @@ int dc_is_msft_boot_replaced(const wchar_t *root)
 	int      resl;
 	DWORD    size = 0;
 	char*    data = NULL;
-	int      is_dcs_file;
+	int      is_dcs_file = 0;
 
 	do
 	{
@@ -1003,6 +1023,9 @@ int dc_set_efi_boot(int dsk_num, int replace_ms, int shim)
 			if (!dc_efi_file_exists(root, efi_boot_bak)) { // and there is no boot file backup already
 				dc_copy_efi_file(root, efi_boot_file, efi_boot_bak); // backup the boot file
 			}
+		} else { // if there is no boot file, create an empty backup file
+			resl = dc_efi_mkdir(root, L"\\EFI\\Boot");
+			if (resl != ST_OK) break;
 		}
 
 		if (shim) {
@@ -1066,7 +1089,7 @@ int dc_update_efi_boot(int dsk_num)
 		else {
 			resl = dc_copy_file(root, root, dcs_files[0].target, efi_boot_file); // L"\\EFI\\DCS\\DcsBoot.efi" -> L"\\EFI\\Boot\\BOOTx64.efi"
 		}
-			if (resl != ST_OK) break;
+		if (resl != ST_OK) break;
 
 		if (dc_is_msft_boot_replaced(root)) {
 			resl = dc_replace_msft_boot(root);
@@ -1768,13 +1791,24 @@ static int dc_set_embedded_config(wchar_t* file, ldr_config* conf)
 	return resl;
 }
 
+int dc_is_dir(wchar_t* path)
+{
+	DWORD attrs = GetFileAttributes(path);
+	BOOL is_directory = (attrs != INVALID_FILE_ATTRIBUTES) && (attrs & FILE_ATTRIBUTE_DIRECTORY);
+	return is_directory;
+}
+
 int dc_get_efi_config(int dsk_num, wchar_t *file, ldr_config *conf)
 {
 	int      resl;
 	wchar_t  path[MAX_PATH] = { 0 };
 
-	if (file) 
-		resl = dc_get_embedded_config(file, conf);
+	if (file) {
+		if(dc_is_dir(file))
+			resl = dc_efi_config_read(file, conf);
+		else
+			resl = dc_get_embedded_config(file, conf);
+	}
 	else if ((resl = dc_efi_get_sys_part(dsk_num, path)) == ST_OK)
 		resl = dc_efi_config_by_partition(path, FALSE, conf);
 
@@ -1786,8 +1820,12 @@ int dc_set_efi_config(int dsk_num, wchar_t* file, ldr_config* conf)
 	int      resl;
 	wchar_t  path[MAX_PATH] = { 0 };
 
-	if (file)
-		resl = dc_set_embedded_config(file, conf);
+	if (file) {
+		if(dc_is_dir(file))
+			resl = dc_efi_config_write(file, conf);
+		else
+			resl = dc_set_embedded_config(file, conf);
+	}
 	else if ((resl = dc_efi_get_sys_part(dsk_num, path)) == ST_OK)
 		resl = dc_efi_config_by_partition(path, TRUE, conf);
 
@@ -1899,15 +1937,23 @@ int dc_is_dcs_in_file(wchar_t* file)
 	size_t    lbl_size = 0;
 	char*    lbl_data = NULL;
 
-	resl = load_file(file, &data, &size);
-	if (resl != ST_OK) return 0;
-	
-	resl = get_iso_label(data, size, &lbl_data, &lbl_size);
-	if (resl != ST_OK) return 0;
+	if (dc_is_dir(file))
+	{
+		resl = dc_efi_file_exists(file, dcs_files[0].target);
+	}
+	else
+	{
+		resl = load_file(file, &data, &size);
+		if (resl != ST_OK) return 0;
 
-	resl = _memicmp(lbl_data, dc_dcs_iso_label, lbl_size) ? 0 : 1;
+		resl = get_iso_label(data, size, &lbl_data, &lbl_size);
+		if (resl != ST_OK) return 0;
 
-	free(data);
+		resl = _memicmp(lbl_data, dc_dcs_iso_label, lbl_size) ? 0 : 1;
+
+		free(data);
+	}
+
 	return resl;
 }
 

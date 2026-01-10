@@ -452,13 +452,11 @@ int _menu_set_loader_file_efi(
 	rlt = iso ? dc_make_efi_iso( path, is_shim ) : dc_make_efi_pxe( path, is_shim );
 	if ( rlt == ST_OK )
 	{
-		if ( (rlt = dc_get_efi_config( 0, path, &conf )) == ST_OK )
-		{
-			conf.options   |= LDR_OP_EXTERNAL;
-			conf.boot_type  = LDR_BT_MBR_FIRST;
+		dc_efi_config_init(&conf);
+		conf.options   |= LDR_OP_EXTERNAL;
+		conf.boot_type  = LDR_BT_MBR_FIRST;
 
-			rlt = dc_set_efi_config( 0, path, &conf );
-		}			
+		rlt = dc_set_efi_config( 0, path, &conf );		
 	}
 	if ( rlt == ST_OK )
 	{

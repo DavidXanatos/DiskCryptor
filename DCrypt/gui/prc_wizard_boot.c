@@ -341,6 +341,12 @@ int _save_boot_config(
 
 	wnd = wnd_get_long( GetDlgItem(hwnd, IDT_BOOT_TAB), GWL_USERDATA );
 
+	if ( !wnd )
+	{
+		// Config dialog has already been cleaned up - this shouldn't happen
+		return ST_ERROR;
+	}
+
 	if ( wnd )
 	///////////////////////////////////////////////////////////////
 	/////// MAIN PAGE /////////////////////////////////////////////
@@ -561,7 +567,77 @@ _get_msg_proc(
 }
 
 
-INT_PTR 
+void _cleanup_and_restore_config_state(
+		HWND            hwnd,
+		_wz_sheets     *bt_sheets,
+		int             saved_type,
+		int             saved_item_idx,
+		const wchar_t  *saved_path
+	)
+{
+	// Cleanup config page resources
+	HWND h_tab = GetDlgItem(bt_sheets[1].hwnd, IDT_BOOT_TAB);
+	_wnd_data *wnd = wnd_get_long(h_tab, GWL_USERDATA);
+	_tab_data *d_tab = wnd_get_long(bt_sheets[1].hwnd, GWL_USERDATA);
+
+	if (wnd) {
+		// Destroy all tab child dialogs
+		for (int i = 0; i < 20 && wnd->dlg[i] != NULL; i++) {
+			DestroyWindow(wnd->dlg[i]);
+		}
+		free(wnd);
+		wnd_set_long(h_tab, GWL_USERDATA, NULL);
+	}
+
+	if (d_tab) {
+		free(d_tab);
+		wnd_set_long(bt_sheets[1].hwnd, GWL_USERDATA, NULL);
+	}
+
+	// Remove all tabs from the tab control
+	TabCtrl_DeleteAllItems(h_tab);
+
+	// Switch back to overview page
+	ShowWindow( bt_sheets[1].hwnd, SW_HIDE );
+	ShowWindow( bt_sheets[0].hwnd, SW_SHOW );
+
+	ShowWindow( GetDlgItem(hwnd, IDC_BTN_CHANGE_CONF), TRUE );
+	ShowWindow( GetDlgItem(hwnd, IDC_BTN_UPDATE), TRUE );
+
+	// Restore state based on loader type
+	if (saved_type == CTL_LDR_HDD || saved_type == CTL_LDR_STICK) {
+		// For HDD/USB: refresh device list and restore selection
+		_list_devices( __lists[HBOT_WIZARD_BOOT_DEVS], saved_type == CTL_LDR_HDD, -1 );
+
+		// Restore selected item
+		if (saved_item_idx >= 0 && saved_item_idx < ListView_GetItemCount(__lists[HBOT_WIZARD_BOOT_DEVS])) {
+			ListView_SetItemState(__lists[HBOT_WIZARD_BOOT_DEVS], saved_item_idx,
+				LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+			ListView_EnsureVisible(__lists[HBOT_WIZARD_BOOT_DEVS], saved_item_idx, FALSE);
+		}
+
+		_refresh_boot_buttons( bt_sheets[0].hwnd, __lists[HBOT_WIZARD_BOOT_DEVS], saved_item_idx );
+	} else {
+		// For ISO/PXE: reset button state first, then restore path
+		// Trigger combo change to reset button text to "Create" (this clears the path field)
+		SendMessage( bt_sheets[0].hwnd, WM_COMMAND,
+			MAKELONG(IDC_COMBO_LOADER_TYPE, CBN_SELCHANGE),
+			(LPARAM)GetDlgItem(bt_sheets[0].hwnd, IDC_COMBO_LOADER_TYPE) );
+
+		// Now restore the saved path (after the combo change that clears it)
+		if (saved_path[0] != 0) {
+			SetWindowText( GetDlgItem(bt_sheets[0].hwnd, IDE_BOOT_PATH), saved_path );
+		}
+
+		// Trigger path change to update button enable state
+		SendMessage( bt_sheets[0].hwnd, WM_COMMAND,
+			MAKELONG(IDE_BOOT_PATH, EN_CHANGE),
+			(LPARAM)GetDlgItem(bt_sheets[0].hwnd, IDE_BOOT_PATH) );
+	}
+}
+
+
+INT_PTR
 CALLBACK
 _wizard_boot_dlg_proc(
 		HWND	hwnd,
@@ -584,6 +660,9 @@ _wizard_boot_dlg_proc(
 		{ -1 }
 	};
 	static ldr_config *ldr;
+	static int saved_type = -1;          // Store the loader type when opening config
+	static int saved_item_idx = -1;      // Store the selected list item index
+	static wchar_t saved_path[MAX_PATH]; // Store the ISO/PXE path
 
 	int check = 0; 
 	int count = 0;
@@ -601,8 +680,13 @@ _wizard_boot_dlg_proc(
 		}
 		break;
 
-		case WM_INITDIALOG: 
+		case WM_INITDIALOG:
 		{
+			// Initialize saved state
+			saved_type = -1;
+			saved_item_idx = -1;
+			saved_path[0] = 0;
+
 			h_wizard = hwnd;
 			h_hook   = SetWindowsHookEx( WH_GETMESSAGE, (HOOKPROC)_get_msg_proc, NULL, GetCurrentThreadId( ) );
 
@@ -715,40 +799,9 @@ _wizard_boot_dlg_proc(
 					}
 					if ( wcscmp(btn_text, IDS_SAVECHANGES) == 0 )
 					{
-						_save_boot_config(bt_sheets[1].hwnd, type, dsk_num, vol, path, &conf);
-
-						// Cleanup config page resources
-						HWND h_tab = GetDlgItem(bt_sheets[1].hwnd, IDT_BOOT_TAB);
-						_wnd_data *wnd = wnd_get_long(h_tab, GWL_USERDATA);
-						_tab_data *d_tab = wnd_get_long(bt_sheets[1].hwnd, GWL_USERDATA);
-
-						if (wnd) {
-							// Destroy all tab child dialogs
-							for (int i = 0; i < 20 && wnd->dlg[i] != NULL; i++) {
-								DestroyWindow(wnd->dlg[i]);
-							}
-							free(wnd);
-							wnd_set_long(h_tab, GWL_USERDATA, NULL);
-						}
-
-						if (d_tab) {
-							free(d_tab);
-							wnd_set_long(bt_sheets[1].hwnd, GWL_USERDATA, NULL);
-						}
-
-						// Remove all tabs from the tab control
-						TabCtrl_DeleteAllItems(h_tab);
-
-						// Switch back to overview page
-						ShowWindow( bt_sheets[1].hwnd, SW_HIDE );
-						ShowWindow( bt_sheets[0].hwnd, SW_SHOW );
-
-						ShowWindow( GetDlgItem(hwnd, IDC_BTN_CHANGE_CONF), TRUE );
-						ShowWindow( GetDlgItem(hwnd, IDC_BTN_UPDATE), TRUE );
-
-						_list_devices( __lists[HBOT_WIZARD_BOOT_DEVS], type == CTL_LDR_HDD, -1 );
-						_refresh_boot_buttons( bt_sheets[0].hwnd, __lists[HBOT_WIZARD_BOOT_DEVS], -1 );
-
+						// We're in config mode - save and return to overview
+						_save_boot_config(bt_sheets[1].hwnd, saved_type, dsk_num, vol, path, &conf);
+						_cleanup_and_restore_config_state(hwnd, bt_sheets, saved_type, saved_item_idx, saved_path);
 						return 0L;
 					}
 					_list_devices( __lists[HBOT_WIZARD_BOOT_DEVS], type == CTL_LDR_HDD, -1 );
@@ -765,6 +818,12 @@ _wizard_boot_dlg_proc(
 
 				case IDC_BTN_CHANGE_CONF:
 				{
+					// Save current state before opening config
+					saved_type = type;
+					saved_item_idx = (type == CTL_LDR_HDD || type == CTL_LDR_STICK) ?
+						ListView_GetSelectionMark(__lists[HBOT_WIZARD_BOOT_DEVS]) : -1;
+					wcscpy_s(saved_path, countof(saved_path), path);
+
 					rlt = _init_boot_config( bt_sheets[1].hwnd, type, dsk_num, vol, path, &conf );
 					if ( rlt == ST_OK )
 					{
@@ -785,37 +844,8 @@ _wizard_boot_dlg_proc(
 					// Check if we're on the config page
 					if ( IsWindowVisible(bt_sheets[1].hwnd) )
 					{
-						// Cleanup config page resources
-						HWND h_tab = GetDlgItem(bt_sheets[1].hwnd, IDT_BOOT_TAB);
-						_wnd_data *wnd = wnd_get_long(h_tab, GWL_USERDATA);
-						_tab_data *d_tab = wnd_get_long(bt_sheets[1].hwnd, GWL_USERDATA);
-
-						if (wnd) {
-							// Destroy all tab child dialogs
-							for (int i = 0; i < 20 && wnd->dlg[i] != NULL; i++) {
-								DestroyWindow(wnd->dlg[i]);
-							}
-							free(wnd);
-							wnd_set_long(h_tab, GWL_USERDATA, NULL);
-						}
-
-						if (d_tab) {
-							free(d_tab);
-							wnd_set_long(bt_sheets[1].hwnd, GWL_USERDATA, NULL);
-						}
-
-						// Remove all tabs from the tab control
-						TabCtrl_DeleteAllItems(h_tab);
-
-						// Switch back to overview page instead of closing dialog
-						ShowWindow( bt_sheets[1].hwnd, SW_HIDE );
-						ShowWindow( bt_sheets[0].hwnd, SW_SHOW );
-
-						ShowWindow( GetDlgItem(hwnd, IDC_BTN_CHANGE_CONF), TRUE );
-						ShowWindow( GetDlgItem(hwnd, IDC_BTN_UPDATE), TRUE );
-
-						_list_devices( __lists[HBOT_WIZARD_BOOT_DEVS], type == CTL_LDR_HDD, -1 );
-						_refresh_boot_buttons( bt_sheets[0].hwnd, __lists[HBOT_WIZARD_BOOT_DEVS], -1 );
+						// Return to overview without saving
+						_cleanup_and_restore_config_state(hwnd, bt_sheets, saved_type, saved_item_idx, saved_path);
 					}
 					else
 					{

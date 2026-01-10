@@ -359,12 +359,58 @@ _tab_proc(
 					int is_efi = _get_check(hwnd, IDC_EFI_BOOT);
 					int boot_type = _get_combo_val( GetDlgItem(hwnd, IDC_COMBO_LOADER_TYPE), is_efi ? loader_type_efi : loader_type_mbr );
 
-					wchar_t s_file[MAX_PATH];					
-					wcscpy( s_file, boot_type == CTL_LDR_ISO ? L"loader.iso" : L"loader.img" );
+					wchar_t s_path[MAX_PATH] = { 0 };
 
-					if ( _save_file_dialog(hwnd, s_file, countof(s_file), L"Save Bootloader File As") ) 
+					// PXE in EFI mode uses a folder, not a file
+					if (boot_type == CTL_LDR_PXE && is_efi)
 					{
-						SetWindowText( GetDlgItem(hwnd, IDE_BOOT_PATH), s_file );
+						if ( _folder_choice(hwnd, s_path, L"Select empty folder for PXE bootloader files") )
+						{
+							// Check if folder is empty
+							wchar_t search_path[MAX_PATH];
+							WIN32_FIND_DATA find_data;
+							HANDLE h_find;
+							BOOL is_empty = TRUE;
+
+							_snwprintf(search_path, countof(search_path), L"%s\\*", s_path);
+							h_find = FindFirstFile(search_path, &find_data);
+
+							if (h_find != INVALID_HANDLE_VALUE)
+							{
+								do {
+									// Skip "." and ".." entries
+									if (wcscmp(find_data.cFileName, L".") != 0 && wcscmp(find_data.cFileName, L"..") != 0)
+									{
+										is_empty = FALSE;
+										break;
+									}
+								} while (FindNextFile(h_find, &find_data));
+								FindClose(h_find);
+							}
+
+							if (!is_empty)
+							{
+								if (MessageBox(hwnd,
+									L"The selected folder is not empty. Files may be overwritten.\nContinue anyway?",
+									L"Folder Not Empty",
+									MB_YESNO | MB_ICONWARNING) != IDYES)
+								{
+									break; // User cancelled
+								}
+							}
+
+							SetWindowText( GetDlgItem(hwnd, IDE_BOOT_PATH), s_path );
+						}
+					}
+					else
+					{
+						// ISO or PXE in MBR mode uses a file
+						wcscpy( s_path, boot_type == CTL_LDR_ISO ? L"loader.iso" : L"loader.img" );
+
+						if ( _save_file_dialog(hwnd, s_path, countof(s_path), L"Save Bootloader File As") )
+						{
+							SetWindowText( GetDlgItem(hwnd, IDE_BOOT_PATH), s_path );
+						}
 					}
 				}
 				break;
@@ -611,8 +657,29 @@ _tab_proc(
 							wchar_t s_path[MAX_PATH] = { 0 };
 							GetWindowText( (HWND)lparam, s_path, countof(s_path) );
 
+							BOOL path_valid = FALSE;
+
+							// Check if PXE in EFI mode (requires folder) or file-based bootloader
+							int is_efi = _get_check(hwnd, IDC_EFI_BOOT);
+							int boot_type = _get_combo_val( GetDlgItem(hwnd, IDC_COMBO_LOADER_TYPE), is_efi ? loader_type_efi : loader_type_mbr );
+
+							if (s_path[0] != 0)
+							{
+								if (boot_type == CTL_LDR_PXE && is_efi)
+								{
+									// PXE in EFI mode: validate it's a directory
+									DWORD attrs = GetFileAttributes(s_path);
+									path_valid = (attrs != INVALID_FILE_ATTRIBUTES) && (attrs & FILE_ATTRIBUTE_DIRECTORY);
+								}
+								else
+								{
+									// ISO or PXE in MBR mode: validate file exists
+									path_valid = PathFileExists(s_path);
+								}
+							}
+
 							EnableWindow( GetDlgItem(GetParent(GetParent(hwnd)), IDC_BTN_INSTALL), s_path[0] != 0 );
-							EnableWindow( GetDlgItem(GetParent(GetParent(hwnd)), IDC_BTN_CHANGE_CONF), PathFileExists(s_path) );
+							EnableWindow( GetDlgItem(GetParent(GetParent(hwnd)), IDC_BTN_CHANGE_CONF), path_valid );
 						}
 						break;
 

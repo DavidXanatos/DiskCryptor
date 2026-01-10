@@ -207,7 +207,7 @@ _init_list loader_type_efi[ ] =
 	{ CTL_LDR_HDD,		L"EFI partition on HDD"						},
 	{ CTL_LDR_STICK,	L"Removable media (USB-Stick, etc)"			},
 	{ CTL_LDR_ISO,		L"ISO bootloader image"						},
-	//{ CTL_LDR_PXE,		L"Bootloader image for PXE network booting"	}, // x-todo
+	{ CTL_LDR_PXE,		L"Boot files for PXE network booting"		},
 	{ 0, STR_NULL }
 };
 

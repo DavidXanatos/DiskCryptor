@@ -13,7 +13,7 @@ int dc_api dc_efi_is_sb_setupmode();
 
 int dc_api dc_make_efi_rec(const wchar_t *root, int format, int shim);
 int dc_api dc_make_efi_iso(wchar_t *file, int shim);
-int dc_api dc_make_efi_pxe(wchar_t *file, int shim);
+int dc_api dc_make_efi_pxe(wchar_t *root, int shim);
 int dc_api dc_set_efi_boot(int dsk_num, int replace_ms, int shim);
 
 int dc_api dc_efi_is_msft_boot_replaced(int dsk_num);

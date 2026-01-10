@@ -578,6 +578,7 @@ int install_dc_offline(const wchar_t* windows_path)
 	// Unload the hive
 	RegUnLoadKeyW(HKEY_LOCAL_MACHINE, L"OFFLINE_SYSTEM");
 
+	// create program directory
 	StringCchPrintfW(targetFile, ARRAYSIZE(targetFile), L"%s\\Program Files\\dcrypt", windows_path);
 	CreateDirectoryW(targetFile, NULL);
 
