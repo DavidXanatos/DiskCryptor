@@ -352,6 +352,23 @@ int _menu_set_loader_mbr(
 
 }
 
+void _menu_no_shim(
+		HWND     hwnd,
+		BOOL	 pxe
+	)
+{
+	wchar_t message[1000];
+	_snwprintf( message, countof(message), 
+		L"Bootloader creation failed: The shim package is missing.\n\n" L"%s\n\n"
+		L"Would you like to open the advanced boot documentation at diskcryptor.org?", 
+		pxe ? L"For PXE boot, DcsLdr.efi is required, which is part of the shim package." : L"The shim package is required for secure boot compatibility.");
+
+	if ( __msg_w( hwnd, message ) )
+	{
+		__execute( L"https://diskcryptor.org/advanced-boot/" );
+	}
+}
+
 int _menu_set_loader_efi(
 		HWND     hwnd,
 		wchar_t *vol,
@@ -392,11 +409,13 @@ int _menu_set_loader_efi(
 		rlt = _set_boot_loader_efi( hwnd, dsk_num, is_shim );
 	}
 
-	if (rlt == ST_OK)
+	if ( rlt == ST_OK )
 	{
-		__msg_i(hwnd, L"EFI Bootloader successfully installed to [%s]", vol);
+		__msg_i( hwnd, L"EFI Bootloader successfully installed to [%s]", vol );
+	} else if ( rlt == ST_SHIM_MISSING ) {
+		_menu_no_shim( hwnd, FALSE );
 	} else {
-		__error_s(hwnd, L"Error install EFI bootloader", rlt);
+		__error_s( hwnd, L"Error install EFI bootloader", rlt );
 	}
 	return rlt;
 
@@ -458,9 +477,12 @@ int _menu_set_loader_file_efi(
 
 		rlt = dc_set_efi_config( 0, path, &conf );		
 	}
+
 	if ( rlt == ST_OK )
 	{
 		__msg_i( hwnd, L"DCS Bootloader %s image file \"%s\" successfully created", s_img, path );
+	} else if ( rlt == ST_SHIM_MISSING ) {
+		_menu_no_shim( hwnd, !iso );
 	} else {
 		__error_s( hwnd, L"Error creating %s image", rlt, s_img );
 	}
@@ -567,7 +589,7 @@ int _set_boot_loader_efi(
 	if (is_shim && !__msg_w(hwnd, 
 		L"For compatibility with secure boot the shim loader will be installed.\n"
 		L"Upon first boot you will be encounter an 'Access denied' error message, "
-		L"to resolve this, you will need to start the 'MOK Manager' and enroll a certificate located at \\EFI\\Boot\\MOK.der\n"
+		L"to resolve this, you will need to start the 'MOK Manager' and enroll a certificate located at \\EFI\\Boot\\CustomSigner.der\n"
 		L"After one more reboot the DCS loader should boot and show you a password prompt.\n"
 		L"Do you want to continue?")
 		) {

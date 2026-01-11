@@ -52,7 +52,8 @@ EFI_DRIVER_BINDING_PROTOCOL g_DcsIntDriverBinding = {
 void HaltPrint(const CHAR16* Msg)
 {
 	CleanSensitiveData(TRUE); // panic
-	Print(L"%s - system Halted\n", Msg);
+	Print(L"%s\n", Msg);
+	KeyWait(L"Halting Cpu in %02d s\r", 10, 0, 0);
 	EfiCpuHalt();
 }
 

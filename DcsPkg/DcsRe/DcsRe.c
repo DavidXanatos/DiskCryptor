@@ -21,9 +21,12 @@ https://opensource.org/licenses/LGPL-3.0
 #include <Guid/GlobalVariable.h>
 #include <DcsConfig.h>
 
-#ifdef _M_X64
+#if defined(_M_X64)
 #define ARCHdot L"x64."
 #define ARCHdotEFI L"x64.efi"
+#elif defined(_M_ARM64)
+#define ARCHdot L"aa64."
+#define ARCHdotEFI L"aa64.efi"
 #else
 #define ARCHdot L"IA32."
 #define ARCHdotEFI L"IA32.efi"
@@ -113,12 +116,20 @@ SelectEfiVolume()
 //////////////////////////////////////////////////////////////////////////
 EFI_STATUS
 ActionBootWinPE(IN VOID* ctx) {
-	return EfiExec(NULL, L"EFI\\Boot\\WinPE_boot" ARCHdotEFI);
+  if (gPxeBoot) {
+    return PxeExec(L"EFI\\Boot\\WinPE_boot" ARCHdotEFI);
+  } else {
+    return EfiExec(NULL, L"EFI\\Boot\\WinPE_boot" ARCHdotEFI);
+  }
 }
 
 EFI_STATUS
 ActionShell(IN VOID* ctx) {
-	return EfiExec(NULL, L"EFI\\Shell\\Shell.efi");
+  if (gPxeBoot) {
+    return PxeExec(L"EFI\\Shell\\Shell.efi");
+  } else {
+	  return EfiExec(NULL, L"EFI\\Shell\\Shell.efi");
+  }
 }
 
 CHAR16* sRecoveryKey = OPT_EXTERN_KEY;
@@ -127,7 +138,11 @@ CHAR16* sDcsBoot = L"EFI\\" DCS_DIRECTORY L"\\DcsBoot.efi";
 EFI_STATUS
 ActionDcsRecoveryBoot(IN VOID* ctx) {
 	EfiSetVar(L"DcsExecMode", NULL, sRecoveryKey, StrSize(sRecoveryKey), EFI_VARIABLE_BOOTSERVICE_ACCESS);
-	return EfiExec(gFileRootHandle, sDcsBoot);
+  if (gPxeBoot) {
+    return PxeExec(sDcsBoot);
+  } else {
+	  return EfiExec(NULL, sDcsBoot);
+  }
 }
 
 EFI_STATUS
@@ -193,11 +208,15 @@ ActionRestoreDcsLoader(IN VOID* ctx) {
 	UINTN i;
 	SelectEfiVolume();
 	if (EfiBootVolume == NULL) return EFI_NOT_READY;
-	
+
 	DirectoryCreate (EfiBootVolume, L"EFI\\" DCS_DIRECTORY);
-	
+
 	for (i = 0; i < sizeof(DcsBootBins) / sizeof(CHAR16*); ++i) {
-		res = FileCopy(NULL, DcsBootBins[i], EfiBootVolume, DcsBootBins[i], 1024 * 1024);
+    if (gPxeBoot) {
+      res = PxeFileCopy(DcsBootBins[i], EfiBootVolume, DcsBootBins[i], 1024 * 1024);
+    } else {
+		  res = FileCopy(NULL, DcsBootBins[i], EfiBootVolume, DcsBootBins[i], 1024 * 1024);
+    }
 		if (EFI_ERROR(res)) return res;
 	}
 
@@ -216,11 +235,19 @@ ActionRestoreDcsLoader(IN VOID* ctx) {
 			{
 				res = FileCopy(EfiBootVolume, L"EFI\\Boot\\boot" ARCHdotEFI, EfiBootVolume, L"\\EFI\\Boot\\original_boot" ARCHdot L"vc_backup", 1024 * 1024);
 				if (!EFI_ERROR(res))
-					res = FileCopy(NULL, L"EFI\\" DCS_DIRECTORY L"\\DcsBoot.efi", EfiBootVolume, L"EFI\\Boot\\boot" ARCHdotEFI, 1024 * 1024);				
+          if (gPxeBoot) {
+            res = PxeFileCopy(L"EFI\\" DCS_DIRECTORY L"\\DcsBoot.efi", EfiBootVolume, L"EFI\\Boot\\boot" ARCHdotEFI, 1024 * 1024);
+          } else {
+					  res = FileCopy(NULL, L"EFI\\" DCS_DIRECTORY L"\\DcsBoot.efi", EfiBootVolume, L"EFI\\Boot\\boot" ARCHdotEFI, 1024 * 1024);
+          }
 			}
 			else if ((fileSize <= 32768) && !EFI_ERROR(MemoryHasPattern(fileData, fileSize, g_szVcBootString, StrLen (g_szVcBootString) * 2)))
 			{
-				res = FileCopy(NULL, L"EFI\\" DCS_DIRECTORY L"\\DcsBoot.efi", EfiBootVolume, L"EFI\\Boot\\boot" ARCHdotEFI, 1024 * 1024);
+        if (gPxeBoot) {
+          res = PxeFileCopy(L"EFI\\" DCS_DIRECTORY L"\\DcsBoot.efi", EfiBootVolume, L"EFI\\Boot\\boot" ARCHdotEFI, 1024 * 1024);
+        } else {
+          res = FileCopy(NULL, L"EFI\\" DCS_DIRECTORY L"\\DcsBoot.efi", EfiBootVolume, L"EFI\\Boot\\boot" ARCHdotEFI, 1024 * 1024);
+        }
 			}
 			MEM_FREE(fileData);
 			
@@ -229,10 +256,14 @@ ActionRestoreDcsLoader(IN VOID* ctx) {
 	}
 	else if (!EFI_ERROR(FileExist(EfiBootVolume, L"\\EFI\\Boot\\original_boot" ARCHdot L"vc_backup")))
 	{
-		res = FileCopy(NULL, L"EFI\\" DCS_DIRECTORY L"\\DcsBoot.efi", EfiBootVolume, L"EFI\\Boot\\boot" ARCHdotEFI, 1024 * 1024);
+    if (gPxeBoot) {
+      res = PxeFileCopy(L"EFI\\" DCS_DIRECTORY L"\\DcsBoot.efi", EfiBootVolume, L"EFI\\Boot\\boot" ARCHdotEFI, 1024 * 1024);
+    } else {
+      res = FileCopy(NULL, L"EFI\\" DCS_DIRECTORY L"\\DcsBoot.efi", EfiBootVolume, L"EFI\\Boot\\boot" ARCHdotEFI, 1024 * 1024);
+    }
 		if (EFI_ERROR(res)) return res;
 	}
-	
+
 	if (!EFI_ERROR(FileExist(EfiBootVolume, L"EFI\\Microsoft\\Boot\\bootmgfw.efi")))
 	{
 		/* check if it is Microsoft one */
@@ -243,20 +274,28 @@ ActionRestoreDcsLoader(IN VOID* ctx) {
 		{
 			if ((fileSize > 32768) && !EFI_ERROR(MemoryHasPattern(fileData, fileSize, g_szMsBootString, AsciiStrLen(g_szMsBootString))))
 			{
-				res = FileCopy(EfiBootVolume, L"EFI\\Microsoft\\Boot\\bootmgfw.efi", EfiBootVolume, L"\\EFI\\Microsoft\\Boot\\bootmgfw_ms.vc", 1024 * 1024);				
+				res = FileCopy(EfiBootVolume, L"EFI\\Microsoft\\Boot\\bootmgfw.efi", EfiBootVolume, L"\\EFI\\Microsoft\\Boot\\bootmgfw_ms.vc", 1024 * 1024);
 			}
 
 			MEM_FREE(fileData);
-			
+
 			if (EFI_ERROR(res)) return res;
 		}
 
-		res = FileCopy(NULL, L"EFI\\" DCS_DIRECTORY L"\\DcsBoot.efi", EfiBootVolume, L"\\EFI\\Microsoft\\Boot\\bootmgfw.efi", 1024 * 1024);
+    if (gPxeBoot) {
+      res = PxeFileCopy(L"EFI\\" DCS_DIRECTORY L"\\DcsBoot.efi", EfiBootVolume, L"\\EFI\\Microsoft\\Boot\\bootmgfw.efi", 1024 * 1024);
+    } else {
+      res = FileCopy(NULL, L"EFI\\" DCS_DIRECTORY L"\\DcsBoot.efi", EfiBootVolume, L"\\EFI\\Microsoft\\Boot\\bootmgfw.efi", 1024 * 1024);
+    }
 		if (EFI_ERROR(res)) return res;
 	}
-	else if (!EFI_ERROR(FileExist(EfiBootVolume, L"\\EFI\\Microsoft\\Boot\\bootmgfw_ms.vc")))		
+	else if (!EFI_ERROR(FileExist(EfiBootVolume, L"\\EFI\\Microsoft\\Boot\\bootmgfw_ms.vc")))
 	{
-		res = FileCopy(NULL, L"EFI\\" DCS_DIRECTORY L"\\DcsBoot.efi", EfiBootVolume, L"\\EFI\\Microsoft\\Boot\\bootmgfw.efi", 1024 * 1024);
+    if (gPxeBoot) {
+      res = PxeFileCopy(L"EFI\\" DCS_DIRECTORY L"\\DcsBoot.efi", EfiBootVolume, L"\\EFI\\Microsoft\\Boot\\bootmgfw.efi", 1024 * 1024);
+    } else {
+      res = FileCopy(NULL, L"EFI\\" DCS_DIRECTORY L"\\DcsBoot.efi", EfiBootVolume, L"\\EFI\\Microsoft\\Boot\\bootmgfw.efi", 1024 * 1024);
+    }
 		if (EFI_ERROR(res)) return res;
 	}
 
@@ -293,14 +332,18 @@ ActionRemoveDcsBootMenu(IN VOID* ctx)
 	return res;
 }
 
-/** 
+/**
 Copy DcsProp from rescue disk to EFI boot volume
 */
 EFI_STATUS
 ActionRestoreDcsProp(IN VOID* ctx) {
 	SelectEfiVolume();
 	if (EfiBootVolume == NULL) return EFI_NOT_READY;
-	return FileCopy(NULL, L"EFI\\" DCS_DIRECTORY L"\\DcsProp", EfiBootVolume, L"EFI\\" DCS_DIRECTORY L"\\DcsProp", 1024*1024);
+  if (gPxeBoot) {
+    return PxeFileCopy(L"EFI\\" DCS_DIRECTORY L"\\DcsProp", EfiBootVolume, L"EFI\\" DCS_DIRECTORY L"\\DcsProp", 1024*1024);
+  } else {
+    return FileCopy(NULL, L"EFI\\" DCS_DIRECTORY L"\\DcsProp", EfiBootVolume, L"EFI\\" DCS_DIRECTORY L"\\DcsProp", 1024*1024);
+  }
 }
 
 #ifndef NO_CONF_UTIL
@@ -315,13 +358,21 @@ CHAR16* sDcsCfg = L"EFI\\" DCS_DIRECTORY L"\\DcsCfg.dcs";
 EFI_STATUS
 ActionRestoreHeader(IN VOID* ctx) {
 	EfiSetVar(L"dcscfgcmd", NULL, sOSRestoreKey, StrSize(sOSRestoreKey), EFI_VARIABLE_BOOTSERVICE_ACCESS);
-	return EfiExec(NULL, sDcsCfg);
+  if (gPxeBoot) {
+    return PxeExec(sDcsCfg);
+  } else {
+    return EfiExec(NULL, sDcsCfg);
+  }
 }
 
 EFI_STATUS
 ActionDecryptOS(IN VOID* ctx) {
 	EfiSetVar(L"dcscfgcmd", NULL, sOSDecrypt, StrSize(sOSDecrypt), EFI_VARIABLE_BOOTSERVICE_ACCESS);
-	return EfiExec(NULL, sDcsCfg);
+  if (gPxeBoot) {
+    return PxeExec(sDcsCfg);
+  } else {
+    return EfiExec(NULL, sDcsCfg);
+  }
 }
 
 #endif
@@ -361,19 +412,28 @@ DcsReMain(
 	EFI_STATUS          res;
 	EFI_INPUT_KEY       key;
 	PMENU_ITEM          item = gMenu;
+	BOOLEAN             dcsDirectoryExists = FALSE;
 
 #ifdef DEBUG_BUILD
-	OUT_PRINT(L"DcsRe - DEBUG Build %s %s\n", _T(__DATE__), _T(__TIME__)); 
+	OUT_PRINT(L"DcsRe - DEBUG Build %s %s\n", _T(__DATE__), _T(__TIME__));
 #endif
 
-	InitBio();
-	res = InitFS();
+	InitBio();		// Initialize Block IO
+	res = InitFS();	// Initialize FileSystem
 	if (EFI_ERROR(res)) {
-      ERR_PRINT(L"InitFS %r\n", res);
-		return res;
+		res = InitPxe2(); // check and Initialize PXE boot
 	}
-   
-	if (!EFI_ERROR(DirectoryExists(NULL, L"EFI\\" DCS_DIRECTORY)))
+
+	// Check if DCS directory exists (either local or via TFTP)
+	if (gPxeBoot) {
+		res = PxeFileExist(L"EFI\\" DCS_DIRECTORY L"\\DcsBoot.efi");
+		dcsDirectoryExists = !EFI_ERROR(res);
+	} else {
+		res = DirectoryExists(NULL, L"EFI\\" DCS_DIRECTORY);
+		dcsDirectoryExists = !EFI_ERROR(res);
+	}
+
+	if (dcsDirectoryExists)
 	{
 		item = DcsMenuAppend(NULL, L"Boot " _T(DCS_CAPTION) L" loader from system disk", 'b', ActionDcsBoot, NULL);
 		gMenu = item;
@@ -384,29 +444,52 @@ DcsReMain(
 		item = DcsMenuAppend(item, L"Restore " _T(DCS_CAPTION) L" loader to boot menu", 'm', ActionRestoreDcsBootMenu, NULL);
 		item = DcsMenuAppend(item, L"Remove " _T(DCS_CAPTION) L" loader from boot menu", 'z' , ActionRemoveDcsBootMenu, NULL);
 
-		if (!EFI_ERROR(FileExist(NULL, L"EFI\\" DCS_DIRECTORY L"\\DcsProp"))) {
-			item = DcsMenuAppend(item, L"Restore " _T(DCS_CAPTION) L" loader configuration to system disk", 'c', ActionRestoreDcsProp, NULL);
+		if (gPxeBoot) {
+			if (!EFI_ERROR(PxeFileExist(L"EFI\\" DCS_DIRECTORY L"\\DcsProp"))) {
+				item = DcsMenuAppend(item, L"Restore " _T(DCS_CAPTION) L" loader configuration to system disk", 'c', ActionRestoreDcsProp, NULL);
+			}
+		} else {
+			if (!EFI_ERROR(FileExist(NULL, L"EFI\\" DCS_DIRECTORY L"\\DcsProp"))) {
+				item = DcsMenuAppend(item, L"Restore " _T(DCS_CAPTION) L" loader configuration to system disk", 'c', ActionRestoreDcsProp, NULL);
+			}
 		}
 
 #ifndef NO_CONF_UTIL
-		if (!EFI_ERROR(FileExist(NULL, L"EFI\\" DCS_DIRECTORY L"\\svh_bak"))) {
-			item = DcsMenuAppend(item, L"Restore OS header keys", 'k', ActionRestoreHeader, NULL);
+		if (!gPxeBoot) {
+			if (!EFI_ERROR(FileExist(NULL, L"EFI\\" DCS_DIRECTORY L"\\svh_bak"))) {
+				item = DcsMenuAppend(item, L"Restore OS header keys", 'k', ActionRestoreHeader, NULL);
+			}
 		}
 #endif
 
-		if (!EFI_ERROR(FileExist(NULL, L"EFI\\" DCS_DIRECTORY L"\\DcsBoot.efi"))) {
-			item = DcsMenuAppend(item, L"Restore " _T(DCS_CAPTION) L" loader binaries to system disk", 'r', ActionRestoreDcsLoader, NULL);
-			item = DcsMenuAppend(item, L"Boot " _T(DCS_CAPTION) L" loader from rescue disk", 'v', ActionDcsRecoveryBoot, NULL);
+		if (gPxeBoot) {
+			if (!EFI_ERROR(PxeFileExist(L"EFI\\" DCS_DIRECTORY L"\\DcsBoot.efi"))) {
+				item = DcsMenuAppend(item, L"Restore " _T(DCS_CAPTION) L" loader binaries to system disk", 'r', ActionRestoreDcsLoader, NULL);
+				item = DcsMenuAppend(item, L"Boot " _T(DCS_CAPTION) L" loader from PXE server", 'v', ActionDcsRecoveryBoot, NULL);
+			}
+		} else {
+			if (!EFI_ERROR(FileExist(NULL, L"EFI\\" DCS_DIRECTORY L"\\DcsBoot.efi"))) {
+				item = DcsMenuAppend(item, L"Restore " _T(DCS_CAPTION) L" loader binaries to system disk", 'r', ActionRestoreDcsLoader, NULL);
+				item = DcsMenuAppend(item, L"Boot " _T(DCS_CAPTION) L" loader from rescue disk", 'v', ActionDcsRecoveryBoot, NULL);
+			}
 		}
-		
-		item = DcsMenuAppend(item, L"Boot Original Windows Loader", 'o', ActionWindowsBoot, NULL);
 
-		if (!EFI_ERROR(FileExist(NULL, L"EFI\\Boot\\WinPE_boot" ARCHdotEFI))) {
-			item = DcsMenuAppend(item, L"Boot Windows PE from rescue disk", 'w', ActionBootWinPE, NULL);
+		if (!gPxeBoot) {
+			item = DcsMenuAppend(item, L"Boot Original Windows Loader", 'o', ActionWindowsBoot, NULL);
+
+			if (!EFI_ERROR(FileExist(NULL, L"EFI\\Boot\\WinPE_boot" ARCHdotEFI))) {
+				item = DcsMenuAppend(item, L"Boot Windows PE from rescue disk", 'w', ActionBootWinPE, NULL);
+			}
 		}
 
-		if (!EFI_ERROR(FileExist(NULL, L"EFI\\Shell\\Shell.efi"))) {
-			item = DcsMenuAppend(item, L"Boot Shell.efi from rescue disk", 's', ActionShell, NULL);
+		if (gPxeBoot) {
+			if (!EFI_ERROR(PxeFileExist(L"EFI\\Shell\\Shell.efi"))) {
+				item = DcsMenuAppend(item, L"Boot Shell.efi from PXE server", 's', ActionShell, NULL);
+			}
+		} else {
+			if (!EFI_ERROR(FileExist(NULL, L"EFI\\Shell\\Shell.efi"))) {
+				item = DcsMenuAppend(item, L"Boot Shell.efi from rescue disk", 's', ActionShell, NULL);
+			}
 		}
 
 		item = DcsMenuAppend(item, L"Help", 'h', ActionHelp, NULL);

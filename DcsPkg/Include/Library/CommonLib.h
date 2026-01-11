@@ -815,4 +815,48 @@ ConnectAllEfi(
 VOID
 EfiCpuHalt();
 
+//////////////////////////////////////////////////////////////////////////
+// PXE
+//////////////////////////////////////////////////////////////////////////
+
+extern BOOLEAN gPxeBoot;
+//extern struct _EFI_PXE_BASE_CODE_PROTOCOL* gPxeProtocol;
+extern BOOLEAN gPxeUseIPv6;
+extern EFI_IP_ADDRESS gPxeServerIp;
+
+EFI_STATUS
+PxeDownloadFile(
+	IN  CHAR16*  FilePath,
+	OUT VOID**   Buffer,
+	OUT UINTN*   BufferSize
+	);
+
+EFI_STATUS
+PxeUploadFile(
+	IN CHAR16*  FilePath,
+	IN VOID*    Buffer,
+	IN UINTN    BufferSize
+	);
+
+EFI_STATUS
+PxeFileExist(
+	IN CHAR16* FilePath
+	);
+
+EFI_STATUS
+PxeExec(
+	IN CHAR16* path
+	);
+
+EFI_STATUS
+PxeFileCopy(
+	IN CHAR16* src,
+	IN EFI_FILE* dstroot,
+	IN CHAR16* dst,
+	IN UINTN bufSz
+	);
+
+EFI_STATUS
+InitPxe2();
+
 #endif

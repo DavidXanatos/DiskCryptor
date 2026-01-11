@@ -3,7 +3,7 @@
 
 Copyright (c) 2016. Disk Cryptography Services for EFI (DCS), Alex Kolotnikov
 Copyright (c) 2016. VeraCrypt, Mounir IDRASSI 
-Copyright (c) 2019. DiskCryptor, David Xanatos
+Copyright (c) 2019-2026. DiskCryptor, David Xanatos
 
 This program and the accompanying materials
 are licensed and made available under the terms and conditions
@@ -178,7 +178,7 @@ DcsBootMain(
 	InitBio();		// Initialize Block IO
 	res = InitFS();	// Initialize FileSystem
 	if (EFI_ERROR(res)) {
-		ERR_PRINT(L"InitFS %r\n", res);
+		res = InitPxe2(); // check and Initialize PXE boot
 	}
 	InitConfig(CONFIG_FILE_PATH); // Initialize Config
 
@@ -190,16 +190,20 @@ DcsBootMain(
 
 #ifndef NO_BML
 	// BML installed?
-	if (EFI_ERROR(InitBml())) {
-       // if not -> execute
-       EfiExec(NULL, sDcsBmlEfi); // Install the Boot Menu Lock
+	if (EFI_ERROR(InitBml())) { // if not
+		// Install the Boot Menu Lock
+		if (gPxeBoot) {
+			PxeExec(sDcsBmlEfi);
+		} else {
+			EfiExec(NULL, sDcsBmlEfi);
+		}
 	}
 
 	UpdateDriverBmlStart();
 #endif
 
 	// Dump platform info
-	if (ConfigReadInt("CollectPlatformInfo", 0) &&
+	if (ConfigReadInt("CollectPlatformInfo", 0) && !gPxeBoot &&
 		EFI_ERROR(FileExist(NULL, L"\\EFI\\" DCS_DIRECTORY L"\\PlatformInfo")) &&
 		!EFI_ERROR(FileExist(NULL, L"\\EFI\\" DCS_DIRECTORY L"\\DcsInfo.dcs"))) {
 		OUT_PRINT(L"Collecting Platform information...\n");
@@ -212,13 +216,20 @@ DcsBootMain(
 	}
 
 	// Load all drivers
-	EfiExec(NULL, L"\\EFI\\" DCS_DIRECTORY L"\\LegacySpeaker.dcs"); // driver for ordinary speaker (beep)
+	if (gPxeBoot) {
+		PxeExec(L"\\EFI\\" DCS_DIRECTORY L"\\LegacySpeaker.dcs"); // driver for ordinary speaker (beep)
+	} else {
+		EfiExec(NULL, L"\\EFI\\" DCS_DIRECTORY L"\\LegacySpeaker.dcs"); // driver for ordinary speaker (beep)
+	}
 
-	res = EfiGetPartGUID(gFileRootHandle, &ImagePartGuid);
-	if (EFI_ERROR(res)) {
-		// No partition GUID found (e.g., booting from ISO with FAT image only)
-		if (gConfigDebug) {
-			OUT_PRINT(L"No partition GUID available (ISO boot?)\n");
+	// Get boot partition GUID - not valid for PXE or ISO boot
+	if (!gPxeBoot) {
+		res = EfiGetPartGUID(gFileRootHandle, &ImagePartGuid);
+		if (EFI_ERROR(res)) {
+			// No partition GUID found (e.g., booting from ISO with FAT image only)
+			if (gConfigDebug) {
+				OUT_PRINT(L"No partition GUID available (ISO boot?)\n");
+			}
 		}
 	}
 
@@ -228,7 +239,11 @@ DcsBootMain(
 
 	// Authorize
 	gBS->SetWatchdogTimer(0, 0, 0, NULL);
-	res = EfiExec(NULL, L"\\EFI\\" DCS_DIRECTORY L"\\DcsInt.dcs");
+	if (gPxeBoot) {
+		res = PxeExec(L"\\EFI\\" DCS_DIRECTORY L"\\DcsInt.dcs");
+	} else {
+		res = EfiExec(NULL, L"\\EFI\\" DCS_DIRECTORY L"\\DcsInt.dcs");
+	}
 
 	if (EFI_ERROR(res) && (res != EFI_DCS_POSTEXEC_REQUESTED)) {
 

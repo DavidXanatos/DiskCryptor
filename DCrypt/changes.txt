@@ -15,6 +15,7 @@
   [+] added EFI bootable ISO creation
   [+] added -offline_install and -offline_remove commands to dccon allowing to install/remove dc to/from a mounted boot.wim WinPE image (also works for install.wim)
   [*] DcsBoot.efi no longer by default invoked DcsInfo.dcs on first boot, we dont use that info currently anyways
+  [+] added PXE boot support to DCS EFI bootloader
 
 [12.08.2023] - 1.3.0/849.118.204 (fully signed release)
   [+] Added safe system volume encryption (bootloader is tested before anything gets encrypted)

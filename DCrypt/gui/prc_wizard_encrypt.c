@@ -431,8 +431,7 @@ int _init_wizard_encrypt_pages(
 				if (dc_efi_shim_available()) {
 					SetWindowText(GetDlgItem(hwnd, IDC_WIZ_CONF_WARNING),
 						L"Your EFI firmware is configured for secure boot. "
-						L"You will need to use a shim loader, otherwise THE SYSTEM WILL NOT BOOT!!! "
-						L"It is recommended to disable secure boot in your firmware settings.");
+						L"You will need to use a shim loader, otherwise THE SYSTEM WILL NOT BOOT!!!");
 				} 
 				else {
 					SetWindowText(GetDlgItem(hwnd, IDC_WIZ_CONF_WARNING),

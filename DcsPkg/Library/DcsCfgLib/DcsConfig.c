@@ -43,7 +43,11 @@ InitConfig(CHAR16* configFileName)
 	if (gConfigBuffer) return TRUE;
 	if (gConfigFileName == NULL) return FALSE;
 
-	res = FileLoad(NULL, gConfigFileName, &gConfigBuffer, &gConfigBufferSize);
+	if (gPxeBoot) {
+		res = PxeDownloadFile(gConfigFileName, &gConfigBuffer, &gConfigBufferSize);
+	} else {
+		res = FileLoad(NULL, gConfigFileName, &gConfigBuffer, &gConfigBufferSize);
+	}
 	if (EFI_ERROR(res)) {
 		ERR_PRINT(L"Failed to load config file %r\n", res);
 		return FALSE;

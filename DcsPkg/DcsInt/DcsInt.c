@@ -338,14 +338,17 @@ UefiMain(
 	EFI_HANDLE ImageHandle,
 	EFI_SYSTEM_TABLE *SystemTable)
 {
-	EFI_STATUS res = EFI_SUCCESS;
+	EFI_STATUS res;
 
 #ifdef DEBUG_BUILD
 	OUT_PRINT(L"DcsInt - DEBUG Build %s %s\n", _T(__DATE__), _T(__TIME__)); 
 #endif
 
 	InitBio();
-	InitFS();
+	res = InitFS();
+	if (EFI_ERROR(res)) {
+		res = InitPxe2();
+	}
 	InitConfig(CONFIG_FILE_PATH);
 	InitParams();
 	InitAuxDrivers();

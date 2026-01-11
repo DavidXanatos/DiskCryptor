@@ -92,6 +92,7 @@
     <ClCompile Include="EfiExec.c" />
     <ClCompile Include="EfiFile.c" />
     <ClCompile Include="EfiMem.c" />
+    <ClCompile Include="EfiPxe.c" />
     <ClCompile Include="EfiTouch.c" />
     <ClCompile Include="EfiTpm.c" />
     <ClCompile Include="EfiUsb.c" />
