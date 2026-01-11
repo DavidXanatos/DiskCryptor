@@ -199,7 +199,7 @@ DcsBootMain(
 #endif
 
 	// Dump platform info
-	if (ConfigReadInt("CollectPlatformInfo", 0) && !gPxeBoot &&
+	if (ConfigReadInt("CollectPlatformInfo", 0) &&
 		EFI_ERROR(FileExist(NULL, L"\\EFI\\" DCS_DIRECTORY L"\\PlatformInfo")) &&
 		!EFI_ERROR(FileExist(NULL, L"\\EFI\\" DCS_DIRECTORY L"\\DcsInfo.dcs"))) {
 		OUT_PRINT(L"Collecting Platform information...\n");
