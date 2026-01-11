@@ -32,48 +32,24 @@ CHAR16            *gEfiExecCmd = NULL;
 CHAR8             gDoExecCmdMsg[256];
 CONST CHAR8* 	  g_szMsBootString = "bootmgfw.pdb";
 
-// Special GUID used when booting from ISO or other media without partition tables
-EFI_GUID          gIsoBootFallbackGuid = {0xDC5B007, 0x1505, 0x4007, {0xB0, 0x07, 0x15, 0x0B, 0x00, 0x7, 0xDC, 0x5B}};
-
 //////////////////////////////////////////////////////////////////////////
 // EFI boot
 //////////////////////////////////////////////////////////////////////////
 EFI_STATUS
-DoExecCmd()
+DoExecCmd() 
 {
 	EFI_STATUS          res;
-	EFI_HANDLE          execHandle;
-	BOOLEAN             useCurrentRoot = FALSE;
 	gDoExecCmdMsg[0] = 0;
-
-	// Check if we're using the ISO boot fallback GUID
-	if (CompareGuid(gEfiExecPartGuid, &gIsoBootFallbackGuid)) {
-		// ISO boot scenario - use the already opened gFileRootHandle
-		useCurrentRoot = TRUE;
-		execHandle = gFileRootHandle;
-		res = EFI_SUCCESS;
-	} else {
-		res = EfiFindPartByGUID(gEfiExecPartGuid, &execHandle);
-	}
-
+	res = EfiFindPartByGUID(gEfiExecPartGuid, &gFileRootHandle);
 	if (!EFI_ERROR(res)) {
-		if (!useCurrentRoot) {
-			res = FileOpenRoot(execHandle, &gFileRoot);
-		} else {
-			// gFileRoot should already be open, but ensure it's open
-			if (gFileRoot == NULL) {
-				res = FileOpenRoot(execHandle, &gFileRoot);
-			} else {
-				res = EFI_SUCCESS;
-			}
-		}
+		res = FileOpenRoot(gFileRootHandle, &gFileRoot);
 		if (!EFI_ERROR(res)) {
 #ifndef NO_BML
-            UINT32 lockFlags = 0;
-            // Lock EFI boot variables
-            InitBml();
-            lockFlags = ConfigReadInt("DcsBmlLockFlags", BML_LOCK_SETVARIABLE | BML_SET_BOOTNEXT | BML_UPDATE_BOOTORDER);
-            BmlLock(lockFlags);
+      UINT32 lockFlags = 0;
+      // Lock EFI boot variables
+      InitBml();
+      lockFlags = ConfigReadInt("DcsBmlLockFlags", BML_LOCK_SETVARIABLE | BML_SET_BOOTNEXT | BML_UPDATE_BOOTORDER);
+      BmlLock(lockFlags);
 #endif
 			res = EfiExec(NULL, gEfiExecCmd);
 			if (EFI_ERROR(res))
@@ -207,7 +183,7 @@ DcsBootMain(
 	InitConfig(CONFIG_FILE_PATH); // Initialize Config
 
 	if (gConfigDebug) {
-		OUT_PRINT(L"FS Root: ");
+		OUT_PRINT(L"Root Device: ");
 		EfiPrintDevicePath(gFileRootHandle);
 		OUT_PRINT(L"\n");
 	}
@@ -223,7 +199,8 @@ DcsBootMain(
 #endif
 
 	// Dump platform info
-	if (EFI_ERROR(FileExist(NULL, L"\\EFI\\" DCS_DIRECTORY L"\\PlatformInfo")) &&
+	if (ConfigReadInt("CollectPlatformInfo", 0) && !gPxeBoot &&
+		EFI_ERROR(FileExist(NULL, L"\\EFI\\" DCS_DIRECTORY L"\\PlatformInfo")) &&
 		!EFI_ERROR(FileExist(NULL, L"\\EFI\\" DCS_DIRECTORY L"\\DcsInfo.dcs"))) {
 		OUT_PRINT(L"Collecting Platform information...\n");
 		res = EfiExec(NULL, L"\\EFI\\" DCS_DIRECTORY L"\\DcsInfo.dcs");
@@ -240,10 +217,8 @@ DcsBootMain(
 	res = EfiGetPartGUID(gFileRootHandle, &ImagePartGuid);
 	if (EFI_ERROR(res)) {
 		// No partition GUID found (e.g., booting from ISO with FAT image only)
-		// Use a special marker GUID for ISO/no-partition-table scenarios
-		CopyMem(&ImagePartGuid, &gIsoBootFallbackGuid, sizeof(EFI_GUID));
 		if (gConfigDebug) {
-			OUT_PRINT(L"No partition GUID available (ISO boot?), using fallback GUID\n");
+			OUT_PRINT(L"No partition GUID available (ISO boot?)\n");
 		}
 	}
 
@@ -273,6 +248,7 @@ DcsBootMain(
 	  }
 	  else if (res == EFI_DCS_HALT_REQUESTED)
 	  {
+		  KeyWait(L"Halting Cpu in %02d s\r", 10, 0, 0);
 		  EfiCpuHalt();
 	  }
 	  else if (res == EFI_DCS_USER_CANCELED)
@@ -325,28 +301,22 @@ DcsBootMain(
 		// Default load of bootmgfw?
 		if (searchOnESP) {
 			// gEfiExecCmd is not found on start partition. Try from ESP
-			// Skip ESP search if we're using ISO boot fallback GUID (no partition table available)
-			if (CompareGuid(gEfiExecPartGuid, &gIsoBootFallbackGuid)) {
-				// ISO boot - no ESP search possible, just try to execute from current partition
-				res = DoExecCmd();
-			} else {
-				EFI_BLOCK_IO_PROTOCOL *bio = NULL;
-				EFI_PARTITION_TABLE_HEADER *gptHdr = NULL;
-				EFI_PARTITION_ENTRY        *gptEntry = NULL;
-				HARDDRIVE_DEVICE_PATH hdp;
-				EFI_HANDLE disk;
-				if (!EFI_ERROR(res = EfiGetPartDetails(gFileRootHandle, &hdp, &disk))) {
-					if ((bio = EfiGetBlockIO(disk)) != NULL) {
-						if (!EFI_ERROR(res = GptReadHeader(bio, 1, &gptHdr)) &&
-							!EFI_ERROR(res = GptReadEntryArray(bio, gptHdr, &gptEntry))) {
-							UINT32 i;
-							for (i = 0; i < gptHdr->NumberOfPartitionEntries; ++i) {
-								if (CompareGuid(&gptEntry[i].PartitionTypeGUID, &gEfiPartTypeSystemPartGuid)) {
-									// select ESP GUID
-									CopyGuid(gEfiExecPartGuid, &gptEntry[i].UniquePartitionGUID);
-									res = DoExecCmd();
-									if(EFI_ERROR(res)) continue;
-								}
+			EFI_BLOCK_IO_PROTOCOL *bio = NULL;
+			EFI_PARTITION_TABLE_HEADER *gptHdr = NULL;
+			EFI_PARTITION_ENTRY        *gptEntry = NULL;
+			HARDDRIVE_DEVICE_PATH hdp;
+			EFI_HANDLE disk;
+			if (!EFI_ERROR(res = EfiGetPartDetails(gFileRootHandle, &hdp, &disk))) {
+				if ((bio = EfiGetBlockIO(disk)) != NULL) {
+					if (!EFI_ERROR(res = GptReadHeader(bio, 1, &gptHdr)) &&
+						!EFI_ERROR(res = GptReadEntryArray(bio, gptHdr, &gptEntry))) {
+						UINT32 i;
+						for (i = 0; i < gptHdr->NumberOfPartitionEntries; ++i) {
+							if (CompareGuid(&gptEntry[i].PartitionTypeGUID, &gEfiPartTypeSystemPartGuid)) {
+								// select ESP GUID
+								CopyGuid(gEfiExecPartGuid, &gptEntry[i].UniquePartitionGUID);
+								res = DoExecCmd();
+								if(EFI_ERROR(res)) continue;
 							}
 						}
 					}
@@ -371,6 +341,7 @@ DcsBootMain(
 			break;
 	}
 	ERR_PRINT(L"%a\nStatus -  %r", gDoExecCmdMsg, res);
+	KeyWait(L"Halting Cpu in %02d s\r", 10, 0, 0);
 	EfiCpuHalt();
     return EFI_INVALID_PARAMETER;
 }
