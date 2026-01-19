@@ -149,6 +149,18 @@ int dc_get_legacy_boot_pass()
 	return ST_ERROR;
 }
 
+int dc_get_uefi_boot_pass_old()
+{
+	PHYSICAL_ADDRESS addr;
+	/* scan memory in range 1-16M in steps of 1M */
+	for (addr.QuadPart = 0x00100000; addr.LowPart <= 0x01000000; addr.LowPart += (256 * PAGE_SIZE)) {
+		if (dc_try_load_bdb(addr) == ST_OK) return ST_OK;
+	}
+
+	return ST_ERROR;
+}
+
+
 typedef NTSTATUS (NTAPI * P_NtQuerySystemEnvironmentValueEx)(
 	__in PUNICODE_STRING VariableName,
 	__in LPGUID VendorGuid,
@@ -225,8 +237,6 @@ NTSTATUS ReadEfiVar(_In_ PCWSTR Name, _In_ const GUID* VendorGuid, _Outptr_resul
 
 int dc_get_uefi_boot_pass() 
 {
-	//#ifdef _M_ARM64
-#if 1
 	PVOID data;
 	ULONG dataSize;
 	ULONG attrs;
@@ -235,7 +245,12 @@ int dc_get_uefi_boot_pass()
 	NTSTATUS status = ReadEfiVar(L"DcsBootDataAddr", NULL, &data, &dataSize, &attrs);
 	if (!NT_SUCCESS(status)) {
 		DbgMsg("DcsBootDataAddr not found\n");
+
+#ifdef _M_ARM64
 		return ST_ERROR;
+#else
+		return dc_get_uefi_boot_pass_old();
+#endif
 	}
 
 	if(dataSize < sizeof(u64))
@@ -251,13 +266,6 @@ int dc_get_uefi_boot_pass()
 
 	if (dc_try_load_bdb(addr) == ST_OK) return ST_OK;
 
-#else
-	PHYSICAL_ADDRESS addr;
-	/* scan memory in range 1-16M in steps of 1M */
-	for (addr.QuadPart = 0x00100000; addr.LowPart <= 0x01000000; addr.LowPart += (256 * PAGE_SIZE)) {
-		if (dc_try_load_bdb(addr) == ST_OK) return ST_OK;
-	}
-#endif
 	return ST_ERROR;
 }
 
