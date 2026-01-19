@@ -10,35 +10,65 @@ signature   = "$Windows NT$"
 Class       = "Encryption"                              ;This is determined by the work this filter driver does
 ClassGuid   = {a0a701c0-a511-42ff-aa6c-06dc0395576f}    ;This value is determined by the Class
 Provider    = %ProviderString%
-DriverVer   = 14/03/2011,1.2.0.848
-;CatalogFile = dcrypt.cat
+DriverVer   = 09/20/2023,1.3.0.849
+CatalogFile = dcrypt.cat
+PnpLockdown = 1
 
 
 [DestinationDirs]
 DefaultDestDir      = 12
 dcrypt.DriverFiles  = 12            ;%windir%\system32\drivers
 
+;
+; Copy Files
+;
+
+[dcrypt.DriverFiles]
+dcrypt.sys
+
+[SourceDisksFiles]
+dcrypt.sys = 1,,
+
+[SourceDisksNames]
+1 = %DiskId1%,,,
+
 ;;
 ;; Default install sections
 ;;
 
-[DefaultInstall]
+[DefaultInstall.NTamd64]
 OptionDesc          = %ServiceDescription%
 CopyFiles           = dcrypt.DriverFiles
 AddReg              = dcrypt.AddReg
 
-[DefaultInstall.Services]
+[DefaultInstall.NTamd64.Services]
+AddService          = dcrypt,,dcrypt.Service
+
+[DefaultInstall.NTx86]
+OptionDesc          = %ServiceDescription%
+CopyFiles           = dcrypt.DriverFiles
+AddReg              = dcrypt.AddReg
+
+[DefaultInstall.NTx86.Services]
+AddService          = dcrypt,,dcrypt.Service
+
+[DefaultInstall.NTarm64]
+OptionDesc          = %ServiceDescription%
+CopyFiles           = dcrypt.DriverFiles
+AddReg              = dcrypt.AddReg
+
+[DefaultInstall.NTarm64.Services]
 AddService          = dcrypt,,dcrypt.Service
 
 ;;
 ;; Default uninstall sections
 ;;
 
-[DefaultUninstall]
-DelFiles   = dcrypt.DriverFiles
-
-[DefaultUninstall.Services]
-DelService = dcrypt,0x200      ;Ensure service is stopped before deleting
+;[DefaultUninstall]
+;DelFiles   = dcrypt.DriverFiles
+;
+;[DefaultUninstall.Services]
+;DelService = dcrypt,0x200      ;Ensure service is stopped before deleting
 
 ;
 ; Services Section
@@ -54,18 +84,6 @@ ErrorControl     = 3                      ;SERVICE_ERROR_CRITICAL
 LoadOrderGroup   = "Filter"
 Dependencies     = "FltMgr"
 
-;
-; Copy Files
-;
-
-[dcrypt.DriverFiles]
-dcrypt.sys
-
-[SourceDisksFiles]
-dcrypt.sys = 1,,
-
-[SourceDisksNames]
-1 = %DiskId1%,,,
 
 ;
 ; Registry Entries
