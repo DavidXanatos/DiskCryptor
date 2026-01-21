@@ -25,7 +25,11 @@
 #include "main.h"
 #include "dlg_code.h"
 
+#ifdef _M_ARM64
+#include "xts_small.h"
+#else
 #include "xts_fast.h"
+#endif
 #include "pass.h"
 
 _colinfo _main_headers[ ] =

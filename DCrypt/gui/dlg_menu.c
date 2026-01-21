@@ -25,7 +25,11 @@
 #include "main.h"
 #include "dlg_menu.h"
 
+#ifdef _M_ARM64
+#include "xts_small.h"
+#else
 #include "xts_fast.h"
+#endif
 #include "threads.h"
 #include "prc_pass.h"
 #include "prc_wizard_encrypt.h"

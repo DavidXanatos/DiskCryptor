@@ -60,7 +60,7 @@ static const DC_OFFLINE_FILE g_offline_files[] = {
 
 
 typedef HRESULT(WINAPI *SHGETKNOWNFOLDERPATH) (
-	_In_     GUID/*REFKNOWNFOLDERID*/ rfid,
+	_In_     const GUID*      rfid,
 	_In_     DWORD            dwFlags,
 	_In_opt_ HANDLE           hToken,
 	_Out_    PWSTR            *ppszPath
@@ -119,7 +119,7 @@ BOOL GetSetupconfigLocation(wchar_t* path, DWORD cchSize)
 		if (SHGetKnownFolderPathFn)
 		{
 			wchar_t* pszUsersPath = NULL;
-			if (S_OK == SHGetKnownFolderPathFn(FOLDERID_UserProfiles, 0, NULL, &pszUsersPath))
+			if (S_OK == SHGetKnownFolderPathFn(&FOLDERID_UserProfiles, 0, NULL, &pszUsersPath))
 			{
 				StringCchPrintfW(path, cchSize, L"%s\\Default\\AppData\\Local\\Microsoft\\Windows\\WSUS\\", pszUsersPath);
 				CoTaskMemFree(pszUsersPath);

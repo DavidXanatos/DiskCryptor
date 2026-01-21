@@ -2284,8 +2284,13 @@ int dc_efi_is_bme_set(int dsk_num)
 }
 
 #include "crc32.h"
-#include "sha512_pkcs5_2.h"
+#ifdef _M_ARM64
+#include "xts_small.h"
+#include "sha512_pkcs5_2_small.h"
+#else
 #include "xts_fast.h"
+#include "sha512_pkcs5_2.h"
+#endif
 #include "drvinst.h"
 
 int dc_get_dcs_root(wchar_t* root)
