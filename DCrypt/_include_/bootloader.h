@@ -208,7 +208,7 @@ typedef struct _bd_data {
 	} u;
 } bd_data;
 
-//const t = sizeof(bd_data); // 1657
+static_assert(sizeof(bd_data) == 1657, "bd_data size should be 1657 bytes");
 
 #pragma pack (pop)
 

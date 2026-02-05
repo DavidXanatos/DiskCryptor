@@ -269,6 +269,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\crypto\Argon2\argon2.c" />
+    <ClCompile Include="..\crypto\Argon2\blake2\blake2b.c" />
+    <ClCompile Include="..\crypto\Argon2\core.c" />
+    <ClCompile Include="..\crypto\Argon2\opt_avx2.c" />
+    <ClCompile Include="..\crypto\Argon2\opt_sse2.c" />
+    <ClCompile Include="..\crypto\Argon2\ref.c" />
+    <ClCompile Include="..\crypto\Argon2\selftest.c" />
     <ClCompile Include="cd_enc.c" />
     <ClCompile Include="dcapi.c" />
     <ClCompile Include="disk_name.c" />
@@ -282,6 +289,7 @@
     <ClCompile Include="misc\iso_sup.c" />
     <ClCompile Include="misc\xml.c" />
     <ClCompile Include="misc\zip.c" />
+    <ClCompile Include="mok_sup.c" />
     <ClCompile Include="rand.c" />
     <ClCompile Include="sb_sup.c" />
     <ClCompile Include="w10.c" />
@@ -290,6 +298,12 @@
     <ResourceCompile Include="dcres.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\crypto\Argon2\argon2.h" />
+    <ClInclude Include="..\crypto\Argon2\blake2\blake2-impl.h" />
+    <ClInclude Include="..\crypto\Argon2\blake2\blake2b.h" />
+    <ClInclude Include="..\crypto\Argon2\blake2\blamka-round-opt.h" />
+    <ClInclude Include="..\crypto\Argon2\blake2\blamka-round-ref.h" />
+    <ClInclude Include="..\crypto\Argon2\core.h" />
     <ClInclude Include="include\cd_enc.h" />
     <ClInclude Include="include\dcapi.h" />
     <ClInclude Include="include\dcres.h" />
@@ -300,6 +314,7 @@
     <ClInclude Include="include\keyfiles.h" />
     <ClInclude Include="include\mbrinst.h" />
     <ClInclude Include="include\misc.h" />
+    <ClInclude Include="include\mok_sup.h" />
     <ClInclude Include="include\rand.h" />
     <ClInclude Include="include\w10.h" />
     <ClInclude Include="misc\dirent.h" />

@@ -124,12 +124,19 @@ typedef void (*callback_ex)(void*,void*);
 #define memcpy(dest,source,count)         CopyMem(dest,source,(UINTN)(count))
 #endif
 
+#ifdef _M_ARM64
+#define mincpy(a, b, c)  CopyMem(pv(a), pv(b), (UINTN)(c))
+#define memset(a, b, c)  SetMem(pv(a), (UINTN)(c), (char)(b))
+#define zerofast(m,s)    SetMem(pv(m), (UINTN)(s), 0)
+#else
+
 /* size optimized intrinsics */
 #define mincpy(a,b,c) __movsb(pv(a), pv(b), (size_t)(c))
 #define memset(a,b,c) __stosb(pv(a), (char)(b), (size_t)(c))
 
 /* zeromem for 4byte aligned blocks */
 #define zerofast(m,s) __stosd(pv(m),0,(size_t)(s) / 4)
+#endif
 
 /* fast intrinsics for memory copying and zeroing */
 #ifdef _M_IX86 
