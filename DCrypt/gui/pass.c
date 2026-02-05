@@ -96,14 +96,34 @@ void _draw_pass_rating(
 		HWND     hwnd,
 		dc_pass *pass,
 		int      kb_layout,
+		int      argon2_cost,
 		int     *entropy
 	)
 {
 	int k = 0;
 	int idx = -1;
 
-	_pass_inf inf;			
+	_pass_inf inf;
 	_check_password(pass, &inf);
+
+	if (argon2_cost > 0 && inf.entropy > 0)
+	{
+		int m_cost_mib = 64 + (argon2_cost - 1) * 32;
+		double m_cost_kib;
+		int time_cost;
+
+		if (m_cost_mib > 1024)
+			m_cost_mib = 1024;
+
+		m_cost_kib = (double)m_cost_mib * 1024;
+
+		if (argon2_cost <= 31)
+			time_cost = 3 + ((argon2_cost - 1) / 3);
+		else
+			time_cost = 13 + (argon2_cost - 31);
+
+		inf.entropy += log(m_cost_kib * time_cost) / log(2);
+	}
 
 	while ( pass_gr_ctls[k].id != -1 )
 	{	

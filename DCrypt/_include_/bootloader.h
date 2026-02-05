@@ -91,11 +91,12 @@ typedef struct _ldr_config {
 	unsigned char emb_key[64];   // key in the bootloader
 	char ago_msg[128];           // message text of the authorization started
 	char aok_msg[128];           // message text of the authorization successful
-
-	char reserved[2982];         // 4k total
+	long argon2_cost;            // argon2 cost factor for password hashing in bootloader
+	
+	char reserved[2978];         // 4k total
 } ldr_config;
 
-//const t = sizeof(ldr_config);
+static_assert(sizeof(ldr_config) == 4096, "ldr_config size should be 4096 bytes");
 
 
 #define E820MAX	64 // number of entries in E820MAP
@@ -165,7 +166,8 @@ typedef struct _bd_data {
 	unsigned long  sign2;
 	unsigned long  bd_base;   // boot data block base
 	unsigned long  bd_size;   // boot data block size (including stack)
-	dc_pass        password;  // bootauth password
+	int     password_size; // password length in bytes without terminating null
+	wchar_t password_data[MAX_PASSWORD]; // password in UTF16-LE encoding
 	
 	union {
 		char extra[0];
@@ -198,6 +200,9 @@ typedef struct _bd_data {
 			long flags;
 
 			unsigned __int64 bd_base64;
+
+			int password_cost; // argon2 cost factor
+
 		} uefi;
 
 	} u;

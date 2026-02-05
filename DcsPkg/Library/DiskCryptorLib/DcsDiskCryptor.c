@@ -29,6 +29,7 @@ https://opensource.org/licenses/GPL-3.0
 #include "include/boot/dc_header.h"
 #include "include/boot/boot_hook.h"
 #include "include/boot/dc_io.h"
+#include "DcsConfigMenu.h"
 #ifdef SMALL
 #include "crypto_small/sha512_small.h"
 #else
@@ -174,8 +175,9 @@ EFI_STATUS SetBootDataBlock()
 #endif
 
 	// set password
-	bootDataBlock->password.size = gDCryptPassword.size; // in bytes
-	CopyMem(bootDataBlock->password.pass, gDCryptPassword.pass, bootDataBlock->password.size);
+	bootDataBlock->password_size = gDCryptPassword.size; // in bytes
+	CopyMem(bootDataBlock->password_data, gDCryptPassword.pass, bootDataBlock->password_size);
+	bootDataBlock->password_cost = gDCryptPassword.cost;
 
 	// set additional data
 	bootDataBlock->flags = gDCryptFlags;
@@ -325,6 +327,84 @@ GetDiskByNumber(int number)
 	return &gDiskIo[number - 1];
 }
 
+// Check if raw partition data contains a known filesystem boot sector.
+// Encrypted partitions look like random data and won't match any of these.
+// Multiple fields are validated to minimize false positives.
+static BOOLEAN
+IsKnownFilesystem(
+	UINT8 *Data
+)
+{
+	// All FAT/NTFS/exFAT boot sectors have the 0x55AA signature at offset 510
+	if (Data[510] != 0x55 || Data[511] != 0xAA)
+		return FALSE;
+
+  // NTFS: OEM ID at offset 3
+  if (CompareMem(Data + 3, "NTFS    ", 8) == 0)
+    return TRUE;
+
+  // exFAT: OEM ID at offset 3
+  if (CompareMem(Data + 3, "EXFAT   ", 8) == 0)
+    return TRUE;
+
+  // FAT32: FS type string at offset 82
+  if (CompareMem(Data + 82, "FAT32   ", 8) == 0)
+    return TRUE;
+
+  // FAT16: FS type string at offset 54
+  if (CompareMem(Data + 54, "FAT16   ", 8) == 0)
+    return TRUE;
+
+  // FAT12: FS type string at offset 54
+  if (CompareMem(Data + 54, "FAT12   ", 8) == 0)
+    return TRUE;
+
+	return FALSE;
+}
+
+// Check if a partition's GPT type is one we should try to decrypt.
+// Reads GPT from the disk, finds the partition by start LBA, checks the type.
+// Returns TRUE for System (ESP), Basic Data, and Recovery partitions.
+// Returns TRUE if GPT cannot be read (MBR disk) to avoid skipping anything.
+static BOOLEAN
+IsTargetPartitionType(
+	EFI_BLOCK_IO_PROTOCOL *DiskBio,
+	EFI_LBA               PartStart
+)
+{
+	EFI_PARTITION_TABLE_HEADER *gptHdr = NULL;
+	EFI_PARTITION_ENTRY        *gptEntry = NULL;
+	BOOLEAN result = TRUE; // default: allow
+	UINT32 gi;
+
+	if (DiskBio == NULL)
+		return TRUE;
+
+	if (EFI_ERROR(GptReadHeader(DiskBio, 1, &gptHdr)) || gptHdr == NULL)
+		return TRUE; // not a GPT disk
+
+	if (EFI_ERROR(GptReadEntryArray(DiskBio, gptHdr, &gptEntry)) || gptEntry == NULL) {
+		MEM_FREE(gptHdr);
+		return TRUE;
+	}
+
+	for (gi = 0; gi < gptHdr->NumberOfPartitionEntries; gi++) {
+		if (gptEntry[gi].StartingLBA == PartStart) {
+			EFI_GUID *type = &gptEntry[gi].PartitionTypeGUID;
+			if (!CompareGuid(type, &gEfiPartTypeSystemPartGuid) &&
+				!CompareGuid(type, &gEfiPartTypeBasicDataPartGuid) &&
+				!CompareGuid(type, &gEfiPartTypeMsRecoveryPartGuid)) {
+				result = FALSE;
+			}
+			break;
+		}
+	}
+
+	MEM_FREE(gptEntry);
+	MEM_FREE(gptHdr);
+	return result;
+}
+
 EFI_STATUS
 HeaderTryDecrypt(int* vol_found, int* hdr_found)
 {
@@ -354,9 +434,9 @@ HeaderTryDecrypt(int* vol_found, int* hdr_found)
 
 		OUT_PRINT(L"%a\n", gDCryptStartMsg);
 
-		dc_header  header;	
+		dc_header  header;
 		mount_inf *mount;
-		
+
 		// check all partitions if the password works for one
 		for (i = 0; i < gBIOCount; ++i) {
 
@@ -368,22 +448,51 @@ HeaderTryDecrypt(int* vol_found, int* hdr_found)
 
 			dc_disk = GetDiskByNumber(disk_num);
 
+			// Skip partitions whose GPT type is not a decryption target
+			// (only System, Basic Data, and Recovery are tried by default).
+			// MBR partitions or partitions not found in GPT are always allowed.
+			if (dc_disk != NULL && !IsTargetPartitionType(dc_disk->BlockIo, part.PartitionStart)) {
+				if (gConfigDebug) {
+					OUT_PRINT(L"Skipping disk %d partition %d (non-target partition type)\n", disk_num, part.PartitionNumber);
+				}
+				continue;
+			}
+
 			ret = dc_disk ? dc_disk->BlockIo->ReadBlocks(dc_disk->BlockIo, dc_disk->BlockIo->Media->MediaId, part.PartitionStart, DC_AREA_SIZE, (UINT8*)&header) : EFI_NOT_FOUND;
 			if (EFI_ERROR(ret)) {
 				ERR_PRINT(L"Can't read partition starting at %llu\n", part.PartitionStart);
 				continue;
 			}
 
-			if (dc_decrypt_header(&header, &gDCryptPassword) == 0) {
+			// Skip partitions with recognized filesystem signatures (FAT12/16/32, NTFS, exFAT).
+			// These are not encrypted and attempting decryption on them wastes time.
+			if (IsKnownFilesystem((UINT8*)&header)) {
+				if (gConfigDebug) {
+					OUT_PRINT(L"Skipping disk %d partition %d (known filesystem)\n", disk_num, part.PartitionNumber);
+				}
+				continue;
+			}
+
+			if (gConfigDebug) {
+				OUT_PRINT(L"Trying to decrypt disk %d partition %d ... ", disk_num, part.PartitionNumber);
+			}
+
+			if (dc_decrypt_header(&header, &gDCryptPassword) == 0) 
+			{
+				if (gConfigDebug) {
+					OUT_PRINT(L"fail\n");
+				}
+
 				continue;
 			}
 			(*vol_found)++;
 
 			if (gConfigDebug) {
-				OUT_PRINT(L"Found Encrypted Partition ");
-				OUT_PRINT(L"%d", part.PartitionNumber);
-				//EfiPrintPath(disk_path);
-				OUT_PRINT(L" on disk %d\n", disk_num);
+			//	OUT_PRINT(L"Found Encrypted Partition ");
+			//	OUT_PRINT(L"%d", part.PartitionNumber);
+			//	//EfiPrintPath(disk_path);
+			//	OUT_PRINT(L" on disk %d\n", disk_num);
+				OUT_PRINT(L"success\n");
 			}
 
 			if ( (iodb.n_mount >= MOUNT_MAX) ||
@@ -463,24 +572,24 @@ HeaderTryDecrypt(int* vol_found, int* hdr_found)
 						if (EFI_ERROR(ret)) { ERR_PRINT(L"dir->Open %r\n", ret); }
 						else
 						{
+							OUT_PRINT(L"Trying to decrypt test header for: %s ... ", &DirInfo->FileName[11]);
+
 							UINTN fileSize = sizeof(header);
 							ret = file->Read(file, &fileSize, &header);
 							if (EFI_ERROR(ret)) { ERR_PRINT(L"file->read %r\n", ret); }
 							else
 							{
 								if (fileSize != sizeof(header)) {
-									ERR_PRINT(L"test header for: %s is to small %d\n", &DirInfo->FileName[11], fileSize);
+									ERR_PRINT(L"is to small %d\n", &DirInfo->FileName[11], fileSize);
 								}
 
 								else if (dc_decrypt_header(&header, &gDCryptPassword) == 0) {
-									ERR_PRINT(L"wrong password for test header for: %s\n", &DirInfo->FileName[11]);
+									ERR_PRINT(L"failed\n");
 								}
 
 								else {
 									(*hdr_found)++;
-									if (gConfigDebug) {
-										OUT_PRINT(L"successfully decrypted test header for: %s\n", &DirInfo->FileName[11]);
-									}
+									OUT_PRINT(L"success\n");
 								}
 							}
 							file->Close(file);
@@ -717,6 +826,7 @@ int gDCryptTouchInput = 0;
 UINT8 gDCryptAutoLogin = 0;
 CHAR16* gDCryptAutoPassword = L"\0";
 CHAR16*	gDCryptKeyFilePath = L"\0";
+UINT8 gDCryptArgon2Cost = 0;
 
 char* gDCryptPasswordMsg = NULL;
 char* gDCryptStartMsg = NULL;
@@ -731,6 +841,8 @@ VOID DCAuthLoadConfig()
 		// QWERTZ	1
 		// AZERTY	2
 	gKeyboardLayout = ConfigReadInt("KeyboardLayout", 0);
+
+	gDCryptArgon2Cost = (UINT8)ConfigReadInt("Argon2Cost", 0);
 
 	// Booting Method
 		// First disk MBR								// BT_MBR_FIRST    2
@@ -812,7 +924,7 @@ VOID DCAuthLoadConfig()
 	gDCryptHwCrypto = ConfigReadInt("UseHardwareCrypto", 1);
 }
 
-VOID DCAskPwd(IN UINTN pwdType, OUT dc_pass* dcPwd) 
+VOID DCAskPwd(IN UINTN pwdType, OUT dc_pass* dcPwd)
 {
 	BOOLEAN pwdReady;
 
@@ -864,20 +976,30 @@ VOID DCAskPwd(IN UINTN pwdType, OUT dc_pass* dcPwd)
 				AskPictPwdInt(pwdType, sizeof(dcPwd->pass), dcPwd->pass, &dcPwd->size, &gDCryptPwdCode, TRUE);
 			}
 			else {
-				/*switch (pwdType) {
-				case AskPwdNew:
-					OUT_PRINT(L"New password:");
-					break;
-				case AskPwdConfirm:
-					OUT_PRINT(L"Confirm password:");
-					break;
-				case AskPwdLogin:
-				default:*/
-					OUT_PRINT(L"%a", gDCryptPasswordMsg);
-				/*	break;
-				}*/
-				AskConsolePwdInt(&dcPwd->size, dcPwd->pass, &gDCryptPwdCode, sizeof(dcPwd->pass), gPasswordVisible, TRUE);
+				do {
+					/*switch (pwdType) {
+					case AskPwdNew:
+						OUT_PRINT(L"New password:");
+						break;
+					case AskPwdConfirm:
+						OUT_PRINT(L"Confirm password:");
+						break;
+					case AskPwdLogin:
+					default:*/
+						OUT_PRINT(L"%a", gDCryptPasswordMsg);
+					/*	break;
+					}*/
+					AskConsolePwdInt(&dcPwd->size, dcPwd->pass, &gDCryptPwdCode, sizeof(dcPwd->pass), gPasswordVisible, TRUE);
+
+					if (gDCryptPwdCode == AskPwdRetHelp) {
+						DcsShowHelp();
+					}
+					else if (gDCryptPwdCode == AskPwdRetSetParams) {
+						DcsConfigMenuShow();
+					}
+				} while (gDCryptPwdCode == AskPwdRetSetParams || gDCryptPwdCode == AskPwdRetHelp);
 			}
+			dcPwd->cost = gDCryptArgon2Cost;
 
 			if ((gDCryptPwdCode == AskPwdRetCancel) || (gDCryptPwdCode == AskPwdRetTimeout)) {
 				return;

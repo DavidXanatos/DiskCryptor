@@ -16,6 +16,10 @@ typedef struct __pass_inf
 
 } _pass_inf;
 
+#define ARGON2_COST_MIN		1
+#define ARGON2_COST_MAX		100
+#define _clamp_cost(v)		min(max((v), ARGON2_COST_MIN), ARGON2_COST_MAX)
+
 #define P_AZ_L		1
 #define P_AZ_H		2
 #define P_09		4
@@ -42,6 +46,7 @@ void _draw_pass_rating(
 		HWND     hwnd,
 		dc_pass *pass,
 		int      kb_layout,
+		int      argon2_cost,
 		int     *entropy
 	);
 

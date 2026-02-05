@@ -284,6 +284,14 @@ _tab_proc(
 				EnableWindow(GetDlgItem(hwnd, IDB_USE_KEYFILES), _get_check(hwnd, IDC_USE_KEYFILES));
 				return 1L;
 			}
+			if ( ctl_wnd == GetDlgItem(hwnd, IDC_USE_ARGON2) )
+			{
+				EnableWindow(GetDlgItem(hwnd, IDE_ARGON2_COST), _get_check(hwnd, IDC_USE_ARGON2));
+				SendMessage(
+					hwnd, WM_COMMAND, MAKELONG(IDE_PASS, EN_CHANGE), (LPARAM)GetDlgItem(hwnd, IDE_PASS)
+					);
+				return 1L;
+			}
 			{
 				_wnd_data *data = wnd_get_long(ctl_wnd, GWL_USERDATA);
 
@@ -683,6 +691,14 @@ _tab_proc(
 						}
 						break;
 
+						case IDE_ARGON2_COST :
+						{
+							SendMessage(
+								hwnd, WM_COMMAND, MAKELONG(IDE_PASS, EN_CHANGE), (LPARAM)GetDlgItem(hwnd, IDE_PASS)
+								);
+						}
+						break;
+
 						case IDE_PASS :
 						case IDE_CONFIRM :
 						{
@@ -691,16 +707,18 @@ _tab_proc(
 							int kb_layout = -1;
 							int idx_status;
 							int entropy;
+							int argon2_cost;
 
 							dc_pass *pass;
 
-							if (IsWindowEnabled(GetDlgItem(hwnd, IDC_COMBO_KBLAYOUT))) 
+							if (IsWindowEnabled(GetDlgItem(hwnd, IDC_COMBO_KBLAYOUT)))
 							{
 								kb_layout = _get_combo_val(GetDlgItem(hwnd, IDC_COMBO_KBLAYOUT), kb_layouts);
-							}			
+							}
+							argon2_cost = _get_check(hwnd, IDC_USE_ARGON2) ? _clamp_cost(GetDlgItemInt(hwnd, IDE_ARGON2_COST, NULL, FALSE)) : 0;
 							pass = _get_pass(hwnd, IDE_PASS);
 
-							_draw_pass_rating(hwnd, pass, kb_layout, &entropy);
+							_draw_pass_rating(hwnd, pass, kb_layout, argon2_cost, &entropy);
 							secure_free(pass);
 
 							SendMessage(

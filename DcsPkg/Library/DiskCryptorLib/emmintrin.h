@@ -114,4 +114,9 @@ extern __m128i _mm_srl_epi32(__m128i _A, __m128i _Count);
 extern __m128i _mm_srli_epi64(__m128i _A, int _Count);
 extern __m128i _mm_srl_epi64(__m128i _A, __m128i _Count);
 
+/* Argon2 SSE2 requires these additional intrinsics */
+extern __m128i _mm_mul_epu32(__m128i _A, __m128i _B);
+extern __m128i _mm_add_epi64(__m128i _A, __m128i _B);
+extern __m128i _mm_shuffle_epi32(__m128i _A, int _Imm);
+
 extern __m128i _mm_aesenc_si128(__m128i /* v */, __m128i /* rkey */);

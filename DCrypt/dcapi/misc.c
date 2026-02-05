@@ -202,6 +202,11 @@ int load_file(wchar_t *name, void **data, int *size)
 	return resl;
 }
 
+void my_free(PVOID ptr)
+{
+	free (ptr);
+}
+
 PVOID secure_alloc(ULONG length)
 {
 	DC_LOCK_MEMORY mem;
@@ -643,7 +648,7 @@ wchar_t *dc_get_status_str(int resl)
 	case ST_DIR_NOT_EMPTY:		return L"directory is not empty";
 	case ST_BL_NOT_PASSED:		return L"bootloader check not passed";
 	case ST_SB_NO_PASS:			return L"secureboot enabled and not accepting DCS signature";
-	case ST_SHIM_MISSING:		return L"shim package is missing";
+	case ST_SHIM_MISSING:		return L"shim package is missing, see https://diskcryptor.org/advanced-boot/ for more information";
 	default: return NULL;
 	}
 }

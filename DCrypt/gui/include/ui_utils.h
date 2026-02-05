@@ -300,7 +300,7 @@ void _get_item_text(
 
 int _init_combo(
 		HWND        hwnd, 
-		_init_list *list,
+		const _init_list *list,
 		DWORD       val,
 		BOOL        or,
 		int         bits
@@ -341,12 +341,12 @@ void _change_page(
 
 int _get_combo_val(
 		HWND hwnd, 
-		_init_list *list
+		const _init_list *list
 	);
 
 wchar_t *_get_text_name(
 		int val, 
-		_init_list *list
+		const _init_list *list
 	);
 
 HANDLE _get_hwnd_info_list( );

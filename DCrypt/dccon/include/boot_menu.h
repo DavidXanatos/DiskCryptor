@@ -3,4 +3,8 @@
 
 int boot_menu(int argc, wchar_t *argv[]);
 
+int efi_menu(int argc, wchar_t *argv[]);
+
+int mok_menu(int argc, wchar_t *argv[]);
+
 #endif

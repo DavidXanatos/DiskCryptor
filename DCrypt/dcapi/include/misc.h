@@ -24,6 +24,7 @@ wchar_t dc_api *dc_get_status_str(int resl);
 int dc_api dc_format_fs(wchar_t *root, wchar_t *fs);
 int dc_api save_file(wchar_t *name, void *data, int size);
 int dc_api load_file(wchar_t *name, void **data, int *size);
+void dc_api my_free(PVOID ptr);
 
 /* private functions for internal use */
 

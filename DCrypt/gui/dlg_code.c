@@ -106,7 +106,7 @@ _static_view pass_pe_ctls[ ] =
 	{ -1, 0, 0 }
 };
 
-_init_list cipher_names[ ] =
+const _init_list cipher_names[ ] =
 {
 	{ CF_AES,					L"AES"					},
 	{ CF_TWOFISH,				L"Twofish"				},
@@ -118,7 +118,7 @@ _init_list cipher_names[ ] =
 	{ 0, STR_NULL }
 };
 
-_init_list wipe_modes[ ] =
+const _init_list wipe_modes[ ] =
 {
 	{ WP_NONE,		L"None"										},
 	{ WP_DOD_E,		L"US DoD 5220.22-M (8-306. / E)"			},
@@ -127,7 +127,7 @@ _init_list wipe_modes[ ] =
 	{ 0, STR_NULL }
 };
 
-_init_list kb_layouts[ ] =
+const _init_list kb_layouts[ ] =
 {
 	{ LDR_KB_QWERTY, L"QWERTY" },
 	{ LDR_KB_QWERTZ, L"QWERTZ" },
@@ -135,7 +135,7 @@ _init_list kb_layouts[ ] =
 	{ 0, STR_NULL }
 };
 
-_init_list auth_type[ ] =
+const _init_list auth_type[ ] =
 {
 	{ LDR_LT_GET_PASS,										L"Password request"						},
 	//{ LDR_LT_GET_PASS | LDR_LT_PIC_PASS,					L"Password request (on screen keyboard)"},
@@ -145,14 +145,14 @@ _init_list auth_type[ ] =
 	{ 0, STR_NULL }
 };
 
-_init_list show_pass[ ] =
+const _init_list show_pass[ ] =
 {
 	{ TRUE,			L"Hide entered password"				},
 	{ LDR_LT_DSP_PASS,	L"Display entered password as \"*\""	},
 	{ 0, STR_NULL }
 };
 
-_init_list auth_tmount[ ] =
+const _init_list auth_tmount[ ] =
 {
 	{ 0,	L"Disabled"		},
 	{ 3,	L"3 sec"		},
@@ -168,7 +168,7 @@ _init_list auth_tmount[ ] =
 	{ 0,STR_NULL }
 };
 
-_init_list boot_type_ext[ ] = // external
+const _init_list boot_type_ext[ ] = // external
 {
 	{ LDR_BT_MBR_FIRST,		L"First disk"									},
 	{ LDR_BT_AP_PASSWORD,	L"First partition with appropriate password"	},
@@ -176,7 +176,7 @@ _init_list boot_type_ext[ ] = // external
 	{ 0, STR_NULL }
 };
 
-_init_list boot_type_all[ ] =
+const _init_list boot_type_all[ ] =
 {
 	{ LDR_BT_MBR_FIRST,		L"First disk"									},
 	{ LDR_BT_AP_PASSWORD,	L"First partition with appropriate password"	},
@@ -186,7 +186,7 @@ _init_list boot_type_all[ ] =
 	{ 0, STR_NULL }
 };
 
-_init_list bad_pass_act[ ] =
+const _init_list bad_pass_act[ ] =
 {
 	{ FALSE,				L"Halt system"					},
 	{ LDR_ET_REBOOT,		L"Reboot system"				},
@@ -197,7 +197,7 @@ _init_list bad_pass_act[ ] =
 	{ 0, STR_NULL }
 };
 
-_init_list loader_type_mbr[ ] =
+const _init_list loader_type_mbr[ ] =
 {
 	{ CTL_LDR_HDD,		L"HDD master boot record"					},
 	{ CTL_LDR_STICK,	L"Bootable partition (USB-Stick, etc)"		},
@@ -206,7 +206,7 @@ _init_list loader_type_mbr[ ] =
 	{ 0, STR_NULL }
 };
 
-_init_list loader_type_efi[ ] =
+const _init_list loader_type_efi[ ] =
 {
 	{ CTL_LDR_HDD,		L"EFI partition on HDD"						},
 	{ CTL_LDR_STICK,	L"Removable media (USB-Stick, etc)"			},
@@ -215,7 +215,7 @@ _init_list loader_type_efi[ ] =
 	{ 0, STR_NULL }
 };
 
-_init_list pass_status[ ] =
+const _init_list pass_status[ ] =
 {
 	{ ST_PASS_SPRS_SYMBOLS,		L" Used suppressed symbols on this layout"		},
 	{ ST_PASS_EMPTY,			L" Pass is empty"								},
@@ -226,7 +226,7 @@ _init_list pass_status[ ] =
 	{ 0, STR_NULL }
 };
 
-_ctl_init hotks_chk[ ] =
+const _ctl_init hotks_chk[ ] =
 {
 	{ STR_NULL, IDC_KEY_MOUNTALL	},
 	{ STR_NULL, IDC_KEY_UNMOUNTALL	},
@@ -235,7 +235,7 @@ _ctl_init hotks_chk[ ] =
 	{ STR_NULL, -1, -1 }
 };
 
-_ctl_init hotks_edit[ ] =
+const _ctl_init hotks_edit[ ] =
 {
 	{ STR_NULL, IDC_EDIT_KEY_MOUNTALL,		0 },
 	{ STR_NULL, IDC_EDIT_KEY_UNMOUNTALL,	0 },
@@ -244,7 +244,7 @@ _ctl_init hotks_edit[ ] =
 	{ STR_NULL, -1, -1 }
 };
 
-_ctl_init hotks_static[ ] =
+const _ctl_init hotks_static[ ] =
 {
 	{ STR_NULL, IDC_STATIC_KEY_MOUNTALL,	0 },
 	{ STR_NULL, IDC_STATIC_KEY_UNMOUNTALL,	0 },

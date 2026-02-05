@@ -96,30 +96,30 @@ extern _colinfo _boot_headers[ ];
 extern _colinfo _part_by_id_headers[ ];
 extern _colinfo _benchmark_headers[ ];
 
-extern _init_list wipe_modes[ ];
-extern _init_list kb_layouts[ ];
+const extern _init_list wipe_modes[ ];
+const extern _init_list kb_layouts[ ];
 
-extern _init_list boot_type_ext[ ];
-extern _init_list boot_type_all[ ];
+const extern _init_list boot_type_ext[ ];
+const extern _init_list boot_type_all[ ];
 
-extern _init_list show_pass[ ];
-extern _init_list auth_tmount[ ];
+const extern _init_list show_pass[ ];
+const extern _init_list auth_tmount[ ];
 
-extern _init_list bad_pass_act[ ];
-extern _init_list auth_type[ ];
+const extern _init_list bad_pass_act[ ];
+const extern _init_list auth_type[ ];
 
-extern _init_list cipher_names[ ];
-extern _init_list loader_type_mbr[ ];
-extern _init_list loader_type_efi[ ];
+const extern _init_list cipher_names[ ];
+const extern _init_list loader_type_mbr[ ];
+const extern _init_list loader_type_efi[ ];
 
-extern _init_list pass_status[ ];
+const extern _init_list pass_status[ ];
 
 extern wchar_t *_info_table_items[ ];
 extern wchar_t *_act_table_items[ ];
 
-extern _ctl_init hotks_edit[ ];
-extern _ctl_init hotks_chk[ ];
-extern _ctl_init hotks_static[ ];
+const extern _ctl_init hotks_edit[ ];
+const extern _ctl_init hotks_chk[ ];
+const extern _ctl_init hotks_static[ ];
 
 extern _static_view pass_gr_ctls[ ];
 extern _static_view pass_pe_ctls[ ];

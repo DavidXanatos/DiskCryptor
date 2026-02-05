@@ -55,6 +55,8 @@ enum AskPwdRetCode {
 	AskPwdRetLogin  = 1,
 	AskPwdRetChange = 2,
 	AskPwdForcePass = 3,
+	AskPwdRetSetParams = 4,
+	AskPwdRetHelp   = 5,
 	AskPwdRetTimeout
 };
 

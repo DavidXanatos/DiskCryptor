@@ -30,6 +30,7 @@
 typedef struct _dc_pass {
 	int     size; // password length in bytes without terminating null
 	wchar_t pass[MAX_PASSWORD]; // password in UTF16-LE encoding
+	int     cost; // password cost factor
 } dc_pass;
 
 typedef struct _dc_header {

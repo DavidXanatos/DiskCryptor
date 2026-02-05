@@ -35,6 +35,8 @@
 #include "misc/zip.h"
 #include "misc/xml.h"
 #include "misc/fs_sup.h"
+#include "mok_sup.h"
+#include "../crypto/Argon2/argon2.h"
 
 const wchar_t* efi_var_guid = L"{8BE4DF61-93CA-11D2-AA0D-00E098032B8C}";
 
@@ -137,6 +139,7 @@ static const efi_file_t shim_files[] = {
 };
 static const wchar_t* shim_boot_file = L"\\EFI\\Boot\\grubx64.efi";
 #endif
+static const size_t shim_mok_index = 2;
 static const size_t shim_files_count = _countof(shim_files);
 static const size_t shim_ldr_index = _countof(shim_files) - 1;
 
@@ -1049,10 +1052,18 @@ int dc_set_efi_boot(int dsk_num, int replace_ms, int shim)
 			resl = dc_copy_efi_shim(root);
 			if (resl != ST_OK) break;
 			
-			resl = dc_copy_efi_file(root, shim_files[0].target, efi_boot_file);
+			resl = dc_copy_efi_file(root, shim_files[0].target, efi_boot_file); // L"\\EFI\\Boot\\shimx64.efi" -> L"\\EFI\\Boot\\BOOTx64.efi"
 			if (resl != ST_OK) break;
 
 			resl = dc_ren_efi_file(root, shim_files[shim_ldr_index].target, shim_boot_file); // L"\\EFI\\Boot\\DcsLdr.efi" -> L"\\EFI\\Boot\\grubx64.efi"
+
+			dc_mok_set_timeout(600); // 10 min, NOTE: this will be auto reset back to 10s after reboot :/
+
+			/*size_t end = wcslen(root);
+			const wchar_t* files[] = {root};
+			wcscat_s(root, MAX_PATH, shim_files[shim_mok_index].target);
+			dc_mok_enroll_files(files, 1, L"123", 0);
+			root[end] = 0;*/
 		}
 		else {
 			resl = dc_copy_file(root, root, dcs_files[0].target, efi_boot_file); // L"\\EFI\\DCS\\DcsBoot.efi" -> L"\\EFI\\Boot\\BOOTx64.efi"
@@ -1332,6 +1343,9 @@ void dc_efi_config_store(STRING* newConfig, char* configContent, DWORD size, ldr
 		// AZERTY	2
 	WriteConfigInteger(newConfig, configContent, "KeyboardLayout", conf->kbd_layout);
 
+	// Argon2id Cost
+	WriteConfigInteger(newConfig, configContent, "Argon2Cost", conf->argon2_cost);
+
 	// Booting Method
 		// First disk MBR								// BT_MBR_FIRST    2
 		// First partition with appropriate password	// BT_AP_PASSWORD  4
@@ -1502,6 +1516,9 @@ void dc_efi_config_load(char* configContent, DWORD size, ldr_config* conf)
 		// QWERTZ	1
 		// AZERTY	2
 	conf->kbd_layout = ReadConfigInteger(configContent, "KeyboardLayout", 0);
+
+	// Argon2id Cost
+	conf->argon2_cost = ReadConfigInteger(configContent, "Argon2Cost", 3);
 
 	// Booting Method
 		// First disk MBR								// BT_MBR_FIRST    2
@@ -2367,7 +2384,33 @@ int dc_prep_encrypt(const wchar_t* device, dc_pass* password, crypt_info* crypt)
 		header->hdr_crc  = crc32((const unsigned char*)&header->version, DC_CRC_AREA_SIZE);
 
 		// derive the header key
-		sha512_pkcs5_2(1000, password->pass, password->size, salt, PKCS5_SALT_SIZE, dk, PKCS_DERIVE_MAX);
+		if (password->cost == 0) {
+			sha512_pkcs5_2(1000, password->pass, password->size, salt, PKCS5_SALT_SIZE, dk, PKCS_DERIVE_MAX);
+		}
+		else { // keep in sync with driver\crypto_head.c
+			// Compute the memory cost (m_cost) in MiB
+			int m_cost_mib = 64 + (password->cost - 1) * 32;
+			if (m_cost_mib > 1024) // Cap the memory cost at 1024 MiB
+				m_cost_mib = 1024;
+
+			// Convert memory cost to KiB for Argon2
+			u32 memory_cost = m_cost_mib * 1024;
+
+			// Compute the time cost
+			u32 time_cost;
+			if (password->cost <= 31)
+				time_cost = 3 + ((password->cost - 1) / 3);
+			else
+				time_cost = 13 + (password->cost - 31);
+
+			// single-threaded
+			u32 parallelism = 1;
+
+			int ret = argon2id_hash_raw(time_cost, memory_cost, parallelism, password->pass, password->size, salt, PKCS5_SALT_SIZE, dk, PKCS_DERIVE_MAX, NULL);
+			if (ret != ARGON2_OK) {
+				return ERROR_INTERNAL_ERROR;
+			}
+		}
 
 		// initialize encryption keys
 		xts_set_key(header->key_1, crypt->cipher_id, volume_key);

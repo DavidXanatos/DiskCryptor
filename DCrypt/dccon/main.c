@@ -51,14 +51,15 @@ extern wchar_t **g_argv;
 static int       rng_inited;
 static wchar_t   boot_dev[MAX_PATH];
 
-static void print_usage()
+static void print_usage(int subject)
 {
 	wprintf(
 		L"DiskCryptor (c) <info@diskcryptor.org>\n"
 		L"\n"
 		L"Usage: dccon ...\n"
 		L"________________________________________________________________________________\n"
-		L"\n"
+		L"\n");
+	if (subject & 0x01) wprintf(
 		L" -enum                           Enum all volume devices in system\n"
 		L" -info [dev]                     Display information about device\n"
 		L" -version                        Display DiskCryptor version\n"
@@ -77,9 +78,11 @@ static void print_usage()
 		L" -mount [dev] [param]            Mount encrypted device\n"
 		L"    -mp [mount point]            Add volume mount point\n"
 		L"    -p  [password]               Get password from command line\n"
+		L"    -c  [argon2id cost]          Argon2id factor cost 1-100\n"
 		L"    -kf [keyfiles path]          Use keyfiles\n"
 		L" -mountall [param]               Mount all encrypted devices\n"
 		L"    -p  [password]               Get password from command line\n"
+		L"    -c  [argon2id cost]          Argon2id factor cost 1-100\n"
 		L"    -kf [keyfiles path]          Use keyfiles\n"
 		L" -unmount [dev] [param]          Unmount encrypted device\n"
 		L"    -f                           Force unmount and close all opened files\n"
@@ -89,6 +92,7 @@ static void print_usage()
 		L"\n"
 		L" -encrypt [dev] [param]          Encrypt volume device\n"
 		L"    -p  [password]               Get password from command line\n"
+		L"    -c  [argon2id cost]          Argon2id factor cost 1-100\n"
 		L"    -kf [keyfiles path]          Use keyfiles\n"
 		L"             ======  Cipher settings:   ======\n"
 		L"    -a                           AES cipher\n"
@@ -105,6 +109,7 @@ static void print_usage()
 		L" -encrypt2                       Start prepared system volume encryption\n"
 		L" -decrypt [dev] [param]          Decrypt volume device\n"
 		L"    -p  [password]               Get password from command line\n"
+		L"    -c  [argon2id cost]          Argon2id factor cost 1-100\n"
 		L"    -kf [keyfiles path]          Use keyfiles\n"
 		L" -reencrypt [dev] [param]        Re-encrypt device with new parameters,\n"
 		L"                                 parameters are equal to -encrypt\n"
@@ -124,17 +129,30 @@ static void print_usage()
 		L"\n"
 		L" -chpass [dev] [param]           Change volume password\n"
 		L"    -op  [password]              Get old password from command line\n"
+		L"    -oc  [argon2id cost]         Old Argon2id factor cost 1-100\n"
 		L"    -np  [password]              Get new password from command line\n"
+		L"    -nc  [argon2id cost]         New Argon2id factor cost 1-100\n"
 		L"    -okf [keyfiles path]         Old keyfiles\n"
 		L"    -nkf [keyfiles path]         New keyfiles\n"
 		L" -backup [dev] [file] [param]    Backup volume header to file\n"
 		L"    -p  [password]               Get password from command line\n"
+		L"    -c  [argon2id cost]          Argon2id factor cost 1-100\n"
 		L"    -kf [keyfiles path]          Use keyfiles\n"
 		L" -restore [dev] [file] [param]   Restore volume header from file\n"
 		L"    -p  [password]               Get password from command line\n"
+		L"    -c  [argon2id cost]          Argon2id factor cost 1-100\n"
 		L"    -kf [keyfiles path]          Use keyfiles\n"
 		L"________________________________________________________________________________\n"
+		L"\n");
+	if (subject == 0x01) wprintf(
+		L"Bootloader and UEFI/SecureBoot management:\n"
+		L" -boot [action]                  Bootloader installation and configuration\n"
+		L" -efi [action]                   UEFI variables and Secure Boot management\n"
+		L" -mok [action]                   Shim MOK management (enroll, list, delete)\n"
 		L"\n"
+		L"________________________________________________________________________________\n"
+		L"\n");
+	if (subject & 0x02) wprintf(
 		L" -boot [action]\n"
 		L"    -mode                        Show boot mode (MBR/EFI [SecureBoot])\n"
 		L"    -enum                        Enumerate all HDDs\n"
@@ -151,6 +169,8 @@ static void print_usage()
 		L"    -setefi  [hdd] [opt]         Setup DCS bootloader to HDD EFI partition\n"
 		L"		-shim                      Force adding shim loader for secure boot\n"
 		L"		-noshim                    Don't add shim loader for secure boot, even when needed\n"
+		L"		-bme                       Add boot menu entry\n"
+		L"		-nobme                     Don't add boot menu entry\n"
 		L"    -updefi  [hdd]               Update DCS bootloader on HDD EFI partition\n"
 		L"    -delefi  [hdd]               Delete DCS bootloader from HDD EFI partition\n"
 		L"    -getinfo [hdd]               Print collected PlatformInfo file to console\n"
@@ -159,8 +179,79 @@ static void print_usage()
 		L"    -replacems [hdd]             Replace Windows Boot Manager with DCS loader\n"
 		L"    -restorems [hdd]             Restore Windows Boot Manager file (bootmgfw.efi)\n"
 		L"    -makerec [root par] [opt]    Setup EFI recovery DCS to bootable partition\n"
+		L"    -mkefiiso [file] [opt]       Make EFI bootloader image (.iso)\n"
+		L"    -mkefipxe [dir] [opt]        Make EFI bootloader image for PXE network booting\n"
+		L"________________________________________________________________________________\n"
+		L"\n");
+	if (subject & 0x04) wprintf(
+		L" -efi [action]\n"
+		L"  EFI variables:\n"
+		L"    -list                        List all EFI variables (name and GUID)\n"
+		L"    -get [name] [opt]            Get EFI variable value\n"
+		L"       -guid [guid]              Variable GUID (default: global EFI GUID)\n"
+		L"       -file [path]              Save to file\n"
+		L"       -dmp_hex                  Hex dump to screen\n"
+		L"    -set [name] [opt]            Set EFI variable value\n"
+		L"       -guid [guid]              Variable GUID (default: global EFI GUID)\n"
+		L"       -file [path]              Load value from file\n"
+		L"       -data [string]            Set value from command line\n"
+		L"  Secure Boot signature database tools:\n"
 		L"    -sb_info                     Show SecureBoot status and whether DCS EFI loader is properly signed\n"
-			
+		L"    -dump -file [path]           List certificates (CN) and hashes from signature DB\n"
+		L"    -extract [opt]               Extract signatures from EFI signature database\n"
+		L"       -file [path]              Input file (e.g., exported db, dbx, KEK)\n"
+		L"       -dir [path]               Output directory for extracted files\n"
+		L"    -pack [opt]                  Pack signatures into EFI signature database\n"
+		L"       -dir [path]               Input directory with signature files\n"
+		L"       -file [path]              Output file\n"
+		L"    -sb_set [opt]                Set authenticated Secure Boot variable (signed)\n"
+		L"       -name [var]               Variable name (PK, KEK, db, dbx, dbt, dbr)\n"
+		L"       -guid [guid]              Variable GUID (auto-selected if not specified)\n"
+		L"       -file [path]              Content file (signature database)\n"
+		L"       -cert [path]              PFX certificate for signing (KEK or PK)\n"
+		L"       -pass [password]          PFX password (will prompt if not provided)\n"
+		L"       -append                   Append to existing variable instead of replace\n"
+		L"________________________________________________________________________________\n"
+		L"\n");
+	if (subject & 0x08) wprintf(
+		L" -mok [action]\n"
+		L"  MOK certificate management:\n"
+		L"    -list                        List enrolled MOK certificates (MokListRT)\n"
+		L"       -new                      List pending enrollment requests (MokNew)\n"
+		L"       -del                      List pending deletion requests (MokDel)\n"
+		L"       -x                        Use blacklist (MokListXRT/MokXNew/MokXDel)\n"
+		L"       -pk                       List Platform Key\n"
+		L"       -kek                      List Key Exchange Keys\n"
+		L"       -db                       List signature database\n"
+		L"       -dbx                      List signature blacklist\n"
+		L"       -all                      List all UEFI databases\n"
+		L"    -import <file...> [-x]       Import DER certificate(s) into MOK\n"
+		L"    -delete <file...> [-x]       Request deletion of certificate(s)\n"
+		L"    -import-hash <hash> [-x]     Import hash into MOK\n"
+		L"    -delete-hash <hash> [-x]     Request hash deletion from MOK\n"
+		L"    -export -dir <path> [-x]     Export enrolled certs to DER files\n"
+		L"    -revoke-import               Revoke pending enrollment request\n"
+		L"    -revoke-delete               Revoke pending deletion request\n"
+		L"    -reset [-x]                  Clear entire MOK list\n"
+		L"    -test <file>                 Test if certificate is enrolled\n"
+		L"  Password & authentication:\n"
+		L"    -password                    Set MOK password\n"
+		L"    -clear-password              Clear MOK password\n"
+		L"    -generate-hash [-p pass]     Generate password hash\n"
+		L"  Secure Boot state:\n"
+		L"    -sb-state                    Show SecureBoot and shim validation state\n"
+		L"    -enable-validation           Enable shim signature validation\n"
+		L"    -disable-validation          Disable shim signature validation\n"
+		L"    -use-db                      Enable use of db for validation\n"
+		L"    -ignore-db                   Disable use of db for validation\n"
+		//L"  SBAT policy:\n"
+		//L"    -sbat                        List SBAT revocation entries\n"
+		//L"    -sbat-policy <val>           Set SBAT policy (latest|automatic|previous|delete)\n"
+		L"  Verbosity & timeout:\n"
+		L"    -timeout <val>               Set MOK prompt timeout (-1 to 32767)\n"
+		L"    -verbose <true|false>        Set shim verbose output\n"
+		L"    -fb-verbose <true|false>     Set fallback verbose output\n"
+		L"    -fb-noreboot <true|false>    Set fallback no-reboot flag\n"
 		);
 }
 
@@ -625,12 +716,20 @@ int dc_set_efi_boot_interactive(int d_num, int add_bme, int shim)
 		resl = dc_efi_set_bme(L"DiskCrypto (DCS) loader", d_num);
 	}
 
+	if (shim) {
+		wprintf(L"\nFor compatibility with secure boot the shim loader was installed.\n"
+			L"Upon reboot you will be encounter an 'Verification failed: (0x1A) Security Violation' error message, "
+			L"to resolve this, you will need to start the 'MOK Manager' and enroll a certificate located at \\EFI\\Boot\\CustomSigner.der\n"
+			L"After one more reboot the DCS loader should boot and show you a password prompt.\n"
+			L"You can run 'dccon -mok -guide' to view a verbose how to.\n");
+	}
+
 	return resl;
 }
 
 static 
 dc_pass* dc_load_pass_and_keyfiles(
-		   wchar_t *p_param, wchar_t *kf_param, wchar_t *gp_msg, int confirm
+		   wchar_t *p_param, wchar_t *c_param, wchar_t *kf_param, wchar_t *gp_msg, int confirm
 		   )
 {
 	dc_pass *pass;
@@ -643,8 +742,10 @@ dc_pass* dc_load_pass_and_keyfiles(
 		clean_cmd_line();
 		return NULL;
 	}
+	pass->cost = 0;
 
 	if (p_param == NULL)  p_param = L"-p";
+	if (c_param == NULL)  c_param = L"-c";
 	if (kf_param == NULL) kf_param = L"-kf";
 	if (gp_msg == NULL)   gp_msg = L"Enter password: ";
 	
@@ -661,6 +762,16 @@ dc_pass* dc_load_pass_and_keyfiles(
 		if (dc_get_password(confirm, pass) == 0) {
 			secure_free(pass); clean_cmd_line();
 			return NULL;
+		}
+	}
+
+	if (cmde = get_param(c_param))
+	{
+		pass->cost = _wtoi(cmde);
+		if( (pass->cost < 0) || (pass->cost > 100) ) {
+			wprintf(L"Argon2id cost must be between 1 and 100\n");
+			secure_free(pass); pass = NULL;
+			clean = 1;
 		}
 	}
 
@@ -759,7 +870,7 @@ int wmain(int argc, wchar_t *argv[])
 		}
 
 		if (argc < 2) {
-			print_usage();
+			print_usage(0x01);
 			resl = ST_OK; break;
 		}
 
@@ -788,11 +899,47 @@ int wmain(int argc, wchar_t *argv[])
 			resl = ST_OK; break;
 		}
 
-		if ( (argc >= 3) && (wcscmp(argv[1], L"-boot") == 0) ) 
+		if ( (argc >= 2) && (wcscmp(argv[1], L"-help") == 0) ) 
 		{
-			resl = boot_menu(argc, argv);
+			print_usage(0xFF);
+			resl = ST_OK; break;
+		}
+
+		if ( (argc >= 2) && (wcscmp(argv[1], L"-boot") == 0) ) 
+		{
+			if (argc > 2)
+				resl = boot_menu(argc, argv);
+			else
+			{
+				print_usage(0x02);
+				resl = ST_OK;
+			}
 			break;
 		}	
+
+		if ( (argc >= 2) && (wcscmp(argv[1], L"-efi") == 0) ) 
+		{
+			if (argc > 2)
+				resl = efi_menu(argc, argv);
+			else
+			{
+				print_usage(0x04);
+				resl = ST_OK;
+			}
+			break;
+		}	
+
+		if ( (argc >= 2) && (wcscmp(argv[1], L"-mok") == 0) ) 
+		{
+			if (argc > 2)
+				resl = mok_menu(argc, argv);
+			else
+			{
+				print_usage(0x08);
+				resl = ST_OK;
+			}
+			break;
+		}
 
 		if ( (argc >= 3) && (wcscmp(argv[1], L"-offline_instal") == 0) ) {
 			resl = install_dc_offline(argv[2]); 
@@ -822,7 +969,6 @@ int wmain(int argc, wchar_t *argv[])
 
 		if (d_inited == 0)
 		{
-#ifndef _DEBUG
 			if (vers > DC_DRIVER_VER) 
 			{
 				wprintf(
@@ -838,7 +984,6 @@ int wmain(int argc, wchar_t *argv[])
 					L"please update DiskCryptor and reboot you system\n");
 				resl = ST_OK; break;
 			}
-#endif
 
 			resl = ST_ERROR; break;
 		}
@@ -928,7 +1073,7 @@ int wmain(int argc, wchar_t *argv[])
 				resl = ST_OK; break;
 			}
 
-			pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, 0);
+			pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, NULL, 0);
 			mp_c = get_param(L"-mp");
 
 			if (pass == NULL) {
@@ -974,7 +1119,7 @@ int wmain(int argc, wchar_t *argv[])
 			dc_pass *pass;
 			int      n_mount;
 
-			pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, 0);
+			pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, NULL, 0);
 			resl = dc_mount_all(pass, &n_mount, 0);
 
 			if (resl == ST_OK) {
@@ -1051,7 +1196,7 @@ int wmain(int argc, wchar_t *argv[])
 		{
 			dc_pass *pass;
 
-			pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, 0);
+			pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, NULL, 0);
 
 			if (pass == NULL) {
 				resl = ST_OK; break;
@@ -1152,7 +1297,7 @@ int wmain(int argc, wchar_t *argv[])
 				}				
 			}
 
-			pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, 1);
+			pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, NULL, 1);
 
 			if (pass == NULL) {
 				resl = ST_OK; break;
@@ -1267,7 +1412,7 @@ int wmain(int argc, wchar_t *argv[])
 					    L"'Deny access to unencrypted HDDs' option is enabled.\n");
 				resl = ST_OK; break;
 			}
-			pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, 0);
+			pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, NULL, 0);
 
 			if (pass == NULL) {
 				resl = ST_OK; break;
@@ -1318,7 +1463,7 @@ int wmain(int argc, wchar_t *argv[])
 				}
 			}
 
-			pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, 0);
+			pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, NULL, 0);
 
 			if (pass == NULL) {
 				resl = ST_OK; break;
@@ -1366,14 +1511,14 @@ int wmain(int argc, wchar_t *argv[])
 			do
 			{
 				old_p = dc_load_pass_and_keyfiles(
-					L"-op", L"-okf", L"Enter old password: ", 0);
+					L"-op", L"-oc", L"-okf", L"Enter old password: ", 0);
 
 				if (old_p == NULL) {
 					resl = ST_OK; break;
 				}
 
 				new_p = dc_load_pass_and_keyfiles(
-					L"-np", L"-nkf", L"Enter new password: ", 1);
+					L"-np", L"-nc", L"-nkf", L"Enter new password: ", 1);
 
 				if (new_p == NULL) {
 					resl = ST_OK; break;
@@ -1418,7 +1563,7 @@ int wmain(int argc, wchar_t *argv[])
 					resl = ST_OK; break;
 				}
 
-				pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, 1);
+				pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, NULL, 1);
 
 				if (pass == NULL) {
 					resl = ST_OK; break;
@@ -1501,7 +1646,7 @@ int wmain(int argc, wchar_t *argv[])
 				resl = ST_OK; break;
 			}
 
-			pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, 0);
+			pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, NULL, 0);
 
 			if (pass == NULL) {
 				resl = ST_OK; break;
@@ -1545,7 +1690,7 @@ int wmain(int argc, wchar_t *argv[])
 					resl = ST_NOT_BACKUP; break;
 				}
 
-				pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, 0);
+				pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, NULL, 0);
 
 				if (pass == NULL) {
 					resl = ST_OK; break;
@@ -1669,7 +1814,7 @@ int wmain(int argc, wchar_t *argv[])
 			crypt.cipher_id = CF_AES;
 			get_crypt_info(&crypt);
 
-			pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, 1);
+			pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, NULL, 1);
 
 			if (pass == NULL) {
 				resl = ST_OK; break;

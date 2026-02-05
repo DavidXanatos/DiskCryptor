@@ -1,7 +1,7 @@
 /*
 	*
 	* DiskCryptor - open source partition encryption tool
-	* Copyright (c) 2019-2020
+	* Copyright (c) 2019-2026
 	* DavidXanatos <info@diskcryptor.org>
 	* partial copyright 2013-2017 IDRIX from the VeraCrypt project
 

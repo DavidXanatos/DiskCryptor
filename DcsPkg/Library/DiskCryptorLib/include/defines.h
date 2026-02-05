@@ -32,6 +32,16 @@ typedef char    s8;
 #define size_t UINTN
 #endif
 
+#ifndef uintptr_t
+#ifdef _UEFI
+typedef UINTN uintptr_t;
+#elif defined(_WIN64)
+typedef unsigned __int64 uintptr_t;
+#else
+typedef unsigned int uintptr_t;
+#endif
+#endif
+
 #define d8(_x)  ((u8)(_x))
 #define d16(_x) ((u16)(_x))
 #define d32(_x) ((u32)(_x))
@@ -109,6 +119,10 @@ typedef void (*callback_ex)(void*,void*);
 #define array_num(x) ( sizeof(x) / sizeof((x)[0]) )  /* return number of elements in array */
 
 #define zeromem(m,s) memset(m, 0, s)
+
+#ifndef memcpy
+#define memcpy(dest,source,count)         CopyMem(dest,source,(UINTN)(count))
+#endif
 
 /* size optimized intrinsics */
 #define mincpy(a,b,c) __movsb(pv(a), pv(b), (size_t)(c))

@@ -71,7 +71,9 @@ int dc_backup_header(wchar_t *dev_name, dc_pass *password, void *out)
 		/* save original salt */
 		memcpy(salt, header->salt, PKCS5_SALT_SIZE);		
 		/* init new header key */
-		cp_set_header_key(hdr_key, header->salt, header->alg_1, password);		
+		if ( !cp_set_header_key(hdr_key, header->salt, header->alg_1, password) ) {
+			resl = ST_INVALID_PARAM; break;
+		}
 		/* encrypt header with new key */
 		xts_encrypt(pv(header), pv(header), sizeof(dc_header), 0, hdr_key);
 		/* restore original salt */

@@ -147,7 +147,7 @@ static void menu_0_1(ldr_config *conf)
 						conf->logon_type |= LDR_LT_EMBED_KEY;
 					}
 					burn(keyfile, keysize);
-					free(keyfile);
+					my_free(keyfile);
 				}
 			}
 		}
@@ -517,42 +517,21 @@ static int dc_is_disk_ssd(int dsk_num)
 	return dc_is_device_ssd(disk);
 }
 
-int list_signer(const BYTE* hash, const char* name, PVOID param)
-{
-	/*printf("%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X %s\n",
-		hash[0], hash[1], hash[2], hash[3],
-		hash[4], hash[5], hash[6], hash[7],
-		hash[8], hash[9], hash[10], hash[11],
-		hash[12], hash[13], hash[14], hash[15],
-		hash[16], hash[17], hash[18], hash[19],
-		name);*/
-
-	int* temp = (int*)param;
-	char buf[65];
-	strcpy_s(buf, sizeof(buf), name);
-
-	if (temp && *temp) {
-		if(--*temp == 0)
-			strcat_s(buf, sizeof(buf), " *");
-	}
-
-	printf("%-64s%02X%02X%02X%02X...%02X%02X\n", buf,
-		hash[0], hash[1], hash[2], hash[3],
-		hash[18], hash[19]);
-	return ST_OK;
-}
-
 int boot_menu(int argc, wchar_t *argv[])
 {
 	ldr_config conf;
 	int        resl = ST_INVALID_PARAM;
 	int        is_small = 0;
 	int        is_shim = -1;
+	int        is_bme = -1;
 
 	if (is_param(L"-small")) is_small = 1;
 
 	if (is_param(L"-shim")) is_shim = 1;
 	else if (is_param(L"-noshim")) is_shim = 0;
+
+	if (is_param(L"-bme")) is_bme = 1;
+	else if (is_param(L"-nobme")) is_bme = 0;
 
 	do
 	{
@@ -638,71 +617,6 @@ int boot_menu(int argc, wchar_t *argv[])
 			//	L"+ - Windows bootloader replaced to load DCS loader\n"
 			//	L"~ - Secure Boot Shim installed\n"
 			//);
-
-			resl = ST_OK; break;
-		}
-
-		if ( (argc == 3) && (wcscmp(argv[2], L"-sb_info") == 0) )
-		{
-			if (!dc_efi_check()) {
-				wprintf(L"System is not running in EFI mode\n");
-				resl = ST_OK; break;
-			}
-
-			int sb_enabled = dc_efi_is_secureboot();
-			int sb_setup = dc_efi_is_sb_setupmode();
-
-			wprintf(L"Secure Boot is %s\n", sb_setup ? L"in Setup Mode" : (sb_enabled ? L"ENABLED" : L"DISABLED"));
-
-			wprintf(L"\nPlatform Key (PK):\n");
-
-			if (dc_efi_enum_var(L"PK", efi_var_guid, list_signer, NULL) != ST_OK) {
-				wprintf(L"No Platform Key found or unable to read PK variable\n");
-			}
-			wprintf(L"\n");
-
-#ifdef _DEBUG
-			//wprintf(L"-------------------------------------------------------------------------------\n");
-			wprintf(L"Key Exchange Keys (KEK):\n");
-			//wprintf(L"-------------------------------------------------------------------------------\n");
-
-			if (dc_efi_enum_var(L"KEK", efi_var_guid, list_signer, NULL) != ST_OK) {
-				wprintf(L"No Key Exchange Key found or unable to read KEK variable\n");
-			}
-			wprintf(L"\n");
-#endif
-
-			int signer = dc_efi_dcs_is_signed();
-
-			//wprintf(L"-------------------------------------------------------------------------------\n");
-			wprintf(L"Allowed Signers (db):\n");
-			//wprintf(L"-------------------------------------------------------------------------------\n");
-
-			int temp = signer;
-			dc_efi_enum_allowed_signers(list_signer, &temp);
-			//dc_efi_enum_var(L"db", sb_var_guid, list_signer, &temp);
-
-			wprintf(L"\n");
-			if (signer) 
-				wprintf(L"* used to sign EFI DCS Bootloader for Secure Boot on this system.\n");
-			else {
-				wprintf(L"EFI DCS Bootloader is currently NOT signed for Secure Boot on this system !!!\n");
-
-				if(dc_efi_shim_available())
-					wprintf(L"A shim loader is available to use for Secure Boot.\n");
-				else
-					wprintf(L"No shim loader is available in this installation!\n");
-			}
-
-#ifdef _DEBUG
-			//wprintf(L"-------------------------------------------------------------------------------\n");
-			wprintf(L"\nForbidden Signers (dbx):\n");
-			//wprintf(L"-------------------------------------------------------------------------------\n");
-
-			if (dc_efi_enum_var(L"dbx", sb_var_guid, list_signer, NULL) != ST_OK) {
-				wprintf(L"No Forbidden Signer found or unable to read dbx variable\n");
-			}
-#endif
 
 			resl = ST_OK; break;
 		}
@@ -829,6 +743,44 @@ int boot_menu(int argc, wchar_t *argv[])
 			break;
 		}
 
+		if ( (argc >= 4) && (wcscmp(argv[2], L"-mkefiiso") == 0) )
+		{
+			if ( (resl = dc_make_efi_iso(argv[3], is_shim)) != ST_OK ) {
+				break;
+			}
+
+			dc_efi_config_init(&conf);
+			conf.options  |= LDR_OP_EXTERNAL;
+			conf.boot_type = LDR_BT_MBR_FIRST;
+
+			boot_conf_menu(
+				&conf, L"Please set EFI bootloader options:");
+
+			if ( (resl = dc_set_efi_config(0, argv[3], &conf)) == ST_OK ) {
+				wprintf(L"EFI Bootloader ISO image successfully created: %s\n", argv[3]);
+			}
+			break;
+		}
+
+		if ( (argc >= 4) && (wcscmp(argv[2], L"-mkefipxe") == 0) )
+		{
+			if ( (resl = dc_make_efi_pxe(argv[3], is_shim)) != ST_OK ) {
+				break;
+			}
+
+			dc_efi_config_init(&conf);
+			conf.options  |= LDR_OP_EXTERNAL;
+			conf.boot_type = LDR_BT_MBR_FIRST;
+
+			boot_conf_menu(
+				&conf, L"Please set EFI bootloader options:");
+
+			if ( (resl = dc_set_efi_config(0, argv[3], &conf)) == ST_OK ) {
+				wprintf(L"EFI Bootloader PXE image successfully created: %s\n", argv[3]);
+			}
+			break;
+		}
+
 		if ( (argc == 4) && (wcscmp(argv[2], L"-config") == 0) )
 		{
 			int      d_num;
@@ -895,7 +847,7 @@ int boot_menu(int argc, wchar_t *argv[])
 				resl = ST_OK; break;
 			}			
 
-			if ( (resl = dc_set_efi_boot_interactive(d_num, -1, is_shim)) == ST_OK) {
+			if ( (resl = dc_set_efi_boot_interactive(d_num, is_bme, is_shim)) == ST_OK) {
 				wprintf(L"EFI bootloader successfully installed to %s\n", argv[3]);
 			}
 			break;
@@ -1036,6 +988,7 @@ int boot_menu(int argc, wchar_t *argv[])
 			}
 			break;
 		}
+
 	} while (0);
 
 	return resl;

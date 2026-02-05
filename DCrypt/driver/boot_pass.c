@@ -91,6 +91,7 @@ int dc_try_load_bdb(PHYSICAL_ADDRESS addr)
 	PVOID			 p_mem = NULL;
 	SIZE_T			 u_size = PAGE_SIZE;
 	u64				 base = 0;
+	dc_pass          password;
 
 	RtlInitUnicodeString(&u_name, L"\\Device\\PhysicalMemory");
 	InitializeObjectAttributes(&obj_a, &u_name, OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE, (HANDLE)NULL, (PSECURITY_DESCRIPTOR)NULL);
@@ -108,14 +109,18 @@ int dc_try_load_bdb(PHYSICAL_ADDRESS addr)
 					DbgMsg("boot data block found at 0x%016I64X\n", addr.QuadPart);
 					DbgMsg("boot loader base 0x%016I64X size %d\n", base, bdb->bd_size);
 					//DbgMsg("boot extra %08x %08x\n", bdb->u.legacy.old_int13, bdb->u.uefi.sign3);
-					//DbgMsg("boot password %S\n", bdb->password.pass); // no no no
+					password.size = bdb->password_size;
+					RtlCopyMemory(password.pass, bdb->password_data, password.size);
+					password.cost = 0;
 					/* restore realmode interrupts */
 					if (bdb->u.legacy.old_int13 != 0)
 						dc_restore_ints(bdb);
-					else if (bdb->u.uefi.sign3 == BDB_SIGN3)
+					else if (bdb->u.uefi.sign3 == BDB_SIGN3) {
 						dc_load_uefi_flags(bdb);
+						password.cost = bdb->u.uefi.password_cost;
+					}
 					/* add password to cache */
-					dc_add_password(&bdb->password);
+					dc_add_password(&password);
 					/* save bootloader size */
 					dc_boot_kbs = bdb->bd_size / 1024;
 					/* set bootloader load flag */
@@ -135,6 +140,8 @@ int dc_try_load_bdb(PHYSICAL_ADDRESS addr)
 
 		ZwClose(h_mem);
 	}
+
+	burn(&password, sizeof(password));
 
 	return ret;
 }

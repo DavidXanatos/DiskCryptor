@@ -116,6 +116,11 @@ AskConsolePwdInt(
 			break;
 		}
 
+		if (key.ScanCode == SCAN_F1) {
+			*retCode = AskPwdRetHelp;
+			break;
+		}
+
 		if (key.ScanCode == SCAN_F2) {
 			*retCode = AskPwdRetChange;
 			break;
@@ -133,7 +138,10 @@ AskConsolePwdInt(
 			PrintConsolePwdInt(asciiLine, count, pos, show, wide);
 		}
 
-		// SCAN_F6
+		if (key.ScanCode == SCAN_F6) {
+			*retCode = AskPwdRetSetParams;
+			break;
+		}
 
 		if (key.ScanCode == SCAN_F7) {
 			gPlatformLocked = gPlatformLocked ? 0 : 1;

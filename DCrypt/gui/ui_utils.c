@@ -421,7 +421,7 @@ _enum_proc(
 
 int _init_combo(
 		HWND        hwnd, 
-		_init_list *list,
+		const _init_list *list,
 		DWORD       val,
 		BOOL        or,
 		int         bits
@@ -456,13 +456,12 @@ int _init_combo(
 	}
 	SendMessage( hwnd, CB_SETCURSEL, item, 0 );
 	return item;
-
 }
 
 
 int _get_combo_val(
 		HWND        hwnd, 
-		_init_list *list
+		const _init_list *list
 	)
 {
 	int count = 0;
@@ -483,7 +482,7 @@ int _get_combo_val(
 
 wchar_t *_get_text_name(
 		int         val, 
-		_init_list *list
+		const _init_list *list
 	)
 {
 	int count = 0;
