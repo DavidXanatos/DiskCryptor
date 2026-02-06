@@ -70,6 +70,14 @@ Tpm12NvList(
 	return res;
 }
 
+typedef struct _Password Password;
+extern VOID
+ApplyKeyFile(
+	IN OUT Password* password,
+	IN     CHAR8*    keyfileData,
+	IN     UINTN     keyfileDataSize
+);
+
 EFI_STATUS
 TpmDcsConfigure(
 	) {
@@ -79,7 +87,7 @@ TpmDcsConfigure(
 	CE(GetTpm());
 	CE(RndInit(RndTypeTpm, NULL, 0, &gRnd));
 	CE(gTpm->Configure(gTpm));
-	CE(gTpm->Apply(gTpm, &pwd));
+	CE(gTpm->Apply(gTpm, ApplyKeyFile, &pwd));
 	// the key ends up in pwd and than what?!
 	return res;
 
