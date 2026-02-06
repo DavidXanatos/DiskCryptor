@@ -742,17 +742,10 @@ DcsTpm2IsOpen(
 	return !EFI_ERROR(res);
 }
 
-typedef struct _Password Password;
-extern VOID
-ApplyKeyFile(
-	IN OUT Password* password,
-	IN     CHAR8*    keyfileData,
-	IN     UINTN     keyfileDataSize
-	);
-
 EFI_STATUS
 DcsTpm2Apply(
 	DCS_TPM_PROTOCOL   *tpm,
+	DCS_APPLY_KEY_FILE applyKeyFile,
 	OUT VOID*          pwd
 	)
 {
@@ -760,7 +753,7 @@ DcsTpm2Apply(
 	CHAR8        data[DCS_TPM_NV_SIZE];
 	res = DcsTpm2NvRead(data);
 	if (EFI_ERROR(res)) return res;
-	ApplyKeyFile(pwd, data, DCS_TPM_NV_SIZE);
+	applyKeyFile(pwd, data, DCS_TPM_NV_SIZE);
 	ZeroMem(data, DCS_TPM_NV_SIZE);
 	return EFI_SUCCESS;
 }

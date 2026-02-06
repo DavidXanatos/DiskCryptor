@@ -25,6 +25,141 @@ https://opensource.org/licenses/LGPL-3.0
 #include <Protocol/TcgService.h>
 #include "Library/DcsCfgLib.h"
 
+//
+// HMAC-SHA1 implementation using SHA1 primitives
+// HMAC-SHA1 was deprecated in BaseCryptLib but is required for TPM 1.2
+//
+#define HMAC_SHA1_BLOCK_SIZE  64
+#define HMAC_SHA1_DIGEST_SIZE 20
+
+typedef struct {
+  UINT8  Key[HMAC_SHA1_BLOCK_SIZE];
+  VOID   *Sha1Context;
+} HMAC_SHA1_CTX;
+
+STATIC
+UINTN
+HmacSha1GetContextSize (
+  VOID
+  )
+{
+  return sizeof(HMAC_SHA1_CTX) + Sha1GetContextSize();
+}
+
+STATIC
+BOOLEAN
+HmacSha1Init (
+  OUT VOID        *HmacContext,
+  IN  CONST UINT8 *Key,
+  IN  UINTN       KeySize
+  )
+{
+  HMAC_SHA1_CTX *Ctx;
+  UINT8         KeyHash[HMAC_SHA1_DIGEST_SIZE];
+  UINT8         iPad[HMAC_SHA1_BLOCK_SIZE];
+  UINTN         Index;
+
+  if (HmacContext == NULL) {
+    return FALSE;
+  }
+
+  Ctx = (HMAC_SHA1_CTX *)HmacContext;
+  Ctx->Sha1Context = (VOID *)((UINT8 *)HmacContext + sizeof(HMAC_SHA1_CTX));
+
+  // If key is longer than block size, hash it first
+  ZeroMem(Ctx->Key, HMAC_SHA1_BLOCK_SIZE);
+  if (KeySize > HMAC_SHA1_BLOCK_SIZE) {
+    if (!Sha1HashAll(Key, KeySize, KeyHash)) {
+      return FALSE;
+    }
+    CopyMem(Ctx->Key, KeyHash, HMAC_SHA1_DIGEST_SIZE);
+  } else {
+    CopyMem(Ctx->Key, Key, KeySize);
+  }
+
+  // Prepare inner padding (key XOR 0x36)
+  for (Index = 0; Index < HMAC_SHA1_BLOCK_SIZE; Index++) {
+    iPad[Index] = Ctx->Key[Index] ^ 0x36;
+  }
+
+  // Start inner hash: SHA1(key XOR iPad || message)
+  if (!Sha1Init(Ctx->Sha1Context)) {
+    return FALSE;
+  }
+
+  if (!Sha1Update(Ctx->Sha1Context, iPad, HMAC_SHA1_BLOCK_SIZE)) {
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+STATIC
+BOOLEAN
+HmacSha1Update (
+  IN OUT VOID       *HmacContext,
+  IN     CONST VOID *Data,
+  IN     UINTN      DataSize
+  )
+{
+  HMAC_SHA1_CTX *Ctx;
+
+  if (HmacContext == NULL) {
+    return FALSE;
+  }
+
+  Ctx = (HMAC_SHA1_CTX *)HmacContext;
+  return Sha1Update(Ctx->Sha1Context, Data, DataSize);
+}
+
+STATIC
+BOOLEAN
+HmacSha1Final (
+  IN OUT VOID  *HmacContext,
+  OUT    UINT8 *HmacValue
+  )
+{
+  HMAC_SHA1_CTX *Ctx;
+  UINT8         InnerHash[HMAC_SHA1_DIGEST_SIZE];
+  UINT8         oPad[HMAC_SHA1_BLOCK_SIZE];
+  UINTN         Index;
+
+  if ((HmacContext == NULL) || (HmacValue == NULL)) {
+    return FALSE;
+  }
+
+  Ctx = (HMAC_SHA1_CTX *)HmacContext;
+
+  // Complete inner hash
+  if (!Sha1Final(Ctx->Sha1Context, InnerHash)) {
+    return FALSE;
+  }
+
+  // Prepare outer padding (key XOR 0x5c)
+  for (Index = 0; Index < HMAC_SHA1_BLOCK_SIZE; Index++) {
+    oPad[Index] = Ctx->Key[Index] ^ 0x5c;
+  }
+
+  // Compute outer hash: SHA1(key XOR oPad || inner_hash)
+  if (!Sha1Init(Ctx->Sha1Context)) {
+    return FALSE;
+  }
+
+  if (!Sha1Update(Ctx->Sha1Context, oPad, HMAC_SHA1_BLOCK_SIZE)) {
+    return FALSE;
+  }
+
+  if (!Sha1Update(Ctx->Sha1Context, InnerHash, HMAC_SHA1_DIGEST_SIZE)) {
+    return FALSE;
+  }
+
+  if (!Sha1Final(Ctx->Sha1Context, HmacValue)) {
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
 
 #define TPM_PREPARE  Tpm12RequestUseTpm
 #define TPM_TRANSMIT Tpm12SubmitCommand
@@ -59,15 +194,7 @@ Sha1Hash(
 	OUT UINT8   *hash
 	)
 {
-	UINTN ctxSize;
-	VOID  *ctx;
-	ctxSize = Sha1GetContextSize();
-	ctx = MEM_ALLOC(ctxSize);
-	if (ctx == NULL) return EFI_BUFFER_TOO_SMALL;
-	Sha1Init(ctx);
-	Sha1Update(ctx, data, dataSize);
-	if (!Sha1Final(ctx, hash)) {
-		MEM_FREE(ctx);
+	if (!Sha1HashAll(data, dataSize, hash)) {
 		return EFI_DEVICE_ERROR;
 	}
 	return EFI_SUCCESS;
@@ -788,7 +915,7 @@ Tpm12OSAPStart(
 	IN CHAR16    *ownerPass
 	)
 {
-	/*EFI_STATUS   res;
+	EFI_STATUS   res;
 	TPM_DIGEST   ownerKey;
 	UINTN        CtxSize;
 	VOID*        HmacCtx;
@@ -815,8 +942,7 @@ Tpm12OSAPStart(
 	HmacSha1Update(HmacCtx, &gTpm12Osap->nonceOddOSAP, sizeof(gTpm12Osap->nonceOddOSAP));
 	HmacSha1Final(HmacCtx, (UINT8*)&gTpm12Osap->SharedSecret);
 	MEM_FREE(HmacCtx);
-	return res;*/
-	return EFI_UNSUPPORTED; // todo
+	return res;
 }
 
 EFI_STATUS
@@ -824,7 +950,7 @@ Tpm12OSAPAppend(
 	IN  UINT8 continueSession
 	) 
 {
-	/*EFI_STATUS res;
+	EFI_STATUS res;
 	UINTN        CtxSize;
 	VOID*        HmacCtx;
 	TPM_DIGEST   hashCmd;
@@ -846,8 +972,7 @@ Tpm12OSAPAppend(
 	HmacSha1Final(HmacCtx, (UINT8*)&auth);
 	MEM_FREE(HmacCtx);
 	res = Tpm12IOWriteBytes(gTpm12Io, &auth, sizeof(auth), FALSE);
-	return res;*/
-	return EFI_UNSUPPORTED; // todo
+	return res;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1110,15 +1235,6 @@ Tpm12GetRandom(
 // Protocol
 //////////////////////////////////////////////////////////////////////////
 
-typedef struct _Password Password;
-
-extern VOID
-ApplyKeyFile(
-	IN OUT Password* password,
-	IN     CHAR8*    keyfileData,
-	IN     UINTN     keyfileDataSize
-	);
-
 EFI_STATUS
 DcsTpm12Lock(
 	DCS_TPM_PROTOCOL   *tpm
@@ -1131,6 +1247,7 @@ DcsTpm12Lock(
 EFI_STATUS
 DcsTpm12Apply(
 	DCS_TPM_PROTOCOL   *tpm,
+	DCS_APPLY_KEY_FILE applyKeyFile,
 	OUT VOID*          pwd
 	)
 {
@@ -1139,7 +1256,7 @@ DcsTpm12Apply(
 	CHAR8        data[DCS_TPM_NV_SIZE];
 	res = Tpm12NvRead(DCS_TPM_NV_INDEX, 0, &sz, data);
 	if (EFI_ERROR(res)) return res;
-	ApplyKeyFile(pwd, data, DCS_TPM_NV_SIZE);
+	applyKeyFile(pwd, data, DCS_TPM_NV_SIZE);
 	ZeroMem(data, DCS_TPM_NV_SIZE);
 	return EFI_SUCCESS;
 }
@@ -1192,7 +1309,7 @@ AskPcrsMask(
 	OUT_PRINT(L"PCR selection bits(hex):\n\
  1 BIOS           2 BIOS data         4 EFI drivers\n\
  8 EFI variables 10 EFI boot loader  20 EFI boot loader data\n\
-40 Boot event    80 Manufacture     100 DcsProp\n");
+40 Boot event    80 Manufacture     100 DcsLock\n");
 	return (UINT32)AskHexUINT64("PCRs mask:", def);
 }
 
