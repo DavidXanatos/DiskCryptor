@@ -315,7 +315,7 @@ VCAskPwd(
 
 		if (gTPMLocked) {
 			if (gTpm != NULL) {
-				pwdReady = !EFI_ERROR(gTpm->Apply(gTpm, vcPwd));
+				pwdReady = !EFI_ERROR(gTpm->Apply(gTpm, ApplyKeyFile, vcPwd));
 				if (!pwdReady) {
 					ERR_PRINT(L"TPM error: DCS configuration ");
 					if (!gTpm->IsConfigured(gTpm)) {
