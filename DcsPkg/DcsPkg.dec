@@ -14,8 +14,6 @@
 
 [Includes]
   Include
-  Library/VeraCryptLib
-  Library/VeraCryptLib/crypto
   Library/DiskCryptorLib
 
 [LibraryClasses]

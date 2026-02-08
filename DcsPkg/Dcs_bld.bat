@@ -68,7 +68,6 @@ if ERRORLEVEL 1 goto :exit
 if exist SecureBoot\keys\DCS_sign.pfx (
   call SecureBoot\efi_sign.bat ..\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsBml.efi        SecureBoot\keys\DCS_sign.pfx SecureBoot\certs\DCS_sign.crt 
   call SecureBoot\efi_sign.bat ..\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsBoot.efi       SecureBoot\keys\DCS_sign.pfx SecureBoot\certs\DCS_sign.crt
-  call SecureBoot\efi_sign.bat ..\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsCfg.efi        SecureBoot\keys\DCS_sign.pfx SecureBoot\certs\DCS_sign.crt
   call SecureBoot\efi_sign.bat ..\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsInfo.efi       SecureBoot\keys\DCS_sign.pfx SecureBoot\certs\DCS_sign.crt
   call SecureBoot\efi_sign.bat ..\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsInt.efi        SecureBoot\keys\DCS_sign.pfx SecureBoot\certs\DCS_sign.crt
   call SecureBoot\efi_sign.bat ..\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsRe.efi         SecureBoot\keys\DCS_sign.pfx SecureBoot\certs\DCS_sign.crt
@@ -80,7 +79,6 @@ mkdir %DCS_EXPORT%%BIN_POSTFIX%
 
 call FinishFile.cmd %WORKSPACE%\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsBml.efi        %DCS_EXPORT%%BIN_POSTFIX%\DcsBml.efi
 call FinishFile.cmd %WORKSPACE%\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsBoot.efi       %DCS_EXPORT%%BIN_POSTFIX%\DcsBoot.efi
-call FinishFile.cmd %WORKSPACE%\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsCfg.efi        %DCS_EXPORT%%BIN_POSTFIX%\DcsCfg.dcs
 call FinishFile.cmd %WORKSPACE%\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsInfo.efi       %DCS_EXPORT%%BIN_POSTFIX%\DcsInfo.dcs
 call FinishFile.cmd %WORKSPACE%\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsInt.efi        %DCS_EXPORT%%BIN_POSTFIX%\DcsInt.dcs
 call FinishFile.cmd %WORKSPACE%\Build\DcsPkg\%DCS_TYPE%_%DCS_TOOLCHAIN%\%DCS_ARCH%\DcsRe.efi         %DCS_EXPORT%%BIN_POSTFIX%\DcsRe.efi

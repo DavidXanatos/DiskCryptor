@@ -78,9 +78,9 @@
 # Note: we use the small code for legacy 32 bit implementation
 
 [Sources.X64]
-# crypto_fast/sha512.c          # Conflict with Sha2.c in VeraCryptLib.inf
-# crypto_fast/sha512_pkcs5_2.c  # Conflict with Sha2.c in VeraCryptLib.inf
-# crypto_fast/sha512_hmac.c     # Conflict with Sha2.c in VeraCryptLib.inf
+  crypto_fast/sha512.c          # Conflict with Sha2.c in VeraCryptLib.inf
+  crypto_fast/sha512_pkcs5_2.c  # Conflict with Sha2.c in VeraCryptLib.inf
+  crypto_fast/sha512_hmac.c     # Conflict with Sha2.c in VeraCryptLib.inf
   crypto_fast/xts_fast.c
   crypto_fast/aes_key.c
   crypto_fast/twofish.c
@@ -91,8 +91,8 @@
   crypto_fast/amd64/xts_aes_ni_amd64.nasm
   crypto_fast/amd64/xts_serpent_avx_amd64.nasm
   crypto_fast/amd64/xts_serpent_sse2_amd64.nasm
-  crypto_small/sha512_pkcs5_2_small.c
-  crypto_small/sha512_small.c
+  #crypto_small/sha512_pkcs5_2_small.c
+  #crypto_small/sha512_small.c
 
 [Sources.IA32]
   crypto_small/aes_small.c

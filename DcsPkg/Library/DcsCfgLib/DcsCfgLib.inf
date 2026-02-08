@@ -46,7 +46,6 @@ DcsConfig.c
   UefiLib
   RngLib
   BaseCryptLib
-  DcsTpmLib
 
 [Guids]
 gEfiPartTypeUnusedGuid

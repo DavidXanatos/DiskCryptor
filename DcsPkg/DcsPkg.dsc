@@ -72,8 +72,6 @@
   RngLib|MdePkg/Library/BaseRngLib/BaseRngLib.inf
   DcsCfgLib|DcsPkg/Library/DcsCfgLib/DcsCfgLib.inf
   DcsIntLib|DcsPkg/Library/DcsIntLib/DcsIntLib.inf
-  DcsTpmLib|DcsPkg/Library/DcsTpmLib/DcsTpmLib.inf
-  VeraCryptLib|DcsPkg/Library/VeraCryptLib/VeraCryptLib.inf
   DiskCryptorLib|DcsPkg/Library/DiskCryptorLib/DiskCryptorLib.inf
 
 # Architecture-specific overrides
@@ -106,7 +104,6 @@
 ################################################################################
 [Components]
   DcsPkg/DcsInt/DcsInt.inf
-  DcsPkg/DcsCfg/DcsCfg.inf
   DcsPkg/DcsBoot/DcsBoot.inf
   DcsPkg/DcsRe/DcsRe.inf
   DcsPkg/DcsInfo/DcsInfo.inf

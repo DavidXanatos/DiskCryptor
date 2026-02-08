@@ -20,9 +20,14 @@ https://opensource.org/licenses/LGPL-3.0
 #include <Library/DcsCfgLib.h>
 #include <Library/BaseCryptLib.h>
 
-#include <common/Pkcs5.h>
-#include <crypto/sha2.h>
+#include <Library/BaseMemoryLib.h>
+#include <Library/DebugLib.h>
+
+#ifdef CFG_RND_USE_TPM
 #include <Library/DcsTpmLib.h>
+#endif
+
+#define SHA512_BLOCK_SIZE  128
 
 DCS_RND* gRnd = NULL;
 
@@ -144,56 +149,56 @@ HmacSha512(
    ...
 	)
 {
-	sha512_ctx ctx;
-	char inner[SHA512_DIGEST_SIZE], outer[SHA512_DIGEST_SIZE];
-	char key[SHA512_DIGEST_SIZE];
-	char buf[SHA512_BLOCK_SIZE];
-	int32 i;
-	int32 lk = SHA512_DIGEST_SIZE;	/* length of the key in bytes */
+	UINT8 ctxBuf[256];
+	VOID *ctx = (VOID *)ctxBuf;
+	UINT8 inner[SHA512_DIGEST_SIZE];
+	UINT8 buf[SHA512_BLOCK_SIZE];
+	int i;
+	int lk = SHA512_DIGEST_SIZE;	/* length of the key in bytes */
 	VA_LIST args;
 	UINT8* data;
 	UINTN  len;
 
+	ASSERT(Sha512GetContextSize() <= sizeof(ctxBuf));
+
 	/**** Inner Digest ****/
-	sha512_begin(&ctx);
+	Sha512Init(ctx);
 
 	/* Pad the key for inner digest */
 	for (i = 0; i < lk; ++i)
-		buf[i] = (char)(k[i] ^ 0x36);
+		buf[i] = (UINT8)(k[i] ^ 0x36);
 	for (i = lk; i < SHA512_BLOCK_SIZE; ++i)
 		buf[i] = 0x36;
 
-	sha512_hash((unsigned char *)buf, SHA512_BLOCK_SIZE, &ctx);
+	Sha512Update(ctx, buf, SHA512_BLOCK_SIZE);
 
 	VA_START(args, out);
 	while ((data = VA_ARG(args, UINT8 *)) != NULL) {
 		len = VA_ARG(args, UINTN);
-		sha512_hash(data, (UINT32)len, &ctx);
+		Sha512Update(ctx, data, len);
 	}
 	VA_END(args);
 
-	sha512_end((unsigned char *)inner, &ctx);
+	Sha512Final(ctx, inner);
 
 	/**** Outer Digest ****/
 
-	sha512_begin(&ctx);
+	Sha512Init(ctx);
 
 	for (i = 0; i < lk; ++i)
-		buf[i] = (char)(k[i] ^ 0x5C);
+		buf[i] = (UINT8)(k[i] ^ 0x5C);
 	for (i = lk; i < SHA512_BLOCK_SIZE; ++i)
 		buf[i] = 0x5C;
 
-	sha512_hash((unsigned char *)buf, SHA512_BLOCK_SIZE, &ctx);
-	sha512_hash((unsigned char *)inner, SHA512_DIGEST_SIZE, &ctx);
+	Sha512Update(ctx, buf, SHA512_BLOCK_SIZE);
+	Sha512Update(ctx, inner, SHA512_DIGEST_SIZE);
 
-	sha512_end((unsigned char *)out, &ctx);
+	Sha512Final(ctx, out);
 
 	/* Prevent possible leaks. */
-	burn(&ctx, sizeof(ctx));
-	burn(outer, sizeof(outer));
-	burn(inner, sizeof(inner));
-	burn(buf, sizeof(buf));
-	burn(key, sizeof(key));
+	ZeroMem(ctxBuf, sizeof(ctxBuf));
+	ZeroMem(inner, sizeof(inner));
+	ZeroMem(buf, sizeof(buf));
 	return EFI_SUCCESS;
 }
 
@@ -211,8 +216,8 @@ RndDtrmHmacSha512Update(
 	if (!reseed)
 	{
 		/* 10.1.2.3 */
-		memset(state->V, 1, SHA512_DIGEST_SIZE);
-		memset(state->C, 0, SHA512_DIGEST_SIZE);
+		SetMem(state->V, SHA512_DIGEST_SIZE, 1);
+		ZeroMem(state->C, SHA512_DIGEST_SIZE);
 	}
 
 	/* we execute two rounds of V/K massaging */
@@ -283,7 +288,7 @@ RndDtrmHmacSha512Generate(
 			SHA512_DIGEST_SIZE : (buflen - len);
 
 		/* 10.1.2.5 step 4.2 */
-		memcpy(buf + len, state->V, outlen);
+		CopyMem(buf + len, state->V, outlen);
 		len += outlen;
 	}
 
@@ -395,6 +400,7 @@ RndOpenSSLInit(
 //////////////////////////////////////////////////////////////////////////
 // TPM random
 //////////////////////////////////////////////////////////////////////////
+#ifdef CFG_RND_USE_TPM
 EFI_STATUS
 RndTpmPrepare(
 	IN DCS_RND* rnd
@@ -433,6 +439,7 @@ RndTpmInit(
 	rnd->Prepare = RndTpmPrepare;
 	return rnd->Prepare(rnd);
 }
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 // Random API
@@ -464,7 +471,11 @@ RndInit(
 				res = RndOpenSSLInit(rndTemp, Context, ContextSize);
 				break;
 			case RndTypeTpm:
+#ifdef CFG_RND_USE_TPM
 				res = RndTpmInit(rndTemp, Context, ContextSize);
+#else
+				res = EFI_UNSUPPORTED;
+#endif
 				break;
 			}
 			if (EFI_ERROR(res)) {
