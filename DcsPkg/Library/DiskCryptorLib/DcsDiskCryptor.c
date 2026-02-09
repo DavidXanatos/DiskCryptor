@@ -17,6 +17,7 @@ https://opensource.org/licenses/GPL-3.0
 #include <Library/UefiLib.h>
 #include <Library/DevicePathLib.h>
 #include <Library/BaseMemoryLib.h>
+#include <Library/PrintLib.h>
 #include <Guid/Gpt.h>
 
 #include <Library/CommonLib.h>
@@ -35,8 +36,6 @@ https://opensource.org/licenses/GPL-3.0
 #else
 #include "crypto_fast/sha512.h"
 #endif
-
-// X-TODO: support SECTOR_SIZE other than 512 byte
 
 typedef struct _DCRYPT_DISKIO
 {
@@ -194,18 +193,26 @@ int hdd_io(int hdd_n, void *buff, u16 sectors, u64 start, int read)
 	PDCRYPT_DISKIO       DCryptDisk = NULL;
 
 	DCryptDisk = GetDiskByNumber(hdd_n);
-	
-	DcsIntBlockIo = DCryptDisk ? GetBlockIoByProtocol(DCryptDisk->BlockIo) : NULL;
-	if (DcsIntBlockIo == NULL) {
-		ERR_PRINT(L"\nhdd_io Failed to get BlockIo\n");
+	if (DCryptDisk == NULL) {
+		ERR_PRINT(L"\nhdd_io Failed to get disk by number %d\n", hdd_n);
 		return 0;
 	}
 
-	//Print(L"This[0x%x] mid %x BlockIO: lba=%lld, size=%d %r\n", 0, _MediaId, start, sectors * SECTOR_SIZE, 0);
-	if (read)
-		Status = DcsIntBlockIo->LowRead(DcsIntBlockIo->BlockIo, DcsIntBlockIo->BlockIo->Media->MediaId, start, sectors * SECTOR_SIZE, buff);
-	else
-		Status = DcsIntBlockIo->LowWrite(DcsIntBlockIo->BlockIo, DcsIntBlockIo->BlockIo->Media->MediaId, start, sectors * SECTOR_SIZE, buff);
+	DcsIntBlockIo = GetBlockIoByProtocol(DCryptDisk->BlockIo);
+	if (DcsIntBlockIo) {
+		//Print(L"This[0x%x] mid %x BlockIO: lba=%lld, size=%d %r\n", 0, _MediaId, start, sectors * DcsIntBlockIo->BlockIo->Media->BlockSize, 0);
+		if (read)
+			Status = DcsIntBlockIo->LowRead(DcsIntBlockIo->BlockIo, DcsIntBlockIo->BlockIo->Media->MediaId, start, sectors * DcsIntBlockIo->BlockIo->Media->BlockSize, buff);
+		else
+			Status = DcsIntBlockIo->LowWrite(DcsIntBlockIo->BlockIo, DcsIntBlockIo->BlockIo->Media->MediaId, start, sectors * DcsIntBlockIo->BlockIo->Media->BlockSize, buff);
+	}
+	else { // hook not yet installed
+		if (read)
+			Status = DCryptDisk->BlockIo->ReadBlocks(DCryptDisk->BlockIo, DCryptDisk->BlockIo->Media->MediaId, start, sectors * DCryptDisk->BlockIo->Media->BlockSize, buff);
+		else
+			Status = EFI_DEVICE_ERROR;
+			//Status = DCryptDisk->BlockIo->WriteBlocks(DCryptDisk->BlockIo, DCryptDisk->BlockIo->Media->MediaId, start, sectors * DCryptDisk->BlockIo->Media->BlockSize, buff);
+	}
 	return EFI_ERROR(Status) ? 0 : 1;
 }
 
@@ -234,8 +241,8 @@ DCBlockIO_Write(
 		
 	//Print(L"This[0x%x] mid %x Write: lba=%lld, size=%d %r\n", This, MediaId, Lba, BufferSize, Status);
 	//Print(L"*");
-	//if (!hdd_io((int)(UINTN)DcsIntBlockIo->FilterParams, writeBuff, (u16)(BufferSize / SECTOR_SIZE), Lba, 0))
-	if (!dc_disk_io((int)(UINTN)DcsIntBlockIo->FilterParams, writeBuff, (u16)(BufferSize / SECTOR_SIZE), Lba, 0))
+	//if (!hdd_io((int)(UINTN)DcsIntBlockIo->FilterParams, writeBuff, (u16)(BufferSize / DcsIntBlockIo->BlockIo->Media->BlockSize), Lba, 0))
+	if (!dc_disk_io((int)(UINTN)DcsIntBlockIo->FilterParams, writeBuff, (u16)(BufferSize / DcsIntBlockIo->BlockIo->Media->BlockSize), Lba, 0))
 		Status = EFI_DEVICE_ERROR;
 
 	MEM_FREE(writeBuff);
@@ -261,8 +268,8 @@ DCBlockIO_Read(
 	
 	//Print(L"This[0x%x] mid %x ReadBlock: lba=%lld, size=%d %r\n", This, MediaId, Lba, BufferSize, Status);
 	//Print(L".");
-	//if(!hdd_io((int)(UINTN)DcsIntBlockIo->FilterParams, Buffer, (u16)(BufferSize / SECTOR_SIZE), Lba, 1))
-	if(!dc_disk_io((int)(UINTN)DcsIntBlockIo->FilterParams, Buffer, (u16)(BufferSize / SECTOR_SIZE), Lba, 1))
+	//if(!hdd_io((int)(UINTN)DcsIntBlockIo->FilterParams, Buffer, (u16)(BufferSize / DcsIntBlockIo->BlockIo->Media->BlockSize), Lba, 1))
+	if(!dc_disk_io((int)(UINTN)DcsIntBlockIo->FilterParams, Buffer, (u16)(BufferSize / DcsIntBlockIo->BlockIo->Media->BlockSize), Lba, 1))
 		Status = EFI_DEVICE_ERROR;
 	
 	return Status;
@@ -329,36 +336,85 @@ GetDiskByNumber(int number)
 // Check if raw partition data contains a known filesystem boot sector.
 // Encrypted partitions look like random data and won't match any of these.
 // Multiple fields are validated to minimize false positives.
-static BOOLEAN
-IsKnownFilesystem(
-	UINT8 *Data
+// If SerialNumber is not NULL, writes the formatted volume serial number.
+static const UINT16*
+GetFilesystemInfo(
+	UINT8 *Data,
+	UINT16 *SerialNumber  // Optional: buffer for formatted serial (min 18 chars for "XXXXXXXX-XXXXXXXX\0")
 )
 {
+	UINT32 serial32;
+	UINT64 serial64;
+
+	// Initialize output if provided
+	if (SerialNumber != NULL)
+		SerialNumber[0] = L'\0';
+
+	// ReFS: Signature at offset 3, serial at offset 0x38 (no 0x55AA requirement)
+	if (CompareMem(Data + 3, "ReFS", 4) == 0) {
+		if (SerialNumber != NULL) {
+			serial64 = *(UINT64*)(Data + 0x38);
+			UnicodeSPrint(SerialNumber, 18 * sizeof(UINT16), L"%08X-%08X",
+				(UINT32)(serial64 >> 32), (UINT32)(serial64 & 0xFFFFFFFF));
+		}
+		return L"ReFS";
+	}
+
 	// All FAT/NTFS/exFAT boot sectors have the 0x55AA signature at offset 510
 	if (Data[510] != 0x55 || Data[511] != 0xAA)
-		return FALSE;
+		return NULL;
 
-  // NTFS: OEM ID at offset 3
-  if (CompareMem(Data + 3, "NTFS    ", 8) == 0)
-    return TRUE;
+	// NTFS: OEM ID at offset 3, serial at offset 72 (8 bytes)
+	if (CompareMem(Data + 3, "NTFS    ", 8) == 0) {
+		if (SerialNumber != NULL) {
+			serial64 = *(UINT64*)(Data + 72);
+			UnicodeSPrint(SerialNumber, 18 * sizeof(UINT16), L"%08X-%08X",
+				(UINT32)(serial64 >> 32), (UINT32)(serial64 & 0xFFFFFFFF));
+		}
+		return L"NTFS";
+	}
 
-  // exFAT: OEM ID at offset 3
-  if (CompareMem(Data + 3, "EXFAT   ", 8) == 0)
-    return TRUE;
+	// exFAT: OEM ID at offset 3, serial at offset 100 (4 bytes)
+	if (CompareMem(Data + 3, "EXFAT   ", 8) == 0) {
+		if (SerialNumber != NULL) {
+			serial32 = *(UINT32*)(Data + 100);
+			UnicodeSPrint(SerialNumber, 10 * sizeof(UINT16), L"%04X-%04X",
+				(serial32 >> 16) & 0xFFFF, serial32 & 0xFFFF);
+		}
+		return L"exFAT";
+	}
 
-  // FAT32: FS type string at offset 82
-  if (CompareMem(Data + 82, "FAT32   ", 8) == 0)
-    return TRUE;
+	// FAT32: FS type string at offset 82, serial at offset 67 (4 bytes)
+	if (CompareMem(Data + 82, "FAT32   ", 8) == 0) {
+		if (SerialNumber != NULL) {
+			serial32 = *(UINT32*)(Data + 67);
+			UnicodeSPrint(SerialNumber, 10 * sizeof(UINT16), L"%04X-%04X",
+				(serial32 >> 16) & 0xFFFF, serial32 & 0xFFFF);
+		}
+		return L"FAT32";
+	}
 
-  // FAT16: FS type string at offset 54
-  if (CompareMem(Data + 54, "FAT16   ", 8) == 0)
-    return TRUE;
+	// FAT16: FS type string at offset 54, serial at offset 39 (4 bytes)
+	if (CompareMem(Data + 54, "FAT16   ", 8) == 0) {
+		if (SerialNumber != NULL) {
+			serial32 = *(UINT32*)(Data + 39);
+			UnicodeSPrint(SerialNumber, 10 * sizeof(UINT16), L"%04X-%04X",
+				(serial32 >> 16) & 0xFFFF, serial32 & 0xFFFF);
+		}
+		return L"FAT16";
+	}
 
-  // FAT12: FS type string at offset 54
-  if (CompareMem(Data + 54, "FAT12   ", 8) == 0)
-    return TRUE;
+	// FAT12: FS type string at offset 54, serial at offset 39 (4 bytes)
+	if (CompareMem(Data + 54, "FAT12   ", 8) == 0) {
+		if (SerialNumber != NULL) {
+			serial32 = *(UINT32*)(Data + 39);
+			UnicodeSPrint(SerialNumber, 10 * sizeof(UINT16), L"%04X-%04X",
+				(serial32 >> 16) & 0xFFFF, serial32 & 0xFFFF);
+		}
+		return L"FAT12";
+	}
 
-	return FALSE;
+	return NULL;
 }
 
 // Check if a partition's GPT type is one we should try to decrypt.
@@ -404,8 +460,8 @@ IsTargetPartitionType(
 	return result;
 }
 
-EFI_STATUS
-HeaderTryDecrypt(int* vol_found, int* hdr_found)
+VOID
+DcTryDecrypt(int* vol_found, int* hdr_found)
 {
 	EFI_STATUS       ret = EFI_SUCCESS;
 	UINTN            i;
@@ -414,211 +470,189 @@ HeaderTryDecrypt(int* vol_found, int* hdr_found)
 	EFI_DEVICE_PATH* disk_path;
 	DCRYPT_DISKIO*   dc_disk;
 	int              disk_num;
-	int              retry = gDCryptAuthRetry;
+	union {
+		dc_header    header;
+		UINT8        buff[MAX_SECTOR_SIZE];
+	} u;
+	mount_inf*       mount;
+	const UINT16*    fsType;
+	UINT16           fsSerial[18];
 
-	MEM_BURN(&gDCryptPassword, sizeof(gDCryptPassword)); // zero memory
-	do {
-		// password prompt
-		DCAskPwd(AskPwdLogin, &gDCryptPassword);
+	// check all partitions if the password works for one
+	for (i = 0; i < gBIOCount; ++i) {
 
-		if (gDCryptPwdCode == AskPwdRetCancel) {
-			return EFI_DCS_USER_CANCELED;
+		ret = EfiGetPartDetails(gBIOHandles[i], &part, &disk);
+		if (EFI_ERROR(ret)) continue; // means it's not a partition same as EfiIsPartition() == FALSE
+
+		disk_path = DevicePathFromHandle(disk);
+		disk_num = FindDiskNumber(disk_path);
+
+		dc_disk = GetDiskByNumber(disk_num);
+
+		if(dc_disk->BlockIo->Media->BlockSize > MAX_SECTOR_SIZE){
+			ERR_PRINT(L"Disk %d has unsupported block size %d\n", disk_num, dc_disk->BlockIo->Media->BlockSize);
+			continue;
 		}
-		if (gDCryptPwdCode == AskPwdRetTimeout) {
-			if (gDCryptFailOnTimeout) {
-				break;
-			}
-			return EFI_DCS_USER_TIMEOUT;
-		}
 
-		OUT_PRINT(L"%a\n", gDCryptStartMsg);
-
-		dc_header  header;
-		mount_inf *mount;
-
-		// check all partitions if the password works for one
-		for (i = 0; i < gBIOCount; ++i) {
-
-			ret = EfiGetPartDetails(gBIOHandles[i], &part, &disk);
-			if (EFI_ERROR(ret)) continue; // means it's not a partition same as EfiIsPartition() == FALSE
-
-			disk_path = DevicePathFromHandle(disk);
-			disk_num = FindDiskNumber(disk_path);
-
-			dc_disk = GetDiskByNumber(disk_num);
-
-			// Skip partitions whose GPT type is not a decryption target
-			// (only System, Basic Data, and Recovery are tried by default).
-			// MBR partitions or partitions not found in GPT are always allowed.
-			if (dc_disk != NULL && !IsTargetPartitionType(dc_disk->BlockIo, part.PartitionStart)) {
-				if (gConfigDebug) {
-					OUT_PRINT(L"Skipping disk %d partition %d (non-target partition type)\n", disk_num, part.PartitionNumber);
-				}
-				continue;
-			}
-
-			ret = dc_disk ? dc_disk->BlockIo->ReadBlocks(dc_disk->BlockIo, dc_disk->BlockIo->Media->MediaId, part.PartitionStart, DC_AREA_SIZE, (UINT8*)&header) : EFI_NOT_FOUND;
-			if (EFI_ERROR(ret)) {
-				ERR_PRINT(L"Can't read partition starting at %llu\n", part.PartitionStart);
-				continue;
-			}
-
-			// Skip partitions with recognized filesystem signatures (FAT12/16/32, NTFS, exFAT).
-			// These are not encrypted and attempting decryption on them wastes time.
-			if (IsKnownFilesystem((UINT8*)&header)) {
-				if (gConfigDebug) {
-					OUT_PRINT(L"Skipping disk %d partition %d (known filesystem)\n", disk_num, part.PartitionNumber);
-				}
-				continue;
-			}
-
+		// Skip partitions whose GPT type is not a decryption target
+		// (only System, Basic Data, and Recovery are tried by default).
+		// MBR partitions or partitions not found in GPT are always allowed.
+		if (dc_disk != NULL && !IsTargetPartitionType(dc_disk->BlockIo, part.PartitionStart)) {
 			if (gConfigDebug) {
-				OUT_PRINT(L"Trying to decrypt disk %d partition %d ... ", disk_num, part.PartitionNumber);
+				OUT_PRINT(L"Skipping disk %d partition %d (non-target partition type)\n", disk_num, part.PartitionNumber);
 			}
-
-			if (dc_decrypt_header(&header, &gDCryptPassword) == 0) 
-			{
-				if (gConfigDebug) {
-					OUT_PRINT(L"fail\n");
-				}
-
-				continue;
-			}
-			(*vol_found)++;
-
-			if (gConfigDebug) {
-			//	OUT_PRINT(L"Found Encrypted Partition ");
-			//	OUT_PRINT(L"%d", part.PartitionNumber);
-			//	//EfiPrintPath(disk_path);
-			//	OUT_PRINT(L" on disk %d\n", disk_num);
-				OUT_PRINT(L"success\n");
-			}
-
-			if ( (iodb.n_mount >= MOUNT_MAX) ||
-				 (iodb.n_key >= MOUNT_MAX - ((header.flags & VF_REENCRYPT) != 0)) ||
-				 (disk_num > 255) ) // hdd_n is only u8
-			{
-				ERR_PRINT(L"Not enough memory to mount all partitions\n");
-				continue;
-			}
-			mount = &iodb.p_mount[iodb.n_mount];
-			
-			mount->hdd_n    = (u8)disk_num;
-			mount->begin    = part.PartitionStart;
-			mount->end      = part.PartitionStart + part.PartitionSize;
-			mount->size     = part.PartitionSize;
-
-			mount->flags    = header.flags;
-			mount->tmp_size = header.tmp_size / SECTOR_SIZE;
-			if (header.flags & VF_STORAGE_FILE) {
-				mount->stor_off = header.stor_off / SECTOR_SIZE;
-			} else {
-				mount->stor_off = (mount->size - sizeof(dc_header)) / SECTOR_SIZE;
-			}
-			mount->disk_id  = header.disk_id;
-		
-			mount->d_key      = &iodb.p_key[iodb.n_key++];
-			mount->d_key->alg = (u8)header.alg_1;
-			autocpy(mount->d_key->key, header.key_1, PKCS_DERIVE_MAX);
-		
-			if (header.flags & VF_REENCRYPT) {
-				mount->o_key      = &iodb.p_key[iodb.n_key++];
-				mount->o_key->alg = (u8)header.alg_2;
-				autocpy(mount->o_key->key, header.key_2, PKCS_DERIVE_MAX);
-			}
-
-			gDiskIo[disk_num - 1].DiskID = header.disk_id;
-			gDiskIo[disk_num - 1].Mount = TRUE;
-			iodb.n_mount++;
+			continue;
 		}
 
-		if (!*vol_found)
+		ret = dc_disk ? dc_disk->BlockIo->ReadBlocks(dc_disk->BlockIo, dc_disk->BlockIo->Media->MediaId, part.PartitionStart, max(MAX_SECTOR_SIZE, dc_disk->BlockIo->Media->BlockSize), u.buff) : EFI_NOT_FOUND;
+		if (EFI_ERROR(ret)) {
+			ERR_PRINT(L"Can't read partition starting at %llu, status %r\n", part.PartitionStart, ret);
+			continue;
+		}
+
+		// Skip partitions with recognized filesystem signatures (FAT12/16/32, NTFS, exFAT, ReFS).
+		// These are not encrypted and attempting decryption on them wastes time.
+		if (GetFilesystemInfo((UINT8*)&u.header, NULL)) {
+			if (gConfigDebug) {
+				OUT_PRINT(L"Skipping disk %d partition %d (known filesystem)\n", disk_num, part.PartitionNumber);
+			}
+			continue;
+		}
+
+		if (gConfigDebug) {
+			OUT_PRINT(L"Trying to decrypt disk %d partition %d ... ", disk_num, part.PartitionNumber);
+		}
+
+		if (dc_decrypt_header(&u.header, &gDCryptPassword) == 0) 
 		{
-			//OUT_PRINT(L"enum my root\n");
+			if (gConfigDebug) {
+				OUT_PRINT(L"fail\n");
+			}
 
-			EFI_FILE* root;
-			ret = FileOpenRoot(gFileRootHandle, &root);
-			if (EFI_ERROR(ret)) { ERR_PRINT(L"FileOpenRoot %r\n", ret); }
+			continue;
+		}
+		(*vol_found)++;
+
+		if ( (iodb.n_mount >= MOUNT_MAX) ||
+			(iodb.n_key >= MOUNT_MAX - ((u.header.flags & VF_REENCRYPT) != 0)) ||
+			(disk_num > 255) ) // hdd_n is only u8
+		{
+			ERR_PRINT(L"Not enough memory to mount all partitions\n");
+			continue;
+		}
+		mount = &iodb.p_mount[iodb.n_mount];
+
+		mount->hdd_n    = (u8)disk_num;
+		mount->begin    = part.PartitionStart;
+		mount->end      = part.PartitionStart + part.PartitionSize;
+		mount->size     = part.PartitionSize;
+
+		mount->flags    = u.header.flags;
+		mount->tmp_size = u.header.tmp_size / dc_disk->BlockIo->Media->BlockSize;
+		if (u.header.flags & VF_STORAGE_FILE) {
+			mount->stor_off = u.header.stor_off / dc_disk->BlockIo->Media->BlockSize;
+		} else {
+			mount->stor_off = (mount->size - sizeof(dc_header) / dc_disk->BlockIo->Media->BlockSize);
+		}
+		mount->bps = dc_disk->BlockIo->Media->BlockSize;
+		mount->disk_id  = u.header.disk_id;
+
+		mount->d_key      = &iodb.p_key[iodb.n_key++];
+		mount->d_key->alg = (u8)u.header.alg_1;
+		autocpy(mount->d_key->key, u.header.key_1, PKCS_DERIVE_MAX);
+
+		if (u.header.flags & VF_REENCRYPT) {
+			mount->o_key      = &iodb.p_key[iodb.n_key++];
+			mount->o_key->alg = (u8)u.header.alg_2;
+			autocpy(mount->o_key->key, u.header.key_2, PKCS_DERIVE_MAX);
+		}
+
+		gDiskIo[disk_num - 1].DiskID = u.header.disk_id;
+		gDiskIo[disk_num - 1].Mount = TRUE;
+		iodb.n_mount++;
+
+		if (gConfigDebug) {
+			if (dc_disk_io(disk_num, u.buff, 1, part.PartitionStart, 1) && (fsType = GetFilesystemInfo(u.buff, fsSerial))) {
+				OUT_PRINT(L"success (%s, SN: %s)\n", fsType, fsSerial);
+			} else {
+				ERR_PRINT(L"success (unknown filesystem)\n");
+			}
+		}
+	}
+
+	if (!*vol_found && hdr_found && !gPxeBoot)
+	{
+		//OUT_PRINT(L"enum my root\n");
+
+		EFI_FILE* root;
+		ret = FileOpenRoot(gFileRootHandle, &root);
+		if (EFI_ERROR(ret)) { ERR_PRINT(L"FileOpenRoot %r\n", ret); }
+		else
+		{
+			EFI_FILE* dir;
+			ret = root->Open(root, &dir, L"EFI\\" DCS_DIRECTORY, EFI_FILE_READ_ONLY, 0);
+			if (EFI_ERROR(ret)) { ERR_PRINT(L"root->Open %r\n", ret); }
 			else
 			{
-				EFI_FILE* dir;
-				ret = root->Open(root, &dir, L"EFI\\" DCS_DIRECTORY, EFI_FILE_READ_ONLY, 0);
-				if (EFI_ERROR(ret)) { ERR_PRINT(L"root->Open %r\n", ret); }
-				else
-				{
-					EFI_FILE_INFO* DirInfo;
-					UINTN          BufferSize;
-					UINTN          DirBufferSize;
+				EFI_FILE_INFO* DirInfo;
+				UINTN          BufferSize;
+				UINTN          DirBufferSize;
 
-					DirBufferSize = sizeof(EFI_FILE_INFO) + 1024;
-					DirInfo = MEM_ALLOC(DirBufferSize);
+				DirBufferSize = sizeof(EFI_FILE_INFO) + 1024;
+				DirInfo = MEM_ALLOC(DirBufferSize);
 
-					for (; !EFI_ERROR(ret);) {
-						BufferSize = DirBufferSize;
-						ret = dir->Read(dir, &BufferSize, DirInfo);
+				for (; !EFI_ERROR(ret);) {
+					BufferSize = DirBufferSize;
+					ret = dir->Read(dir, &BufferSize, DirInfo);
 
-						if (EFI_ERROR(ret) || (BufferSize == 0))
-							break; // done
+					if (EFI_ERROR(ret) || (BufferSize == 0))
+						break; // done
 
-						if ((DirInfo->Attribute & EFI_FILE_DIRECTORY) != 0)
-							continue; // skip directories
+					if ((DirInfo->Attribute & EFI_FILE_DIRECTORY) != 0)
+						continue; // skip directories
 
-						if (StrnCmp(DirInfo->FileName, L"TestHeader_", 11) != 0)
-							continue; // not what we were looking for
+					if (StrnCmp(DirInfo->FileName, L"TestHeader_", 11) != 0)
+						continue; // not what we were looking for
 
-						EFI_FILE* file;
-						ret = dir->Open(dir, &file, DirInfo->FileName, EFI_FILE_MODE_READ, 0);
-						if (EFI_ERROR(ret)) { ERR_PRINT(L"dir->Open %r\n", ret); }
+					EFI_FILE* file;
+					ret = dir->Open(dir, &file, DirInfo->FileName, EFI_FILE_MODE_READ, 0);
+					if (EFI_ERROR(ret)) { ERR_PRINT(L"dir->Open %r\n", ret); }
+					else
+					{
+						OUT_PRINT(L"Trying to decrypt test header for: %s ... ", &DirInfo->FileName[11]);
+
+						UINTN fileSize = sizeof(u.header);
+						ret = file->Read(file, &fileSize, &u.header);
+						if (EFI_ERROR(ret)) { ERR_PRINT(L"file->read %r\n", ret); }
 						else
 						{
-							OUT_PRINT(L"Trying to decrypt test header for: %s ... ", &DirInfo->FileName[11]);
-
-							UINTN fileSize = sizeof(header);
-							ret = file->Read(file, &fileSize, &header);
-							if (EFI_ERROR(ret)) { ERR_PRINT(L"file->read %r\n", ret); }
-							else
-							{
-								if (fileSize != sizeof(header)) {
-									ERR_PRINT(L"is to small %d\n", &DirInfo->FileName[11], fileSize);
-								}
-
-								else if (dc_decrypt_header(&header, &gDCryptPassword) == 0) {
-									ERR_PRINT(L"failed\n");
-								}
-
-								else {
-									(*hdr_found)++;
-									OUT_PRINT(L"success\n");
-								}
+							if (fileSize != sizeof(dc_header)) {
+								ERR_PRINT(L"is to small %d\n", &DirInfo->FileName[11], fileSize);
 							}
-							file->Close(file);
+
+							else if (dc_decrypt_header(&u.header, &gDCryptPassword) == 0) {
+								ERR_PRINT(L"failed\n");
+							}
+
+							else {
+								(*hdr_found)++;
+								OUT_PRINT(L"success\n");
+							}
 						}
+						file->Close(file);
 					}
-
-					MEM_FREE(DirInfo);
-
-					dir->Close(dir);
 				}
-				root->Close(root);
+
+				MEM_FREE(DirInfo);
+
+				dir->Close(dir);
 			}
+			root->Close(root);
 		}
+	}
 
-		// clear data
-		MEM_BURN(&header,  sizeof(dc_header));
-
-		if (*vol_found > 0 || *hdr_found > 0 || gDCryptPwdCode == AskPwdForcePass) {
-			OUT_PRINT(L"%a\n", gDCryptSuccessMsg);
-			return EFI_SUCCESS;
-		}
-		else {
-			ERR_PRINT(L"%a\n", gDCryptErrorMsg);
-			// clear previous failed authentication information
-			//MEM_BURN(&gDCryptPassword, sizeof(gDCryptPassword));
-		}
-
-	} while (--retry > 0);
-
-	return RETURN_ABORTED;
+	// clear data
+	MEM_BURN(&u.header,  sizeof(dc_header));
 }
 
 EFI_STATUS
@@ -776,7 +810,7 @@ DcsDiskCryptor(
 	}
 
 	// prompt for password and try decrypt partitions
-	ret = HeaderTryDecrypt(&vol_found, &hdr_found);
+	ret = DcMain(&vol_found, &hdr_found);
 	// Reset Console buffer
 	gST->ConIn->Reset(gST->ConIn, FALSE);
 
@@ -913,134 +947,11 @@ VOID DCAuthLoadConfig()
 		//								"shutdown"  EFI_DCS_SHUTDOWN_REQUESTED
 
 	// Authentication Tries - new
-	gDCryptAuthRetry = ConfigReadInt("AuthorizeRetry", 100);
+	gDCryptAuthRetry = ConfigReadInt("AuthorizeRetry", 0);
 
 // Other
 
 	gDCryptHwCrypto = ConfigReadInt("UseHardwareCrypto", 1);
-}
-
-VOID DCAskPwd(IN UINTN pwdType, OUT dc_pass* dcPwd)
-{
-	BOOLEAN pwdReady;
-
-	do {
-		pwdReady = TRUE;
-		/*if (pwdType == AskPwdNew) {
-			EFI_INPUT_KEY key;
-			key = KeyWait(L"Press 'c' to configure, others to skip %1d\r", 9, 0, 0);
-			if (key.UnicodeChar == 'c') {
-				PMENU_ITEM          item = NULL;
-				EFI_STATUS          res;
-				OUT_PRINT(L"\n%V%a %a configuration%N\n", DC_APP_NAME, DC_PRODUCT_VER);
-				if (gCfgMenu == NULL) CfgMenuCreate();
-				do {
-					DcsMenuPrint(gCfgMenu);
-					item = NULL;
-					key.UnicodeChar = 0;
-					while (item == NULL) {
-						item = gCfgMenu;
-						key = GetKey();
-						while (item != NULL) {
-							if (item->Select == key.UnicodeChar) break;
-							item = item->Next;
-						}
-					}
-					OUT_PRINT(L"%c\n", key.UnicodeChar);
-					res = item->Action(item->Context);
-					if (EFI_ERROR(res)) {
-						ERR_PRINT(L"%r\n", res);
-					}
-				} while (gCfgMenuContinue);
-				if ((gDCryptPwdCode == AskPwdRetCancel) || (gDCryptPwdCode == AskPwdRetTimeout)) {
-					return;
-				}
-			}
-		}*/
-
-		if (gDCryptAutoLogin) {
-			gDCryptAutoLogin = 0;
-			gDCryptPwdCode = AskPwdRetLogin;
-			if (!EFI_ERROR(StrCpyS(dcPwd->pass, MAX_PASSWORD, gDCryptAutoPassword))) {
-				dcPwd->size = (int)StrLen(gDCryptAutoPassword) * 2;
-			}
-		}
-		else {
-			if (gDCryptTouchInput == 1 &&
-				gGraphOut != NULL &&
-				((gTouchPointer != NULL) || (gTouchSimulate != 0))) {
-				AskPictPwdInt(pwdType, sizeof(dcPwd->pass), dcPwd->pass, &dcPwd->size, &gDCryptPwdCode, TRUE);
-			}
-			else {
-				do {
-					/*switch (pwdType) {
-					case AskPwdNew:
-						OUT_PRINT(L"New password:");
-						break;
-					case AskPwdConfirm:
-						OUT_PRINT(L"Confirm password:");
-						break;
-					case AskPwdLogin:
-					default:*/
-						OUT_PRINT(L"%a", gDCryptPasswordMsg);
-					/*	break;
-					}*/
-					AskConsolePwdInt(&dcPwd->size, dcPwd->pass, &gDCryptPwdCode, sizeof(dcPwd->pass), gPasswordVisible, TRUE);
-
-					if (gDCryptPwdCode == AskPwdRetHelp) {
-						DcsShowHelp();
-					}
-					else if (gDCryptPwdCode == AskPwdRetSetParams) {
-						DcsConfigMenuShow();
-					}
-				} while (gDCryptPwdCode == AskPwdRetSetParams || gDCryptPwdCode == AskPwdRetHelp);
-			}
-
-			if ((gDCryptPwdCode == AskPwdRetCancel) || (gDCryptPwdCode == AskPwdRetTimeout)) {
-				return;
-			}
-		}
-		
-		if (gDCryptKeyFilePath[0] != L'\0') {
-			EFI_STATUS ret = DCApplyKeyFile(dcPwd, gDCryptKeyFilePath);
-			if (EFI_ERROR(ret)){
-				ERR_PRINT(L"Failed to apply KeyFile: %r\n", ret);
-				gDCryptPwdCode = AskPwdRetCancel;
-			}
-		}
-
-		/*
-		if (gSCLocked) {
-			ERR_PRINT(L"Smart card is not configured\n");
-		}
-
-		if (gPlatformLocked) {
-			if (gPlatformKeyFile == NULL) {
-				ERR_PRINT(L"Platform key file is absent\n");
-			}
-			else {
-				ApplyKeyFile(dcPwd, gPlatformKeyFile, gPlatformKeyFileSize);
-			}
-		}
-
-		if (gTPMLocked) {
-			if (gTpm != NULL) {
-				pwdReady = !EFI_ERROR(gTpm->Apply(gTpm, dcPwd));
-				if (!pwdReady) {
-					ERR_PRINT(L"TPM error: DCS configuration ");
-					if (!gTpm->IsConfigured(gTpm)) {
-						ERR_PRINT(L"absent\n");
-					}
-					else {
-						ERR_PRINT(L"locked\n");
-					}
-				}
-			}	else {
-				ERR_PRINT(L"No TPM found\n");
-			}
-		}
-		*/
-	} while (!pwdReady);
 }
 
 EFI_STATUS
@@ -1108,3 +1019,102 @@ DCApplyKeyData(
 	}
 	OUT_PRINT(L"\n");
 }*/
+
+EFI_STATUS
+DcMain(int* vol_found, int* hdr_found)
+{
+	int retry = gDCryptAuthRetry;
+
+	gDCryptPwdCode = AskPwdRetCancel;
+
+	if (gDCryptAutoLogin) {
+
+		if (!EFI_ERROR(StrCpyS(gDCryptPassword.pass, MAX_PASSWORD, gDCryptAutoPassword))) {
+			gDCryptPassword.size = (int)StrLen(gDCryptAutoPassword) * 2;
+			gDCryptPwdCode = AskPwdRetLogin;
+		}
+	}
+
+	if (gDCryptPwdCode == AskPwdRetLogin)
+	{
+		if (gDCryptKeyFilePath[0] != L'\0') {
+			EFI_STATUS ret = DCApplyKeyFile(&gDCryptPassword, gDCryptKeyFilePath);
+			if (EFI_ERROR(ret)){
+				ERR_PRINT(L"Failed to apply KeyFile: %r\n", ret);
+				gDCryptPwdCode = AskPwdRetCancel;
+			}
+		}
+
+		if (gDCryptPwdCode == AskPwdRetLogin) {
+
+			DcTryDecrypt(vol_found, NULL);
+
+			if (*vol_found > 0) {
+				return EFI_SUCCESS;
+			}
+		}
+	}
+
+	MEM_BURN(&gDCryptPassword, sizeof(gDCryptPassword)); // zero memory
+	do {
+
+		// password prompt
+		if (gDCryptTouchInput == 1 &&
+			gGraphOut != NULL &&
+			((gTouchPointer != NULL) || (gTouchSimulate != 0))) {
+			AskPictPwdInt(AskPwdLogin, MAX_PASSWORD, gDCryptPassword.pass, &gDCryptPassword.size, &gDCryptPwdCode, TRUE);
+		}
+		else {
+			for(;;) {
+				OUT_PRINT(L"%a", gDCryptPasswordMsg);
+
+				AskConsolePwdInt(&gDCryptPassword.size, gDCryptPassword.pass, &gDCryptPwdCode, MAX_PASSWORD, gPasswordVisible, TRUE);
+
+				switch (gDCryptPwdCode)
+				{
+				case AskPwdRetChange:   continue;
+				case AskPwdRetSetParams:DcsConfigMenuShow(); continue;
+				case AskPwdRetHelp:		DcsShowHelp(); continue;
+				}
+				break;
+			};
+		}
+
+		if (gDCryptPwdCode == AskPwdRetCancel) {
+			MEM_BURN(&gDCryptPassword, sizeof(gDCryptPassword));
+			return EFI_DCS_USER_CANCELED;
+		}
+		if (gDCryptPwdCode == AskPwdRetTimeout) {
+			if (gDCryptFailOnTimeout) {
+				break;
+			}
+			return EFI_DCS_USER_TIMEOUT;
+		}
+
+		if (gDCryptKeyFilePath[0] != L'\0') {
+			EFI_STATUS ret = DCApplyKeyFile(&gDCryptPassword, gDCryptKeyFilePath);
+			if (EFI_ERROR(ret)){
+				ERR_PRINT(L"Failed to apply KeyFile: %r\n", ret);
+				gDCryptPwdCode = AskPwdRetCancel;
+			}
+		}
+
+
+		OUT_PRINT(L"%a\n", gDCryptStartMsg);
+
+		DcTryDecrypt(vol_found, hdr_found);
+
+		if (*vol_found > 0 || *hdr_found > 0 || gDCryptPwdCode == AskPwdForcePass) {
+			OUT_PRINT(L"%a\n", gDCryptSuccessMsg);
+			return EFI_SUCCESS;
+		}
+		else {
+			ERR_PRINT(L"%a\n", gDCryptErrorMsg);
+			// clear previous failed authentication information
+			//MEM_BURN(&gDCryptPassword, sizeof(gDCryptPassword)); // leave it for next try, maybe user just made a typo and wants to try again without re-entering the password
+		}
+
+	} while (!retry || --retry > 0); // retry == 0 means infinite retries
+
+	return RETURN_ABORTED;
+}

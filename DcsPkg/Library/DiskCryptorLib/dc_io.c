@@ -31,18 +31,21 @@ int dc_crypt_io(mount_inf *mount, u8 *buff, u16 sectors, u64 start, int read, bo
 		succs = hdd_io(mount->hdd_n, buff, sectors, mount->begin + start, 1);
 
 		if (succs != 0) {
-			xts_decrypt(buff, buff, (sectors << SECT_SHIFT), (start << SECT_SHIFT), &benc_k);
+			//xts_decrypt(buff, buff, (sectors << SECT_SHIFT), (start << SECT_SHIFT), &benc_k);
+			xts_decrypt(buff, buff, (sectors * mount->bps), (start * mount->bps), &benc_k);
 		}
 	} else 
 	{
 		/* encrypt buffer */
-		xts_encrypt(buff, buff, (sectors << SECT_SHIFT), (start << SECT_SHIFT), &benc_k);
+		//xts_encrypt(buff, buff, (sectors << SECT_SHIFT), (start << SECT_SHIFT), &benc_k);
+		xts_encrypt(buff, buff, (sectors * mount->bps), (start * mount->bps), &benc_k);
 
 		/* write buffer to disk */
 		succs = hdd_io(mount->hdd_n, buff, sectors, mount->begin + start, 0);
 
 		/* decrypt buffer to save original data */
-		xts_decrypt(buff, buff, (sectors << SECT_SHIFT), (start << SECT_SHIFT), &benc_k);	
+		//xts_decrypt(buff, buff, (sectors << SECT_SHIFT), (start << SECT_SHIFT), &benc_k);	
+		xts_decrypt(buff, buff, (sectors * mount->bps), (start * mount->bps), &benc_k);	
 	}
 	return succs;
 }
@@ -54,6 +57,8 @@ static int dc_mount_io(mount_inf *mount, u8 *buff, u16 sectors, u64 start, int r
 	u8 *p2, *p3; 
 	int res;
 
+#define DC_AREA_SECTORS (max(DC_AREA_SIZE, mount->bps) / mount->bps)
+
 	s1 = intersect(&o1, start, sectors, 0, DC_AREA_SECTORS);
 	
 	if (mount->flags & VF_TMP_MODE) {
@@ -63,8 +68,10 @@ static int dc_mount_io(mount_inf *mount, u8 *buff, u16 sectors, u64 start, int r
 		s2 = intersect(&o2, start, sectors, DC_AREA_SECTORS, mount->size);
 		s3 = 0;
 	}
-	p2 = buff + (s1 * SECTOR_SIZE);
-	p3 = p2   + (s2 * SECTOR_SIZE);
+	p2 = buff + (s1 * mount->bps);
+	p3 = p2   + (s2 * mount->bps);
+
+#undef DC_AREA_SECTORS
 
 	/*
 	   normal mode:
@@ -106,9 +113,9 @@ static int dc_mount_io(mount_inf *mount, u8 *buff, u16 sectors, u64 start, int r
 int dc_disk_io(int hdd_n, void *buff, u16 sectors, u64 start, int read)
 {
 	mount_inf *mount;
-	u8         old[512];
+	//u8         old[512];
 	u16        ov_size;
-	int        saved = 0;
+	//int        saved = 0;
 	int        res   = 0;
 	int        found = 0;
 	int        i;
@@ -152,23 +159,23 @@ int dc_disk_io(int hdd_n, void *buff, u16 sectors, u64 start, int read)
 	if (found == 0) 
 	{
 		/* emulate write to MBR */
-		if ( !(iodb.options & OP_EXTERNAL) && (hdd_n == iodb.ldr_dsk) &&
-			  (start == 0) && (read == 0) ) 
-		{
-			/* save old buffer */
-			autocpy(old, buff, SECTOR_SIZE);
-			/* read my MBR */
-			hdd_io(hdd_n, buff, 1, 0, 1);
-			/* copy partition table to MBR */
-			autocpy(p8(buff) + 432, old + 432, 80);
-			saved = 1;
-		}
+		//if ( !(iodb.options & OP_EXTERNAL) && (hdd_n == iodb.ldr_dsk) &&
+		//	  (start == 0) && (read == 0) ) 
+		//{
+		//	/* save old buffer */
+		//	autocpy(old, buff, mount->bps);
+		//	/* read my MBR */
+		//	hdd_io(hdd_n, buff, 1, 0, 1);
+		//	/* copy partition table to MBR */
+		//	autocpy(p8(buff) + 432, old + 432, 80);
+		//	saved = 1;
+		//}
 		res = hdd_io(hdd_n, buff, sectors, start, read);
 
-		if (saved != 0) {
-			/* restore old buffer */
-			autocpy(buff, old, SECTOR_SIZE);
-		}
+		//if (saved != 0) {
+		//	/* restore old buffer */
+		//	autocpy(buff, old, mount->bps);
+		//}
 	}
 	return res;
 }

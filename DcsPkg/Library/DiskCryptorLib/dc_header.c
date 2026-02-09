@@ -8,6 +8,7 @@
 #include "crypto_fast/sha512_pkcs5_2.h"
 #endif
 #include "include\boot\boot.h"
+#include "crypto_fast/crc32.h"
 
 int dc_decrypt_header(dc_header *header, dc_pass *password)
 {
@@ -28,6 +29,10 @@ int dc_decrypt_header(dc_header *header, dc_pass *password)
 
 		/* Magic 'DCRP' */
 		if (hcopy.sign != DC_VOLUME_SIGN) {
+			continue;
+		}
+		/* Check CRC of header */
+		if (hcopy.hdr_crc != crc32(pv(&hcopy.version), DC_CRC_AREA_SIZE)) {
 			continue;
 		}
 		/* copy decrypted part to output */

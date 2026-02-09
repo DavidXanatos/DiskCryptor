@@ -34,9 +34,6 @@ https://opensource.org/licenses/Apache-2.0
 
 #define NO_BML
 
-#define DCS_SINGLE_MODULE 0xDC // disk cryptor
-//#define DCS_SINGLE_MODULE 0x4C // vera crypt
-
 #define OPT_EXTERN_KEY L"-extern"
 
 //////////////////////////////////////////////////////////////////////////
@@ -47,7 +44,7 @@ https://opensource.org/licenses/Apache-2.0
 extern char    *gConfigBuffer;
 extern UINTN    gConfigBufferSize;
 extern char    *gConfigBufferUpdated;
-extern UINTN	gConfigBufferUpdatedSize;
+extern UINTN    gConfigBufferUpdatedSize;
 extern BOOLEAN  gConfigDebug;
 extern BOOLEAN  gExternMode;
 

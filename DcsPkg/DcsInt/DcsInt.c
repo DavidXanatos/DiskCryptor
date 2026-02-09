@@ -362,68 +362,7 @@ UefiMain(
 	//	ERR_PRINT(L"Extern Mode\n");
 	//}
 
-#ifdef DCS_SINGLE_MODULE
-
-  #if DCS_SINGLE_MODULE == 0xDC
 	res = DcsDiskCryptor(ImageHandle, SystemTable);
-  #elif DCS_SINGLE_MODULE == 0x4C
-	res = DcsVeraCrypt(ImageHandle, SystemTable);
-  #else
-	#error "Unknown DCS Module";
-  #endif
-
-#else
-	PMENU_ITEM gMenu = NULL;
-	PMENU_ITEM item = gMenu;
-	CHAR16* presetImpl = NULL;
-
-#pragma warning(disable:4054)
-	gMenu = 
-	item = DcsMenuAppend(item, L"DiskCryptor", 'd', NULL, (VOID*)DcsDiskCryptor);
-	item = DcsMenuAppend(item, L"VeraCrypt", 'v', NULL, (VOID*)DcsVeraCrypt);
-#pragma warning(default:4054)
-	item = NULL;
-
-	presetImpl = ConfigReadStringW("DcsModule", L"", NULL, 100);
-	if (presetImpl[0] != L'\0') {
-		item = gMenu;
-		while (item != NULL) {
-			if (UnicodeStrNStr(presetImpl, item->Text) == presetImpl) break;
-			item = item->Next;
-		}
-	}
-
-	if (item == NULL) {
-		OUT_PRINT(L"Select Support Module:\n");
-		DcsMenuPrint(gMenu);
-
-		do {
-			EFI_INPUT_KEY key = GetKey();
-
-			if (key.ScanCode == SCAN_ESC) {
-				return EFI_DCS_USER_CANCELED;
-			}
-
-			item = gMenu;
-			while (item != NULL) {
-				if (item->Select == key.UnicodeChar) break;
-				item = item->Next;
-			}
-		} while (item == NULL);
-
-		OUT_PRINT(L"\n");
-	}
-	else {
-		if (gConfigDebug) {
-			OUT_PRINT(L"Support Module: %H%s%N\n", item->Text);
-		}
-	}
-
-#pragma warning(disable:4055)
-	res = ((DCS_IMPL)item->Context)(ImageHandle, SystemTable);
-#pragma warning(default:4055)
-
-#endif
 
 	if (gConfigDebug) {
 		OUT_PRINT(L"DcsInt done\n");

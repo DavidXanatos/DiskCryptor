@@ -19,6 +19,7 @@ typedef struct _mount_inf {
 	u64        tmp_size;
 	u64        stor_off;	
 	u32        disk_id;
+	u32        bps;
 
 } mount_inf;
 

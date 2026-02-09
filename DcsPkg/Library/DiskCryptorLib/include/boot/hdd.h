@@ -26,7 +26,7 @@ typedef struct _partition {
 
 #pragma pack (pop)
 
-#define SECT_SHIFT 9
+//#define SECT_SHIFT 9
 #define HDD_MAX    16 /* maximum number of HDD's      */
 #define PART_MAX   64 /* maximum number of partitions */
 

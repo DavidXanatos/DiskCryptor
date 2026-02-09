@@ -401,6 +401,7 @@ RndOpenSSLInit(
 // TPM random
 //////////////////////////////////////////////////////////////////////////
 #ifdef CFG_RND_USE_TPM
+
 EFI_STATUS
 RndTpmPrepare(
 	IN DCS_RND* rnd

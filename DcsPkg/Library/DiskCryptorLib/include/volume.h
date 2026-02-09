@@ -13,9 +13,9 @@
 #define MAX_KEY_SIZE            (32*3)
 #define PKCS_DERIVE_MAX         (MAX_KEY_SIZE*2)
 
-#define SECTOR_SIZE                 512
-#define MAX_SECTOR_SIZE             2048
-#define CD_SECTOR_SIZE              2048
+//#define SECTOR_SIZE                 512
+#define MAX_SECTOR_SIZE             4096
+//#define CD_SECTOR_SIZE              2048
 
 #define MIN_PASSWORD			1		// Minimum password length
 #define MAX_PASSWORD			128		// Maximum password length
@@ -64,15 +64,17 @@ typedef struct _dc_header {
 
 } dc_header;
 
+static_assert(sizeof(dc_header) == 2048, "Invalid dc_header size");
+
 #define IS_INVALID_VOL_FLAGS(_f) ( ((_f) & VF_NO_REDIR) && \
 	((_f) & (VF_TMP_MODE | VF_REENCRYPT | VF_STORAGE_FILE)) )
 
-#define IS_INVALID_SECTOR_SIZE(_s) ( ((_s) % SECTOR_SIZE) || \
-	((_s) > MAX_SECTOR_SIZE) || (sizeof(dc_header) % (_s)) )
+//#define IS_INVALID_SECTOR_SIZE(_s) ( ((_s) % SECTOR_SIZE) || \
+//	((_s) > MAX_SECTOR_SIZE) || (sizeof(dc_header) % (_s)) )
 
 
 #define DC_AREA_SIZE         (2 * 1024)
-#define DC_AREA_SECTORS      (DC_AREA_SIZE / SECTOR_SIZE)
+//#define DC_AREA_SECTORS      (DC_AREA_SIZE / SECTOR_SIZE)
 #define DC_ENCRYPTEDDATASIZE (DC_AREA_SIZE - PKCS5_SALT_SIZE)
 #define DC_CRC_AREA_SIZE     (DC_ENCRYPTEDDATASIZE - 8)
 

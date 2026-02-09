@@ -36,12 +36,6 @@ GetDiskByNumber(int number);
 VOID
 DCAuthLoadConfig();
 
-VOID
-DCAskPwd(
-	IN	 UINTN	pwdType,
-	OUT dc_pass* vcPwd
-);
-
 EFI_STATUS
 DCApplyKeyFile(
 	IN OUT dc_pass* password,
@@ -53,6 +47,12 @@ DCApplyKeyData(
 	IN OUT dc_pass* password,
 	UINT8*      fileData,
 	UINTN       fileSize
+);
+
+EFI_STATUS
+DcMain(
+	IN OUT int* vol_found, 
+	IN OUT int* hdr_found
 );
 
 #endif // _DCSDISKCRYPTOR_H_
