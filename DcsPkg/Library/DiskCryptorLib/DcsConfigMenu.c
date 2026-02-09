@@ -205,9 +205,8 @@ DcsConfigMenuShow(
 
 		if (key.UnicodeChar == CHAR_CARRIAGE_RETURN) {
 			gKeyboardLayout   = items[0].Value;
-			gDCryptArgon2Cost = (UINT8)items[1].Value;
-			gDCryptHwCrypto   = items[2].Value;
-			gConfigDebug      = items[3].Value ? TRUE : FALSE;
+			gDCryptHwCrypto   = items[1].Value;
+			gConfigDebug      = items[2].Value ? TRUE : FALSE;
 			gST->ConOut->EnableCursor(gST->ConOut, TRUE);
 			gST->ConOut->ClearScreen(gST->ConOut);
 			return TRUE;
