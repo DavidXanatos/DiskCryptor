@@ -8,6 +8,8 @@
   [+] added -mok menu to manage Machine Owner Key (MOK) list for Secure Boot Shim, it mirrors the linux mokutil functionality
   [+] Added ARM64 Shim loader for Secure Boot
   [+] added native 4k sector support to the EFI bootloader
+  [*] fixed secure boot warning when encrypting non boot volumes
+  [*] fixed bootloader support for encrypted partitions created with format instead of encrypt
 
 [21.01.2026] - 1.4.0/850.118.205
   [*] Updated driver to build with VS2022
