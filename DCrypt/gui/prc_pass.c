@@ -45,9 +45,7 @@ _password_change_dlg_proc(
 
 	int check_init[ ] = {
 		IDC_CHECK_SHOW_CURRENT, IDC_USE_KEYFILES_CURRENT,
-		IDC_USE_ARGON2_CURRENT,
 		IDC_CHECK_SHOW_NEW, IDC_USE_KEYFILES_NEW,
-		IDC_USE_ARGON2,
 		-1
 	};
 
@@ -135,16 +133,7 @@ _password_change_dlg_proc(
 				_sub_class(GetDlgItem(hwnd, check_init[k]), SUB_STATIC_PROC, HWND_NULL);
 				_set_check(hwnd, check_init[k], FALSE);
 				k++;
-			}
-			SetDlgItemInt(hwnd, IDE_ARGON2_COST_CURRENT, 12, FALSE);
-			SendMessage(GetDlgItem(hwnd, IDE_ARGON2_COST_CURRENT), EM_LIMITTEXT, 3, 0);
-			SetDlgItemInt(hwnd, IDE_ARGON2_COST, 12, FALSE);
-			SendMessage(GetDlgItem(hwnd, IDE_ARGON2_COST), EM_LIMITTEXT, 3, 0);
-			if (info->node && _is_boot_device(&info->node->mnt.info) && !__is_efi_boot)
-			{
-				EnableWindow(GetDlgItem(hwnd, IDC_USE_ARGON2_CURRENT), FALSE);
-				EnableWindow(GetDlgItem(hwnd, IDC_USE_ARGON2), FALSE);
-			}
+			}	
 			SetForegroundWindow(hwnd);
 			return 1L;
 
@@ -194,22 +183,6 @@ _password_change_dlg_proc(
 					));
 				return 1L;
 			}
-			if ( (HWND)wparam == GetDlgItem(hwnd, IDC_USE_ARGON2_CURRENT) )
-			{
-				EnableWindow(GetDlgItem(hwnd, IDE_ARGON2_COST_CURRENT), _get_check(hwnd, IDC_USE_ARGON2_CURRENT));
-				SendMessage(
-					hwnd, WM_COMMAND, MAKELONG(IDE_PASS_CURRENT, EN_CHANGE), (LPARAM)GetDlgItem(hwnd, IDE_PASS_CURRENT)
-					);
-				return 1L;
-			}
-			if ( (HWND)wparam == GetDlgItem(hwnd, IDC_USE_ARGON2) )
-			{
-				EnableWindow(GetDlgItem(hwnd, IDE_ARGON2_COST), _get_check(hwnd, IDC_USE_ARGON2));
-				SendMessage(
-					hwnd, WM_COMMAND, MAKELONG(IDE_PASS_NEW, EN_CHANGE), (LPARAM)GetDlgItem(hwnd, IDE_PASS_NEW)
-					);
-				return 1L;
-			}
 		}
 		break;
 		case WM_COMMAND :
@@ -251,28 +224,14 @@ _password_change_dlg_proc(
 						kb_layout = conf.kbd_layout;
 					}
 				}
-				if ( id == IDE_ARGON2_COST_CURRENT )
-				{
-					SendMessage(
-						hwnd, WM_COMMAND, MAKELONG(IDE_PASS_CURRENT, EN_CHANGE), (LPARAM)GetDlgItem(hwnd, IDE_PASS_CURRENT)
-						);
-				}
-				if ( id == IDE_ARGON2_COST )
-				{
-					SendMessage(
-						hwnd, WM_COMMAND, MAKELONG(IDE_PASS_NEW, EN_CHANGE), (LPARAM)GetDlgItem(hwnd, IDE_PASS_NEW)
-						);
-				}
 				if ( id == IDE_PASS_NEW )
 				{
 					int entropy;
-					int argon2_cost;
 					dc_pass *pass;
 
-					argon2_cost = _get_check(hwnd, IDC_USE_ARGON2) ? _clamp_cost(GetDlgItemInt(hwnd, IDE_ARGON2_COST, NULL, FALSE)) : 0;
 					pass = _get_pass(hwnd, IDE_PASS_NEW);
 
-					_draw_pass_rating(hwnd, pass, kb_layout, argon2_cost, &entropy);
+					_draw_pass_rating(hwnd, pass, kb_layout, &entropy);
 					secure_free(pass);
 
 					SendMessage(
@@ -314,32 +273,8 @@ _password_change_dlg_proc(
 			{
 				if ( id == IDOK )
 				{
-					if (_get_check(hwnd, IDC_USE_ARGON2_CURRENT))
-					{
-						int cost = GetDlgItemInt(hwnd, IDE_ARGON2_COST_CURRENT, NULL, FALSE);
-						if (cost < ARGON2_COST_MIN || cost > ARGON2_COST_MAX)
-						{
-							__msg_e(hwnd, L"Argon2 cost must be between 1 and 100");
-							return 1L;
-						}
-					}
-					if (_get_check(hwnd, IDC_USE_ARGON2))
-					{
-						int cost = GetDlgItemInt(hwnd, IDE_ARGON2_COST, NULL, FALSE);
-						if (cost < ARGON2_COST_MIN || cost > ARGON2_COST_MAX)
-						{
-							__msg_e(hwnd, L"Argon2 cost must be between 1 and 100");
-							return 1L;
-						}
-					}
 					info->pass     = _get_pass_keyfiles(hwnd, IDE_PASS_CURRENT, IDC_USE_KEYFILES_CURRENT, KEYLIST_CURRENT);
 					info->new_pass = _get_pass_keyfiles(hwnd, IDE_PASS_NEW,     IDC_USE_KEYFILES_NEW,     KEYLIST_CHANGE_PASS);
-
-					if (info->pass)
-						info->pass->cost = _get_check(hwnd, IDC_USE_ARGON2_CURRENT) ? GetDlgItemInt(hwnd, IDE_ARGON2_COST_CURRENT, NULL, FALSE) : 0;
-
-					if (info->new_pass)
-						info->new_pass->cost = _get_check(hwnd, IDC_USE_ARGON2) ? GetDlgItemInt(hwnd, IDE_ARGON2_COST, NULL, FALSE) : 0;
 
 					if ( IsWindowEnabled(GetDlgItem(hwnd, IDC_COMBO_MNPOINT)) &&
 						 info->mnt_point
@@ -484,11 +419,6 @@ _password_dlg_proc(
 			_sub_class( GetDlgItem(hwnd, IDC_USE_KEYFILES), SUB_STATIC_PROC, HWND_NULL );
 			_set_check( hwnd, IDC_USE_KEYFILES, FALSE );
 
-			_sub_class( GetDlgItem(hwnd, IDC_USE_ARGON2), SUB_STATIC_PROC, HWND_NULL );
-			_set_check( hwnd, IDC_USE_ARGON2, FALSE );
-			SetDlgItemInt( hwnd, IDE_ARGON2_COST, 12, FALSE );
-			SendMessage( GetDlgItem(hwnd, IDE_ARGON2_COST), EM_LIMITTEXT, 3, 0 );
-
 			_sub_class(GetDlgItem(hwnd, IDC_CHECK_RO_SET), SUB_STATIC_PROC, HWND_NULL);
 			_set_check(hwnd, IDC_CHECK_RO_SET, FALSE);
 
@@ -558,12 +488,6 @@ _password_dlg_proc(
 				EnableWindow(GetDlgItem(hwnd, IDB_USE_KEYFILES), _get_check(hwnd, IDC_USE_KEYFILES));
 				return 1L;
 			}
-
-			if ( (HWND)wparam == GetDlgItem(hwnd, IDC_USE_ARGON2) )
-			{
-				EnableWindow(GetDlgItem(hwnd, IDE_ARGON2_COST), _get_check(hwnd, IDC_USE_ARGON2));
-				return 1L;
-			}
 		}
 		break;
 		case WM_COMMAND :
@@ -619,19 +543,7 @@ _password_dlg_proc(
 			{
 				if (id == IDOK)
 				{
-					if (_get_check(hwnd, IDC_USE_ARGON2))
-					{
-						int cost = GetDlgItemInt(hwnd, IDE_ARGON2_COST, NULL, FALSE);
-						if (cost < ARGON2_COST_MIN || cost > ARGON2_COST_MAX)
-						{
-							__msg_e(hwnd, L"Argon2 cost must be between 1 and 100");
-							return 1L;
-						}
-					}
 					info->pass = _get_pass_keyfiles(hwnd, IDE_PASS, IDC_USE_KEYFILES, KEYLIST_CURRENT);
-
-					if (info->pass)
-						info->pass->cost = _get_check(hwnd, IDC_USE_ARGON2) ? GetDlgItemInt(hwnd, IDE_ARGON2_COST, NULL, FALSE) : 0;
 
 					info->mnt_ro = _get_check(hwnd, IDC_CHECK_RO_SET);
 

@@ -27,41 +27,6 @@
 #endif
 #include "crc32.h"
 #include "misc_mem.h"
-#include "../crypto/Argon2/argon2.h"
-
-int dc_derive_key(dc_pass* password, u8* salt, u8* dk)
-{
-	if (password->cost == 0) {
-		/* Existing SHA512-PBKDF2 */
-		sha512_pkcs5_2(1000, password->pass, password->size, salt, PKCS5_SALT_SIZE, dk, PKCS_DERIVE_MAX);
-	} else {
-		/* Argon2id key derivation */
-
-		// Compute the memory cost (m_cost) in MiB
-		int m_cost_mib = 64 + (password->cost - 1) * 32;
-		if (m_cost_mib > 1024) // Cap the memory cost at 1024 MiB
-			m_cost_mib = 1024;
-
-		// Convert memory cost to KiB for Argon2
-		u32 memory_cost = m_cost_mib * 1024;
-
-		// Compute the time cost
-		u32 time_cost;
-		if (password->cost <= 31)
-			time_cost = 3 + ((password->cost - 1) / 3);
-		else
-			time_cost = 13 + (password->cost - 31);
-
-		// single-threaded
-		u32 parallelism = 1;
-
-		int ret = argon2id_hash_raw(time_cost, memory_cost, parallelism, password->pass, password->size, salt, PKCS5_SALT_SIZE, dk, PKCS_DERIVE_MAX, NULL);
-		if (ret != ARGON2_OK) {
-			return 0;
-		}
-	}
-	return 1;
-}
 
 int cp_decrypt_header(xts_key *hdr_key, dc_header *header, dc_pass *password)
 {
@@ -72,9 +37,9 @@ int cp_decrypt_header(xts_key *hdr_key, dc_header *header, dc_pass *password)
 	if ( (hcopy = mm_secure_alloc(sizeof(dc_header))) == NULL ) {
 		return 0;
 	}
-	
-	if (!dc_derive_key(password, header->salt, dk))
-		return 0;
+	sha512_pkcs5_2(
+		1000, password->pass, password->size, 
+		header->salt, PKCS5_SALT_SIZE, dk, PKCS_DERIVE_MAX);
 
 	for (i = 0; i < CF_CIPHERS_NUM; i++)
 	{
@@ -102,18 +67,15 @@ int cp_decrypt_header(xts_key *hdr_key, dc_header *header, dc_pass *password)
 	return succs;
 }
 
-int cp_set_header_key(xts_key *hdr_key, u8 salt[PKCS5_SALT_SIZE], int cipher, dc_pass *password)
+void cp_set_header_key(xts_key *hdr_key, u8 salt[PKCS5_SALT_SIZE], int cipher, dc_pass *password)
 {
 	u8 dkey[DISKKEY_SIZE];
 	
-	if ( !dc_derive_key(password, salt, dkey) ) {
-		return 0;
-	}
+	sha512_pkcs5_2(
+		1000, password->pass, password->size, salt, PKCS5_SALT_SIZE, dkey, PKCS_DERIVE_MAX);
 
 	xts_set_key(dkey, cipher, hdr_key);
 
 	/* prevent leaks */
 	burn(dkey, sizeof(dkey));
-
-	return 1;
 }

@@ -18,10 +18,9 @@ https://opensource.org/licenses/GPL-3.0
 #include "DcsConfigMenu.h"
 
 extern int     gKeyboardLayout;
-extern UINT8   gDCryptArgon2Cost;
 extern int     gDCryptHwCrypto;
 
-#define CFG_MENU_ITEMS  4
+#define CFG_MENU_ITEMS  3
 #define CFG_VALUE_COL   22  // column where "< value >" starts
 #define CFG_VALUE_WIDTH 10  // fixed width for the value text between < >
 
@@ -161,29 +160,21 @@ DcsConfigMenuShow(
 	items[0].ValueNames = gKbLayoutNames;
 	items[0].ValueCount = 2;
 
-	// Argon2 Cost
-	items[1].Label      = L"Argon2 Cost";
-	items[1].Min        = 0;
-	items[1].Max        = 100;
-	items[1].Value      = (INT32)gDCryptArgon2Cost;
-	items[1].ValueNames = NULL;
-	items[1].ValueCount = 0;
-
 	// Hardware Crypto
-	items[2].Label      = L"Hardware Crypto";
-	items[2].Min        = 0;
-	items[2].Max        = 1;
-	items[2].Value      = gDCryptHwCrypto ? 1 : 0;
-	items[2].ValueNames = gBoolNames;
-	items[2].ValueCount = 2;
+	items[1].Label      = L"Hardware Crypto";
+	items[1].Min        = 0;
+	items[1].Max        = 1;
+	items[1].Value      = gDCryptHwCrypto ? 1 : 0;
+	items[1].ValueNames = gBoolNames;
+	items[1].ValueCount = 2;
 
 	// Debug Mode
-	items[3].Label      = L"Debug Mode";
-	items[3].Min        = 0;
-	items[3].Max        = 1;
-	items[3].Value      = gConfigDebug ? 1 : 0;
-	items[3].ValueNames = gBoolNames;
-	items[3].ValueCount = 2;
+	items[2].Label      = L"Debug Mode";
+	items[2].Min        = 0;
+	items[2].Max        = 1;
+	items[2].Value      = gConfigDebug ? 1 : 0;
+	items[2].ValueNames = gBoolNames;
+	items[2].ValueCount = 2;
 
 	// --- Initial full draw ---
 	gST->ConOut->ClearScreen(gST->ConOut);

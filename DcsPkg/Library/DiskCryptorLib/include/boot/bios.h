@@ -25,8 +25,6 @@ typedef struct _bd_data {
 
 	u64      bd_base64;     /* boot data block base past 4GB */
 
-	int      password_cost; /* argon2 cost factor */
-
 } bd_data;
 
 #pragma pack (pop)

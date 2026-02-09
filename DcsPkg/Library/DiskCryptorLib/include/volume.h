@@ -36,7 +36,6 @@
 typedef struct _dc_pass {
 	int     size; // in bytes
 	wchar_t pass[MAX_PASSWORD];
-	int		cost;
 } dc_pass;
 
 typedef struct _dc_header {

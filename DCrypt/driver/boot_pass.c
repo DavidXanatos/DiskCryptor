@@ -111,13 +111,11 @@ int dc_try_load_bdb(PHYSICAL_ADDRESS addr)
 					//DbgMsg("boot extra %08x %08x\n", bdb->u.legacy.old_int13, bdb->u.uefi.sign3);
 					password.size = bdb->password_size;
 					RtlCopyMemory(password.pass, bdb->password_data, password.size);
-					password.cost = 0;
 					/* restore realmode interrupts */
 					if (bdb->u.legacy.old_int13 != 0)
 						dc_restore_ints(bdb);
 					else if (bdb->u.uefi.sign3 == BDB_SIGN3) {
 						dc_load_uefi_flags(bdb);
-						password.cost = bdb->u.uefi.password_cost;
 					}
 					/* add password to cache */
 					dc_add_password(&password);

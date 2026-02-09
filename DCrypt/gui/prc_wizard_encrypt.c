@@ -54,8 +54,8 @@ int combo_sel[ ] =
 int _update_layout(
 		_dnode *node,
 		int     new_layout,  /* -1 - init */
-		int    *old_layout,
-		int	   *argon2_cost
+		int    *old_layout
+
 	)
 {
 	BOOL boot_dev = _is_boot_device( &node->mnt.info );
@@ -73,7 +73,6 @@ int _update_layout(
 				return rlt;
 			}
 			conf.kbd_layout = new_layout;
-			conf.argon2_cost = argon2_cost ? *argon2_cost : 0;
 
 			if ( (rlt = dc_set_ldr_config( -1, &conf )) != ST_OK )
 			{
@@ -89,11 +88,6 @@ int _update_layout(
 		if ( old_layout )
 		{
 			*old_layout = result ? conf.kbd_layout : LDR_KB_QWERTY;
-		}
-
-		if ( argon2_cost )
-		{
-			*argon2_cost = result ? conf.argon2_cost : 0;
 		}
 		return result;
 	}
@@ -133,17 +127,6 @@ void _run_wizard_action(
 	crypt.wp_mode    = _get_combo_val( GetDlgItem(sheets[WPAGE_ENC_CONF].hwnd, IDC_COMBO_PASSES), wipe_modes );
  
 	node->dlg.rlt = ST_ERROR;
-
-	int argon2_cost = 0;
-	if (_get_check(sheets[WPAGE_ENC_PASS].hwnd, IDC_USE_ARGON2))
-	{
-		argon2_cost = GetDlgItemInt(sheets[WPAGE_ENC_PASS].hwnd, IDE_ARGON2_COST, NULL, FALSE);
-		if (argon2_cost < ARGON2_COST_MIN || argon2_cost > ARGON2_COST_MAX)
-		{
-			__msg_e(hwnd, L"Argon2 cost must be between 1 and 100");
-			return;
-		}
-	}
 
 	switch ( node->dlg.act_type )
 	{
@@ -185,9 +168,7 @@ void _run_wizard_action(
 	/////// ENCRYPT CD ////////////////////////////////////////////
 	{
 		_init_speed_stat( &node->dlg.iso.speed );
-		pass = _get_pass_keyfiles( sheets[WPAGE_ENC_PASS].hwnd, IDE_PASS, IDC_USE_KEYFILES, KEYLIST_CURRENT );
-		if ( pass )
-			pass->cost = argon2_cost;
+		pass = _get_pass_keyfiles( sheets[WPAGE_ENC_PASS].hwnd, IDE_PASS, IDC_USE_KEYFILES, KEYLIST_CURRENT );		
 
 		if ( pass )
 		{
@@ -250,7 +231,7 @@ void _run_wizard_action(
 			 ( IsWindowEnabled( GetDlgItem( sheets[WPAGE_ENC_PASS].hwnd, IDC_LAYOUTS_LIST ) ) ) 
 		   )
 		{
-			node->dlg.rlt = _update_layout( node, kb_layout, NULL, &argon2_cost);
+			node->dlg.rlt = _update_layout( node, kb_layout, NULL );
 		}
 		if ( node->dlg.rlt == ST_OK )
 		{
@@ -262,8 +243,6 @@ void _run_wizard_action(
 		/////// ENCRYPT VOLUME ////////////////////////////////////////
 			{
 				pass = _get_pass_keyfiles( sheets[WPAGE_ENC_PASS].hwnd, IDE_PASS, IDC_USE_KEYFILES, KEYLIST_CURRENT );
-				if ( pass )
-					pass->cost = argon2_cost;
 
 				if ( pass != NULL )
 				{
@@ -297,9 +276,6 @@ void _run_wizard_action(
 		/////// FORMAT VOLUME /////////////////////////////////////////
 			{
 				pass = _get_pass_keyfiles( sheets[WPAGE_ENC_PASS].hwnd, IDE_PASS, IDC_USE_KEYFILES, KEYLIST_CURRENT );
-				if ( pass )
-					pass->cost = argon2_cost;
-
 				if ( pass )
 				{
 					node->dlg.rlt = dc_start_format( node->mnt.info.device, pass, &crypt );
@@ -523,8 +499,8 @@ int _init_wizard_encrypt_pages(
 	///////////////////////////////////////////////////////////////
 	/////// VOLUME PASSWORD PAGE //////////////////////////////////
 	{
-		int kbd_layout = 0;
-		_update_layout( node, -1, &kbd_layout, NULL);
+		int kbd_layout;
+		_update_layout( node, -1, &kbd_layout );
 
 		_init_combo( GetDlgItem(hwnd, IDC_COMBO_KBLAYOUT), kb_layouts, kbd_layout, FALSE, -1 );
 		SetWindowText( GetDlgItem( hwnd, IDC_USE_KEYFILES), boot_device ? IDS_USE_KEYFILE : IDS_USE_KEYFILES );
@@ -535,13 +511,6 @@ int _init_wizard_encrypt_pages(
 
 		_sub_class( GetDlgItem(hwnd, IDC_USE_KEYFILES), SUB_STATIC_PROC, HWND_NULL );
 		_set_check( hwnd, IDC_USE_KEYFILES, FALSE );
-
-		_sub_class( GetDlgItem(hwnd, IDC_USE_ARGON2), SUB_STATIC_PROC, HWND_NULL );
-		_set_check( hwnd, IDC_USE_ARGON2, FALSE );
-		SetDlgItemInt( hwnd, IDE_ARGON2_COST, 12, FALSE );
-		SendMessage( GetDlgItem(hwnd, IDE_ARGON2_COST), EM_LIMITTEXT, 3, 0 );
-		if (boot_device && !__is_efi_boot)
-			EnableWindow( GetDlgItem(hwnd, IDC_USE_ARGON2), FALSE );
 
 		SendMessage(
 			GetDlgItem( hwnd, IDP_BREAKABLE ),
@@ -792,7 +761,7 @@ _wizard_encrypt_dlg_proc(
 			{
 				BOOL set_loader = (BOOL) (
 						( sheets[WPAGE_ENC_BOOT].show && SendMessage(GetDlgItem(sheets[WPAGE_ENC_BOOT].hwnd, IDC_COMBO_BOOT_INST), CB_GETCURSEL, 0, 0) ) ||
-						( _is_boot_device(vol) && _update_layout(node, -1, NULL, NULL) )
+						( _is_boot_device(vol) && _update_layout(node, -1, NULL) )
 					);
 
 				if ( node->dlg.act_type == ACT_REENCRYPT )

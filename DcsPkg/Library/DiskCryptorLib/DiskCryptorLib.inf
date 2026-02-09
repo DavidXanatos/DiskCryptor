@@ -56,24 +56,12 @@
   include/boot/hdd.h
   include/defines.h
   intrin.h
-  Argon2/argon2.h
-  Argon2/core.h
-  Argon2/blake2/blake2b.h
-  Argon2/blake2/blake2-impl.h
-  Argon2/blake2/blamka-round-ref.h
-  Argon2/blake2/blamka-round-opt.h
 
 [Sources.common]
   DcsConfigMenu.c
   DcsDiskCryptor.c
   dc_header.c
   dc_io.c
-  Argon2/argon2.c
-  Argon2/core.c
-  Argon2/ref.c
-  Argon2/opt_sse2.c
-  Argon2/opt_avx2.c
-  Argon2/blake2/blake2b.c
 
 # Note: we use the small code for legacy 32 bit implementation
 

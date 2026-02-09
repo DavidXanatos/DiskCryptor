@@ -694,9 +694,7 @@ int dc_encrypt_start(wchar_t *dev_name, dc_pass *password, crypt_info *crypt, BO
 		xts_set_key(header->key_1, crypt->cipher_id, hook->dsk_key);
 		
 		// initialize header key
-		if ( !cp_set_header_key(hdr_key, header->salt, crypt->cipher_id, password) ) {
-			resl = ST_INVALID_PARAM; break;
-		}
+		cp_set_header_key(hdr_key, header->salt, crypt->cipher_id, password);
 		
 		hook->crypt          = crypt[0];
 		hook->use_size       = hook->dsk_size;
@@ -793,10 +791,7 @@ int dc_reencrypt_start(wchar_t *dev_name, dc_pass *password, crypt_info *crypt)
 		header->hdr_crc = crc32((const unsigned char*)&header->version, DC_CRC_AREA_SIZE);
 
 		/* initialize new header key */
-		if ( !cp_set_header_key(hdr_key, header->salt, header->alg_1, password) ) {
-			resl = ST_INVALID_PARAM; break;
-		}
-
+		cp_set_header_key(hdr_key, header->salt, header->alg_1, password);
 		/* initialize new volume key */
 		xts_set_key(header->key_1, header->alg_1, dsk_key);
 

@@ -188,12 +188,6 @@ int _init_boot_config(
 		_init_combo(
 			GetDlgItem(wnd->dlg[0], IDC_COMBO_KBLAYOUT), kb_layouts, conf->kbd_layout, FALSE, -1
 			);
-
-		_sub_class( GetDlgItem(wnd->dlg[0], IDC_USE_ARGON2), SUB_STATIC_PROC, HWND_NULL );
-		_set_check( wnd->dlg[0], IDC_USE_ARGON2, conf->argon2_cost > 0 );
-		SetDlgItemInt( wnd->dlg[0], IDE_ARGON2_COST, conf->argon2_cost > 0 ? conf->argon2_cost : 12, FALSE );
-		SendMessage( GetDlgItem(wnd->dlg[0], IDE_ARGON2_COST), EM_LIMITTEXT, 3, 0 );
-		EnableWindow( GetDlgItem(wnd->dlg[0], IDE_ARGON2_COST), conf->argon2_cost > 0 );
 	}
 	///////////////////////////////////////////////////////////////
 	/////// AUTHENTICATION PAGE ///////////////////////////////////
@@ -365,19 +359,6 @@ int _save_boot_config(
 		set_flag(conf->logon_type, LDR_LT_PIC_PASS, use_osk);
 
 		conf->kbd_layout = _get_combo_val( GetDlgItem( wnd->dlg[0], IDC_COMBO_KBLAYOUT ), kb_layouts );
-
-		if (_get_check(wnd->dlg[0], IDC_USE_ARGON2))
-		{
-			int argon2_cost = GetDlgItemInt(wnd->dlg[0], IDE_ARGON2_COST, NULL, FALSE);
-			if (argon2_cost < ARGON2_COST_MIN || argon2_cost > ARGON2_COST_MAX)
-			{
-				__msg_e(hwnd, L"Argon2 cost must be between 1 and 100");
-				return ST_ERROR;
-			}
-			conf->argon2_cost = argon2_cost;
-		} else {
-			conf->argon2_cost = 0;
-		}
 	}
 	///////////////////////////////////////////////////////////////
 	/////// AUTHENTICATION PAGE ///////////////////////////////////

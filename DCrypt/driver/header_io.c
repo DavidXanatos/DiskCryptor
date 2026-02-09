@@ -108,9 +108,7 @@ int io_write_header(dev_hook *hook, dc_header *header, xts_key *hdr_key, dc_pass
 			/* copy salt to header */
 			memcpy(hcopy->salt, salt, PKCS5_SALT_SIZE);
 			/* init new header key */
-			if ( !cp_set_header_key(h_key, salt, header->alg_1, password) )		{
-				resl = ST_INVALID_PARAM; break;
-			}
+			cp_set_header_key(h_key, salt, header->alg_1, password);
 		} else {
 			/* save original salt */
 			memcpy(salt, header->salt, PKCS5_SALT_SIZE);

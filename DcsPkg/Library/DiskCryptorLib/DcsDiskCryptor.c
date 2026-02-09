@@ -177,7 +177,6 @@ EFI_STATUS SetBootDataBlock()
 	// set password
 	bootDataBlock->password_size = gDCryptPassword.size; // in bytes
 	CopyMem(bootDataBlock->password_data, gDCryptPassword.pass, bootDataBlock->password_size);
-	bootDataBlock->password_cost = gDCryptPassword.cost;
 
 	// set additional data
 	bootDataBlock->flags = gDCryptFlags;
@@ -826,7 +825,6 @@ int gDCryptTouchInput = 0;
 UINT8 gDCryptAutoLogin = 0;
 CHAR16* gDCryptAutoPassword = L"\0";
 CHAR16*	gDCryptKeyFilePath = L"\0";
-UINT8 gDCryptArgon2Cost = 0;
 
 char* gDCryptPasswordMsg = NULL;
 char* gDCryptStartMsg = NULL;
@@ -841,8 +839,6 @@ VOID DCAuthLoadConfig()
 		// QWERTZ	1
 		// AZERTY	2
 	gKeyboardLayout = ConfigReadInt("KeyboardLayout", 0);
-
-	gDCryptArgon2Cost = (UINT8)ConfigReadInt("Argon2Cost", 0);
 
 	// Booting Method
 		// First disk MBR								// BT_MBR_FIRST    2
@@ -999,7 +995,6 @@ VOID DCAskPwd(IN UINTN pwdType, OUT dc_pass* dcPwd)
 					}
 				} while (gDCryptPwdCode == AskPwdRetSetParams || gDCryptPwdCode == AskPwdRetHelp);
 			}
-			dcPwd->cost = gDCryptArgon2Cost;
 
 			if ((gDCryptPwdCode == AskPwdRetCancel) || (gDCryptPwdCode == AskPwdRetTimeout)) {
 				return;

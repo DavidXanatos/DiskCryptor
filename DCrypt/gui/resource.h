@@ -349,10 +349,6 @@
 #define IDC_CNT_GOODMSG                 1224
 #define IDC_CNT_AUTOMSG                 1225
 #define IDC_BT_USE_OSK                  1226
-#define IDC_USE_ARGON2                  1227
-#define IDE_ARGON2_COST                 1228
-#define IDC_USE_ARGON2_CURRENT          1229
-#define IDE_ARGON2_COST_CURRENT         1230
 #define ID_FILE_EXIT                    40001
 #define ID_VOLUMES_ENCRYPT              40002
 #define ID_VOLUMES_DECRYPT              40003
@@ -439,7 +435,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        177
 #define _APS_NEXT_COMMAND_VALUE         40079
-#define _APS_NEXT_CONTROL_VALUE         1231
+#define _APS_NEXT_CONTROL_VALUE         1219
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

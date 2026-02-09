@@ -78,11 +78,9 @@ static void print_usage(int subject)
 		L" -mount [dev] [param]            Mount encrypted device\n"
 		L"    -mp [mount point]            Add volume mount point\n"
 		L"    -p  [password]               Get password from command line\n"
-		L"    -c  [argon2id cost]          Argon2id factor cost 1-100\n"
 		L"    -kf [keyfiles path]          Use keyfiles\n"
 		L" -mountall [param]               Mount all encrypted devices\n"
 		L"    -p  [password]               Get password from command line\n"
-		L"    -c  [argon2id cost]          Argon2id factor cost 1-100\n"
 		L"    -kf [keyfiles path]          Use keyfiles\n"
 		L" -unmount [dev] [param]          Unmount encrypted device\n"
 		L"    -f                           Force unmount and close all opened files\n"
@@ -92,7 +90,6 @@ static void print_usage(int subject)
 		L"\n"
 		L" -encrypt [dev] [param]          Encrypt volume device\n"
 		L"    -p  [password]               Get password from command line\n"
-		L"    -c  [argon2id cost]          Argon2id factor cost 1-100\n"
 		L"    -kf [keyfiles path]          Use keyfiles\n"
 		L"             ======  Cipher settings:   ======\n"
 		L"    -a                           AES cipher\n"
@@ -109,7 +106,6 @@ static void print_usage(int subject)
 		L" -encrypt2                       Start prepared system volume encryption\n"
 		L" -decrypt [dev] [param]          Decrypt volume device\n"
 		L"    -p  [password]               Get password from command line\n"
-		L"    -c  [argon2id cost]          Argon2id factor cost 1-100\n"
 		L"    -kf [keyfiles path]          Use keyfiles\n"
 		L" -reencrypt [dev] [param]        Re-encrypt device with new parameters,\n"
 		L"                                 parameters are equal to -encrypt\n"
@@ -129,18 +125,14 @@ static void print_usage(int subject)
 		L"\n"
 		L" -chpass [dev] [param]           Change volume password\n"
 		L"    -op  [password]              Get old password from command line\n"
-		L"    -oc  [argon2id cost]         Old Argon2id factor cost 1-100\n"
 		L"    -np  [password]              Get new password from command line\n"
-		L"    -nc  [argon2id cost]         New Argon2id factor cost 1-100\n"
 		L"    -okf [keyfiles path]         Old keyfiles\n"
 		L"    -nkf [keyfiles path]         New keyfiles\n"
 		L" -backup [dev] [file] [param]    Backup volume header to file\n"
 		L"    -p  [password]               Get password from command line\n"
-		L"    -c  [argon2id cost]          Argon2id factor cost 1-100\n"
 		L"    -kf [keyfiles path]          Use keyfiles\n"
 		L" -restore [dev] [file] [param]   Restore volume header from file\n"
 		L"    -p  [password]               Get password from command line\n"
-		L"    -c  [argon2id cost]          Argon2id factor cost 1-100\n"
 		L"    -kf [keyfiles path]          Use keyfiles\n"
 		L"________________________________________________________________________________\n"
 		L"\n");
@@ -729,7 +721,7 @@ int dc_set_efi_boot_interactive(int d_num, int add_bme, int shim)
 
 static 
 dc_pass* dc_load_pass_and_keyfiles(
-		   wchar_t *p_param, wchar_t *c_param, wchar_t *kf_param, wchar_t *gp_msg, int confirm
+		   wchar_t *p_param, wchar_t *kf_param, wchar_t *gp_msg, int confirm
 		   )
 {
 	dc_pass *pass;
@@ -742,10 +734,8 @@ dc_pass* dc_load_pass_and_keyfiles(
 		clean_cmd_line();
 		return NULL;
 	}
-	pass->cost = 0;
 
 	if (p_param == NULL)  p_param = L"-p";
-	if (c_param == NULL)  c_param = L"-c";
 	if (kf_param == NULL) kf_param = L"-kf";
 	if (gp_msg == NULL)   gp_msg = L"Enter password: ";
 	
@@ -762,16 +752,6 @@ dc_pass* dc_load_pass_and_keyfiles(
 		if (dc_get_password(confirm, pass) == 0) {
 			secure_free(pass); clean_cmd_line();
 			return NULL;
-		}
-	}
-
-	if (cmde = get_param(c_param))
-	{
-		pass->cost = _wtoi(cmde);
-		if( (pass->cost < 0) || (pass->cost > 100) ) {
-			wprintf(L"Argon2id cost must be between 1 and 100\n");
-			secure_free(pass); pass = NULL;
-			clean = 1;
 		}
 	}
 
@@ -1073,7 +1053,7 @@ int wmain(int argc, wchar_t *argv[])
 				resl = ST_OK; break;
 			}
 
-			pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, NULL, 0);
+			pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, 0);
 			mp_c = get_param(L"-mp");
 
 			if (pass == NULL) {
@@ -1119,7 +1099,7 @@ int wmain(int argc, wchar_t *argv[])
 			dc_pass *pass;
 			int      n_mount;
 
-			pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, NULL, 0);
+			pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, 0);
 			resl = dc_mount_all(pass, &n_mount, 0);
 
 			if (resl == ST_OK) {
@@ -1196,7 +1176,7 @@ int wmain(int argc, wchar_t *argv[])
 		{
 			dc_pass *pass;
 
-			pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, NULL, 0);
+			pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, 0);
 
 			if (pass == NULL) {
 				resl = ST_OK; break;
@@ -1297,7 +1277,7 @@ int wmain(int argc, wchar_t *argv[])
 				}				
 			}
 
-			pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, NULL, 1);
+			pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, 1);
 
 			if (pass == NULL) {
 				resl = ST_OK; break;
@@ -1412,7 +1392,7 @@ int wmain(int argc, wchar_t *argv[])
 					    L"'Deny access to unencrypted HDDs' option is enabled.\n");
 				resl = ST_OK; break;
 			}
-			pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, NULL, 0);
+			pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, 0);
 
 			if (pass == NULL) {
 				resl = ST_OK; break;
@@ -1463,7 +1443,7 @@ int wmain(int argc, wchar_t *argv[])
 				}
 			}
 
-			pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, NULL, 0);
+			pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, 0);
 
 			if (pass == NULL) {
 				resl = ST_OK; break;
@@ -1511,14 +1491,14 @@ int wmain(int argc, wchar_t *argv[])
 			do
 			{
 				old_p = dc_load_pass_and_keyfiles(
-					L"-op", L"-oc", L"-okf", L"Enter old password: ", 0);
+					L"-op", L"-okf", L"Enter old password: ", 0);
 
 				if (old_p == NULL) {
 					resl = ST_OK; break;
 				}
 
 				new_p = dc_load_pass_and_keyfiles(
-					L"-np", L"-nc", L"-nkf", L"Enter new password: ", 1);
+					L"-np", L"-nkf", L"Enter new password: ", 1);
 
 				if (new_p == NULL) {
 					resl = ST_OK; break;
@@ -1563,7 +1543,7 @@ int wmain(int argc, wchar_t *argv[])
 					resl = ST_OK; break;
 				}
 
-				pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, NULL, 1);
+				pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, 1);
 
 				if (pass == NULL) {
 					resl = ST_OK; break;
@@ -1646,7 +1626,7 @@ int wmain(int argc, wchar_t *argv[])
 				resl = ST_OK; break;
 			}
 
-			pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, NULL, 0);
+			pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, 0);
 
 			if (pass == NULL) {
 				resl = ST_OK; break;
@@ -1690,7 +1670,7 @@ int wmain(int argc, wchar_t *argv[])
 					resl = ST_NOT_BACKUP; break;
 				}
 
-				pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, NULL, 0);
+				pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, 0);
 
 				if (pass == NULL) {
 					resl = ST_OK; break;
@@ -1814,7 +1794,7 @@ int wmain(int argc, wchar_t *argv[])
 			crypt.cipher_id = CF_AES;
 			get_crypt_info(&crypt);
 
-			pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, NULL, 1);
+			pass = dc_load_pass_and_keyfiles(NULL, NULL, NULL, 1);
 
 			if (pass == NULL) {
 				resl = ST_OK; break;

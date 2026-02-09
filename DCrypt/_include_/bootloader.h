@@ -91,9 +91,8 @@ typedef struct _ldr_config {
 	unsigned char emb_key[64];   // key in the bootloader
 	char ago_msg[128];           // message text of the authorization started
 	char aok_msg[128];           // message text of the authorization successful
-	long argon2_cost;            // argon2 cost factor for password hashing in bootloader
-	
-	char reserved[2978];         // 4k total
+
+	char reserved[2982];         // 4k total
 } ldr_config;
 
 static_assert(sizeof(ldr_config) == 4096, "ldr_config size should be 4096 bytes");
@@ -200,9 +199,6 @@ typedef struct _bd_data {
 			long flags;
 
 			unsigned __int64 bd_base64;
-
-			int password_cost; // argon2 cost factor
-
 		} uefi;
 
 	} u;
