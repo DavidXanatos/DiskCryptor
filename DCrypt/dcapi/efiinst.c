@@ -119,7 +119,7 @@ static const efi_file_t shim_files[] = {
 	{L"DcsLdr.efi",			L"\\EFI\\Boot\\DcsLdr.efi"}, // loader
 };
 static const wchar_t* shim_boot_file = L"\\EFI\\Boot\\grubia32.efi";
-#elifdef _M_ARM64
+#elif defined(_M_ARM64)
 static const wchar_t* shim_zip_file = L"Shim_AA64";
 static const efi_file_t shim_files[] = {
 	{L"shimaa64.efi",		L"\\EFI\\Boot\\shimaa64.efi"}, // shim
