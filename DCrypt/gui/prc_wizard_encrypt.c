@@ -428,7 +428,7 @@ int _init_wizard_encrypt_pages(
 
 		if( __is_efi_boot )
 		{
-			if (dc_efi_is_secureboot() && !dc_efi_dcs_is_signed())
+			if (boot_device && dc_efi_is_secureboot() && !dc_efi_dcs_is_signed())
 			{
 				SendMessage(GetDlgItem(hwnd, IDC_WIZ_CONF_WARNING), (UINT)WM_SETFONT, (WPARAM)__font_bold, 0);
 
