@@ -1,7 +1,4 @@
-[*.02.2026] - 1.4.1/851.118.207
-  [+] added Argon2id key derivation option
-
-[*.02.2026] - 1.4.1/850.118.206
+[09.02.2026] - 1.4.1/850.118.206
   [+] added -mkefipxe and -mkefiiso commands to dccon to create EFI bootable PXE images and ISO files
   [+] added -efi menu to list get and set EFI variables
   [*] moved -sb_info from -boot to -efi
